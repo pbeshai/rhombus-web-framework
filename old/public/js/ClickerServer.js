@@ -6,13 +6,13 @@ var ClickerServer = (function () {
 
   var socket
   , socketEvents = { // events we send across the websocket
-		  connect: "connect-clicker-server",
-		  disconnect: "disconnect-clicker-server",
-		  clickData: "click-data",
-		  enableClicks: "enable-clicks",
-		  disableClicks: "disable-clicks",
+		  connect: "connect-participant-server",
+		  disconnect: "disconnect-participant-server",
+		  clickData: "choice-data",
+		  enableClicks: "enable-choices",
+		  disableClicks: "disable-choices",
 		  status: "status",
-			webClick: "web-click"
+			webClick: "submit-choice"
 		}
 	, config = {
 			websocketUrl: "http://localhost",
@@ -25,6 +25,7 @@ var ClickerServer = (function () {
 			enableClicks: "enable-clicks",
 			disableClicks: "disable-clicks",
 			status: "status"
+			// custom web socket events
 		}
 	, eventHandler = null;
 

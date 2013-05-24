@@ -8,30 +8,20 @@ module.exports = {
 
 // Module dependencies
 var net = require('net')
-  , proxy = require('nodeproxy')
-
-// configuration
-
-var config = {
-  clickerServer: {
-    port: 4444,
-    host: 'localhost',
-    encoding: 'utf8'
-  },
-  commandRegExp: /\[([ -\w]+)\]\n/,
-  errorRegExp: /\[error:([ -\w]+)\]\n/
-};
+  , _ = require('lodash'),
+  participantServers = require("./participant_servers").serverMap;
 
 // custom web socket events
 var events = {
-  connectClicker: "connect-clicker-server",
-  disconnectClicker: "disconnect-clicker-server",
-  clickData: "click-data", // for sending click data to client
-  enableClicks: "enable-clicks",
-  disableClicks: "disable-clicks",
+  connectServer: "connect-participant-server",
+  disconnectServer: "disconnect-participant-server",
+  choiceData: "choice-data", // for sending choice data to client
+  enableChoices: "enable-choices",
+  disableChoices: "disable-choices",
   status: "status",
-  webClick: "web-click" // for submitting clicks from a web clicker
+  submitChoice: "submit-choice" // for submitting choices from a web participant
 };
+
 
 function init(io) {
   console.log("initialized websocket handler");
@@ -39,169 +29,145 @@ function init(io) {
 }
 
 // event handler for connection made to web socket
-function webSocketConnection(socket) {
+function webSocketConnection(webSocket) {
   console.log("[websocket connected]");
-  var handler = Object.create(ClickerHandler);
-  handler.init(socket);
+  var handler = Object.create(WebSocketHandler);
+  handler.initialize(webSocket);
 }
 
-var ClickerHandler = {
-  socket: null,
-  clickerServer: null,
+var WebSocketHandler = {
+  webSocket: null,
+  participantServer: null,
 
   // initialize the handler (typically when a websocket connects)
-  init: function (socket) {
-    this.socket = socket;
-    socket.on(events.connectClicker, proxy(this.clickerServerConnect, this));
-    socket.on(events.disconnectClicker, proxy(this.clickerServerDisconnect, this));
-    socket.on(events.enableClicks, proxy(this.enableClicks, this));
-    socket.on(events.disableClicks, proxy(this.disableClicks, this));
-    socket.on(events.status, proxy(this.clickerServerStatus, this));
-    socket.on(events.webClick, proxy(this.webClick, this));
-    socket.on("disconnect", proxy(this.webSocketDisconnect, this));
+  initialize: function (webSocket) {
+    _.bindAll(this, "serverConnect", "serverDisconnect", "enableChoices",
+      "disableChoices", "serverStatus", "webChoice", "webSocketDisconnect");
+
+    this.webSocket = webSocket; // the websocket
+    this.participantServer = participantServers["clicker1"]; // currently always use clicker1 as the server
+
+    webSocket.on(events.connectServer, this.serverConnect);
+    webSocket.on(events.disconnectServer, this.serverDisconnect);
+    webSocket.on(events.enableChoices, this.enableChoices);
+    webSocket.on(events.disableChoices, this.disableChoices);
+    webSocket.on(events.status, this.serverStatus);
+    webSocket.on(events.submitChoice, this.submitChoice);
+    webSocket.on("disconnect", this.webSocketDisconnect);
   },
 
-  // connect to clicker server
-  clickerServerConnect: function (data) {
-    console.log("[connect clicker server]", this.clickerServer == null);
+  // connect to participant server
+  serverConnect: function (data) {
+    console.log("[connect participant server]", this.participantServer.socket == null);
 
-    if (this.clickerServer == null) {
-      var socket = this.socket;
+    if (this.participantServer.socket == null) {
+      var webSocket = this.webSocket;
       var that = this;
-      this.clickerServer = net.createConnection(config.clickerServer.port, config.clickerServer.host,
+
+      // connect via socket to participant server and get status on connection
+      this.participantServer.socket = net.createConnection(this.participantServer.port, this.participantServer.host,
         function () {
-          console.log("successfully connected to clicker server");
-          socket.emit(events.connectClicker, true);
-          that.clickerServerStatus();
+          console.log("successfully connected to participant server");
+          webSocket.emit(events.connectServer, true);
+          that.participantServerStatus();
       });
-      var clickerServer = this.clickerServer;
+      var participantServer = this.participantServer;
+      participantServer.socket.setEncoding(this.participantServer.encoding);
 
-      clickerServer.setEncoding(config.clickerServer.encoding);
-
-      clickerServer.on("error", function (error) {
-        console.log("Error with clicker server: "+error.code+ " when trying to "+error.syscall);
-        socket.emit(events.connectClicker, false);
-        clickerServer.destroy();
-        clickerServer = null;
+      // error handler
+      participantServer.socket.on("error", function (error) {
+        console.log("Error with participant server: "+error.code+ " when trying to "+error.syscall);
+        webSocket.emit(events.connectServer, false);
+        participantServer.socket.destroy();
+        participantServer.socket = null;
       });
 
-      clickerServer.on("data", proxy(this.dataReceived, this));
+      // attach handler for when data is sent across socket
+      participantServer.socket.on("data", _.bind(this.dataReceived, this));
     } else {
-      this.socket.emit(events.connectClicker, false);
+      this.webSocket.emit(events.connectServer, false);
     }
   },
 
-  // disconnect from clicker server
-  clickerServerDisconnect: function (data) {
-    console.log("[disconnect clicker server] ", this.clickerServer != null);
+  // disconnect from participant server
+  serverDisconnect: function (data) {
+    console.log("[disconnect participant server] ", this.participantServer.socket != null);
 
-    if (this.clickerServer != null) {
-      this.clickerServer.destroy();
-      this.clickerServer = null;
+    if (this.participantServer.socket != null) {
+      this.participantServer.socket.destroy();
+      this.participantServer.socket = null;
     }
 
     // indicate we have disconnected.
-    this.socket.emit(events.disconnectClicker, true);
-  },
-
-  // tell clicker server to start voting
-  enableClicks: function () {
-    console.log("[enable clicks] ", this.clickerServer != null);
-    if (this.clickerServer != null) {
-      this.clickerServer.write("vote start\n");
-    }
-  },
-
-  // tell clicker server to stop voting
-  disableClicks: function () {
-    console.log("[disable clicks] ", this.clickerServer != null);
-    if (this.clickerServer != null) {
-      this.clickerServer.write("vote stop\n");
-    }
-  },
-
-  // get the status of the clicker server
-  clickerServerStatus: function () {
-    console.log("[status] ", this.clickerServer != null)
-    if (this.clickerServer != null) {
-      this.clickerServer.write("status\n");
-    }
+    this.webSocket.emit(events.disconnectServer, true);
   },
 
   // event handler when websocket disconnects
   webSocketDisconnect: function () {
     console.log("[websocket disconnected]");
-    this.clickerServerDisconnect();
+    // TODO: shouldn't do this if other sockets are still connected.
+    this.serverDisconnect();
   },
 
-  webClick: function (data) {
-    console.log("[click]", this.clickerServer != null);
-    if (this.clickerServer != null) {
-      this.clickerServer.write("click|"+data+"\n");
+  // generic server command function
+  serverCommand: function (command, args) {
+    console.log("[" + command + "] ", this.participantServer.socket != null);
+
+    if (this.participantServer.socket != null) {
+      var serverCommand = this.participantServer.commands[command] // can be string or function
+      if (_.isFunction(serverCommand)) { // if function, evaluate to string
+        serverCommand = serverCommand.apply(this, args);
+      }
+
+      // output across socket
+      this.participantServer.socket.write(serverCommand + "\n");
     }
   },
 
-  // event handler when clicks are received
-  clicksReceived: function (data) {
-    console.log("[clicks received]");
-    this.socket.emit(events.clickData, { clicks: data });
+  // tell participant server to start voting
+  enableChoices: function () {
+    this.serverCommand("enableChoices");
+  },
+
+  // tell participant server to stop voting
+  disableChoices: function () {
+    this.serverCommand("disableChoices");
+  },
+
+  // get the status of the participant server
+  participantServerStatus: function () {
+    this.serverCommand("status");
+  },
+
+  submitChoice: function (data) {
+    this.serverCommand("submitChoice", data);
+  },
+
+  // event handler when choices are received
+  choicesReceived: function (data) {
+    console.log("[choices received]");
+    this.webSocket.emit(events.choiceData, { choices: data });
   },
 
   dataReceived: function (data) {
     console.log("[data received]", data);
 
-    if (data === null) {
+    var result = this.participantServer.parseData(data);
+    console.log("parsed result is: ", result);
+    // garbage data?
+    if (result == null) {
       return;
     }
 
-    if (data[0] !== "[") {
-      return this.clicksReceived(data);
-    }
-
-    // not clicks, so either error or command response
-    var error = config.errorRegExp.exec(data);
-    if (error !== null) { // an error occurred
-      var command = error[1];
-      if (command === "vote start") {
-        this.socket.emit(events.enableClicks, false);
-      } else if (command === "vote stop") {
-        this.socket.emit(events.disableClicks, false);
-      } else if (command === "status") {
-        this.socket.emit(events.status, false);
+    // did an error occur?
+    if (result.error) {
+      if (result.command) {
+        this.webSocket.emit(events[result.command], { error: true, data: result.data });
       }
-      return;
-    }
-
-    // not error, so must be a command or garbage.
-
-    // handle command response
-    var command = config.commandRegExp.exec(data);
-    console.log("command is ", command)
-    if (command !== null) { // then command = ["[status]\n","status"]
-      command = command[1];
-
-      // status response
-      if (command === "status") {
-        var statusRegExp = /(\w+): ([ \w]+)/g;
-        // format is Time, Instructor, Accepting Votes, #Clients
-
-        var status = {
-          time: statusRegExp.exec(data)[2],
-          instructorId: statusRegExp.exec(data)[2],
-          acceptingVotes: statusRegExp.exec(data)[2] === "true",
-          numClients: parseInt(statusRegExp.exec(data)[2])
-        };
-
-        this.socket.emit(events.status, status)
-      }
-      // enable clicks response
-      else if (command === "vote start") {
-        this.socket.emit(events.enableClicks, true);
-      }
-      // disable clicks response
-      else if (command === "vote stop") {
-        this.socket.emit(events.disableClicks, true);
-      }
+    } else if (result.command) {   // is it a command callback?
+      this.webSocket.emit(events[result.command], result.data);
+    } else { // must have been choices.
+      this.choicesReceived(result.data);
     }
   }
 };
