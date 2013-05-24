@@ -1,0 +1,15 @@
+{
+  "name": "clickers",
+  "description": "clickers testing",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "socket.io": "0.9.14",
+    "express": "3.2.4",
+    "less-middleware": "*",
+    "nodeproxy": "1.0.0"
+  }
+}
