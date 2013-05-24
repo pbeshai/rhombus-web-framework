@@ -8,6 +8,7 @@ var ParticipantServer = {
   host: "localhost",
   commandRegExp: /\[([ -\w]+)\]\n/,
   errorRegExp: /\[error:([ -\w]+)\]\n/,
+  clients: 0, // keep track of number of clients to know if we should close socket to server
   commands: {
   /*  enableChoices: "",
     disableChoices: "",

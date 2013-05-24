@@ -46,6 +46,7 @@ var WebSocketHandler = {
 
     this.webSocket = webSocket; // the websocket
     this.participantServer = participantServers["clicker1"]; // currently always use clicker1 as the server
+    this.participantServer.clients += 1;
 
     webSocket.on(events.connectServer, this.serverConnect);
     webSocket.on(events.disconnectServer, this.serverDisconnect);
@@ -85,7 +86,7 @@ var WebSocketHandler = {
       // attach handler for when data is sent across socket
       participantServer.socket.on("data", _.bind(this.dataReceived, this));
     } else {
-      this.webSocket.emit(events.connectServer, false);
+      this.webSocket.emit(events.connectServer, true);
     }
   },
 
@@ -106,12 +107,18 @@ var WebSocketHandler = {
   webSocketDisconnect: function () {
     console.log("[websocket disconnected]");
     // TODO: shouldn't do this if other sockets are still connected.
-    this.serverDisconnect();
+    this.participantServer.clients -= 1;
+    if (this.participantServer.clients === 0) {
+      this.serverDisconnect();
+    }
+
   },
 
   // generic server command function
   serverCommand: function (command, args) {
     console.log("[" + command + "] ", this.participantServer.socket != null);
+
+    // TODO: what if socket is null?
 
     if (this.participantServer.socket != null) {
       var serverCommand = this.participantServer.commands[command] // can be string or function
