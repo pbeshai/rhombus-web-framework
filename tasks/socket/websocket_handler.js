@@ -7,8 +7,8 @@ module.exports = {
 };
 
 // Module dependencies
-var net = require('net')
-  , _ = require('lodash'),
+var net = require('net'),
+  _ = require('lodash'),
   participantServers = require("./participant_servers").serverMap;
 
 // custom web socket events
@@ -38,7 +38,7 @@ function webSocketConnection(webSocket) {
 var WebSocketHandler = {
   webSocket: null,
   participantServer: null,
-
+  eventsBound: false, // true if we have already bound an event listener on the participantServer
   // initialize the handler (typically when a websocket connects)
   initialize: function (webSocket) {
     _.bindAll(this, "serverConnect", "serverDisconnect", "enableChoices",
@@ -46,6 +46,9 @@ var WebSocketHandler = {
 
     this.webSocket = webSocket; // the websocket
     this.participantServer = participantServers["clicker1"]; // currently always use clicker1 as the server
+
+    // auto connect
+    this.serverConnect();
 
     webSocket.on(events.connectServer, this.serverConnect);
     webSocket.on(events.disconnectServer, this.serverDisconnect);
@@ -80,12 +83,21 @@ var WebSocketHandler = {
         webSocket.emit(events.connectServer, false);
         participantServer.socket.destroy();
         participantServer.socket = null;
+        this.eventsBound = false;
       });
 
       // attach handler for when data is sent across socket
       participantServer.socket.on("data", _.bind(this.dataReceived, this));
+      this.eventsBound = true;
+    } else if (!this.eventsBound) {
+      // attach handler for when data is sent across socket
+      participantServer.socket.on("data", _.bind(this.dataReceived, this));
+      this.eventsBound = true;
+
+      this.webSocket.emit(events.connectServer, true);
     } else {
-      this.webSocket.emit(events.connectServer, false);
+      // already connected
+      this.webSocket.emit(events.connectServer, true);
     }
   },
 
@@ -96,6 +108,7 @@ var WebSocketHandler = {
     if (this.participantServer.socket != null) {
       this.participantServer.socket.destroy();
       this.participantServer.socket = null;
+      this.eventsBound = false;
     }
 
     // indicate we have disconnected.
@@ -143,7 +156,8 @@ var WebSocketHandler = {
     this.serverCommand("submitChoice", data);
   },
 
-  // event handler when choices are received
+  // event handler when choices are received. data of the form "<ID>:<Choice> ..."
+  // e.g., "174132:A" or "174132:A 832185:B 321896:E"
   choicesReceived: function (data) {
     console.log("[choices received]");
     this.webSocket.emit(events.choiceData, { choices: data });

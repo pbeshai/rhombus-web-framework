@@ -1,6 +1,7 @@
 /**
  * @license
- * Lo-Dash 1.2.1 <http://lodash.com/>
+ * Lo-Dash 1.2.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash -o ./dist/lodash.compat.js`
  * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.4.4 <http://underscorejs.org/>
  * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
@@ -479,101 +480,93 @@
      * @param {Object} data The data object used to populate the text.
      * @returns {String} Returns the interpolated text.
      */
-    var iteratorTemplate = template(
-      // the `iterable` may be reassigned by the `top` snippet
-      'var index, iterable = <%= firstArg %>, ' +
-      // assign the `result` variable an initial value
-      'result = <%= init %>;\n' +
-      // exit early if the first argument is falsey
-      'if (!iterable) return result;\n' +
-      // add code before the iteration branches
-      '<%= top %>;\n' +
+    var iteratorTemplate = function(obj) {
 
-      // array-like iteration:
-      '<% if (arrays) { %>' +
-      'var length = iterable.length; index = -1;\n' +
-      'if (<%= arrays %>) {' +
+      var __p = 'var index, iterable = ' +
+      (obj.firstArg) +
+      ', result = ' +
+      (obj.init) +
+      ';\nif (!iterable) return result;\n' +
+      (obj.top) +
+      ';\n';
+       if (obj.arrays) {
+      __p += 'var length = iterable.length; index = -1;\nif (' +
+      (obj.arrays) +
+      ') {  ';
+       if (support.unindexedChars) {
+      __p += '\n  if (isString(iterable)) {\n    iterable = iterable.split(\'\')\n  }  ';
+       }
+      __p += '\n  while (++index < length) {\n    ' +
+      (obj.loop) +
+      '\n  }\n}\nelse {  ';
+        } else if (support.nonEnumArgs) {
+      __p += '\n  var length = iterable.length; index = -1;\n  if (length && isArguments(iterable)) {\n    while (++index < length) {\n      index += \'\';\n      ' +
+      (obj.loop) +
+      '\n    }\n  } else {  ';
+       }
 
-      // add support for accessing string characters by index if needed
-      '  <% if (support.unindexedChars) { %>\n' +
-      '  if (isString(iterable)) {\n' +
-      "    iterable = iterable.split('')\n" +
-      '  }' +
-      '  <% } %>\n' +
+       if (support.enumPrototypes) {
+      __p += '\n  var skipProto = typeof iterable == \'function\';\n  ';
+       }
 
-      // iterate over the array-like value
-      '  while (++index < length) {\n' +
-      '    <%= loop %>\n' +
-      '  }\n' +
-      '}\n' +
-      'else {' +
+       if (obj.useHas && obj.useKeys) {
+      __p += '\n  var ownIndex = -1,\n      ownProps = objectTypes[typeof iterable] ? keys(iterable) : [],\n      length = ownProps.length;\n\n  while (++ownIndex < length) {\n    index = ownProps[ownIndex];\n    ';
+       if (support.enumPrototypes) {
+      __p += 'if (!(skipProto && index == \'prototype\')) {\n  ';
+       }
+      __p += 
+      (obj.loop);
+       if (support.enumPrototypes) {
+      __p += '}\n';
+       }
+      __p += '  }  ';
+       } else {
+      __p += '\n  for (index in iterable) {';
+          if (support.enumPrototypes || obj.useHas) {
+      __p += '\n    if (';
+            if (support.enumPrototypes) {
+      __p += '!(skipProto && index == \'prototype\')';
+       }      if (support.enumPrototypes && obj.useHas) {
+      __p += ' && ';
+       }      if (obj.useHas) {
+      __p += 'hasOwnProperty.call(iterable, index)';
+       }
+      __p += ') {    ';
+       }
+      __p += 
+      (obj.loop) +
+      ';    ';
+       if (support.enumPrototypes || obj.useHas) {
+      __p += '\n    }';
+       }
+      __p += '\n  }    ';
+       if (support.nonEnumShadows) {
+      __p += '\n\n  var ctor = iterable.constructor;\n      ';
+       for (var k = 0; k < 7; k++) {
+      __p += '\n  index = \'' +
+      (obj.shadowedProps[k]) +
+      '\';\n  if (';
+            if (obj.shadowedProps[k] == 'constructor') {
+      __p += '!(ctor && ctor.prototype === iterable) && ';
+            }
+      __p += 'hasOwnProperty.call(iterable, index)) {\n    ' +
+      (obj.loop) +
+      '\n  }      ';
+       }
 
-      // object iteration:
-      // add support for iterating over `arguments` objects if needed
-      '  <%  } else if (support.nonEnumArgs) { %>\n' +
-      '  var length = iterable.length; index = -1;\n' +
-      '  if (length && isArguments(iterable)) {\n' +
-      '    while (++index < length) {\n' +
-      "      index += '';\n" +
-      '      <%= loop %>\n' +
-      '    }\n' +
-      '  } else {' +
-      '  <% } %>' +
+       }
 
-      // avoid iterating over `prototype` properties in older Firefox, Opera, and Safari
-      '  <% if (support.enumPrototypes) { %>\n' +
-      "  var skipProto = typeof iterable == 'function';\n" +
-      '  <% } %>' +
+       }
 
-      // iterate own properties using `Object.keys` if it's fast
-      '  <% if (useHas && useKeys) { %>\n' +
-      '  var ownIndex = -1,\n' +
-      '      ownProps = objectTypes[typeof iterable] ? keys(iterable) : [],\n' +
-      '      length = ownProps.length;\n\n' +
-      '  while (++ownIndex < length) {\n' +
-      '    index = ownProps[ownIndex];\n' +
-      "    <% if (support.enumPrototypes) { %>if (!(skipProto && index == 'prototype')) {\n  <% } %>" +
-      '    <%= loop %>\n' +
-      '    <% if (support.enumPrototypes) { %>}\n<% } %>' +
-      '  }' +
+       if (obj.arrays || support.nonEnumArgs) {
+      __p += '\n}';
+       }
+      __p += 
+      (obj.bottom) +
+      ';\nreturn result';
 
-      // else using a for-in loop
-      '  <% } else { %>\n' +
-      '  for (index in iterable) {<%' +
-      '    if (support.enumPrototypes || useHas) { %>\n    if (<%' +
-      "      if (support.enumPrototypes) { %>!(skipProto && index == 'prototype')<% }" +
-      '      if (support.enumPrototypes && useHas) { %> && <% }' +
-      '      if (useHas) { %>hasOwnProperty.call(iterable, index)<% }' +
-      '    %>) {' +
-      '    <% } %>\n' +
-      '    <%= loop %>;' +
-      '    <% if (support.enumPrototypes || useHas) { %>\n    }<% } %>\n' +
-      '  }' +
-
-      // Because IE < 9 can't set the `[[Enumerable]]` attribute of an
-      // existing property and the `constructor` property of a prototype
-      // defaults to non-enumerable, Lo-Dash skips the `constructor`
-      // property when it infers it's iterating over a `prototype` object.
-      '    <% if (support.nonEnumShadows) { %>\n\n' +
-      '  var ctor = iterable.constructor;\n' +
-      '      <% for (var k = 0; k < 7; k++) { %>\n' +
-      "  index = '<%= shadowedProps[k] %>';\n" +
-      '  if (<%' +
-      "      if (shadowedProps[k] == 'constructor') {" +
-      '        %>!(ctor && ctor.prototype === iterable) && <%' +
-      '      } %>hasOwnProperty.call(iterable, index)) {\n' +
-      '    <%= loop %>\n' +
-      '  }' +
-      '      <% } %>' +
-      '    <% } %>' +
-      '  <% } %>' +
-      '  <% if (arrays || support.nonEnumArgs) { %>\n}<% } %>\n' +
-
-      // add code to the bottom of the iteration function
-      '<%= bottom %>;\n' +
-      // finally, return the `result`
-      'return result'
-    );
+      return __p
+    };
 
     /** Reusable iterator options for `assign` and `defaults` */
     var defaultsIteratorOptions = {
@@ -755,8 +748,6 @@
       var data = {
         // data properties
         'shadowedProps': shadowedProps,
-        'support': support,
-
         // iterator options
         'arrays': 'isArray(iterable)',
         'bottom': '',
@@ -5061,11 +5052,11 @@
       text || (text = '');
 
       // avoid missing dependencies when `iteratorTemplate` is not defined
-      options = iteratorTemplate ? defaults({}, options, settings) : settings;
+      options = defaults({}, options, settings);
 
-      var imports = iteratorTemplate && defaults({}, options.imports, settings.imports),
-          importsKeys = iteratorTemplate ? keys(imports) : ['_'],
-          importsValues = iteratorTemplate ? values(imports) : [lodash];
+      var imports = defaults({}, options.imports, settings.imports),
+          importsKeys = keys(imports),
+          importsValues = values(imports);
 
       var isEvaluating,
           index = 0,
@@ -5511,11 +5502,6 @@
         };
       });
     }
-
-    // add pseudo private property to be used and removed during the build process
-    lodash._each = each;
-    lodash._iteratorTemplate = iteratorTemplate;
-    lodash._shimKeys = shimKeys;
 
     return lodash;
   }
