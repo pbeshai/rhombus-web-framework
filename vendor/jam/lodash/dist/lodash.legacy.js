@@ -1,6 +1,7 @@
 /**
  * @license
- * Lo-Dash 1.2.1 <http://lodash.com/>
+ * Lo-Dash 1.2.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash legacy -o ./dist/lodash.legacy.js`
  * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.4.4 <http://underscorejs.org/>
  * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
@@ -172,40 +173,25 @@
     /** Used to restore the original `_` reference in `noConflict` */
     var oldDash = context._;
 
-    /** Used to detect if a method is native */
-    var reNative = RegExp('^' +
-      String(objectRef.valueOf)
-        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        .replace(/valueOf|for [^\]]+/g, '.+?') + '$'
-    );
-
     /** Native method shortcuts */
     var ceil = Math.ceil,
         clearTimeout = context.clearTimeout,
         concat = arrayRef.concat,
         floor = Math.floor,
-        getPrototypeOf = reNative.test(getPrototypeOf = Object.getPrototypeOf) && getPrototypeOf,
+        getPrototypeOf = false,
         hasOwnProperty = objectRef.hasOwnProperty,
         push = arrayRef.push,
-        setImmediate = context.setImmediate,
         setTimeout = context.setTimeout,
         toString = objectRef.toString;
 
     /* Native method shortcuts for methods with the same name as other `lodash` methods */
-    var nativeBind = reNative.test(nativeBind = toString.bind) && nativeBind,
-        nativeIsArray = reNative.test(nativeIsArray = Array.isArray) && nativeIsArray,
-        nativeIsFinite = context.isFinite,
+    var nativeIsFinite = context.isFinite,
         nativeIsNaN = context.isNaN,
-        nativeKeys = reNative.test(nativeKeys = Object.keys) && nativeKeys,
         nativeMax = Math.max,
         nativeMin = Math.min,
         nativeParseInt = context.parseInt,
         nativeRandom = Math.random,
         nativeSlice = arrayRef.slice;
-
-    /** Detect various environments */
-    var isIeOpera = reNative.test(context.attachEvent),
-        isV8 = nativeBind && !/\n|true/.test(nativeBind + isIeOpera);
 
     /** Used to lookup a built-in constructor by [[Class]] */
     var ctorByClass = {};
@@ -318,7 +304,7 @@
        * @memberOf _.support
        * @type Boolean
        */
-      support.argsClass = isArguments(arguments);
+      support.argsClass = false;
 
       /**
        * Detect if `prototype` properties are enumerable by default.
@@ -332,14 +318,6 @@
        * @type Boolean
        */
       support.enumPrototypes = ctor.propertyIsEnumerable('prototype');
-
-      /**
-       * Detect if `Function#bind` exists and is inferred to be fast (all but V8).
-       *
-       * @memberOf _.support
-       * @type Boolean
-       */
-      support.fastBind = nativeBind && !isV8;
 
       /**
        * Detect if own properties are iterated after inherited properties (all but IE < 9).
@@ -479,101 +457,78 @@
      * @param {Object} data The data object used to populate the text.
      * @returns {String} Returns the interpolated text.
      */
-    var iteratorTemplate = template(
-      // the `iterable` may be reassigned by the `top` snippet
-      'var index, iterable = <%= firstArg %>, ' +
-      // assign the `result` variable an initial value
-      'result = <%= init %>;\n' +
-      // exit early if the first argument is falsey
-      'if (!iterable) return result;\n' +
-      // add code before the iteration branches
-      '<%= top %>;\n' +
+    var iteratorTemplate = function(obj) {
 
-      // array-like iteration:
-      '<% if (arrays) { %>' +
-      'var length = iterable.length; index = -1;\n' +
-      'if (<%= arrays %>) {' +
+      var __p = 'var index, iterable = ' +
+      (obj.firstArg) +
+      ', result = ' +
+      (obj.init) +
+      ';\nif (!iterable) return result;\n' +
+      (obj.top) +
+      ';\n';
+       if (obj.arrays) {
+      __p += 'var length = iterable.length; index = -1;\nif (' +
+      (obj.arrays) +
+      ') {  ';
+       if (support.unindexedChars) {
+      __p += '\n  if (isString(iterable)) {\n    iterable = iterable.split(\'\')\n  }  ';
+       }
+      __p += '\n  while (++index < length) {\n    ' +
+      (obj.loop) +
+      '\n  }\n}\nelse {  ';
+        } else if (support.nonEnumArgs) {
+      __p += '\n  var length = iterable.length; index = -1;\n  if (length && isArguments(iterable)) {\n    while (++index < length) {\n      index += \'\';\n      ' +
+      (obj.loop) +
+      '\n    }\n  } else {  ';
+       }
 
-      // add support for accessing string characters by index if needed
-      '  <% if (support.unindexedChars) { %>\n' +
-      '  if (isString(iterable)) {\n' +
-      "    iterable = iterable.split('')\n" +
-      '  }' +
-      '  <% } %>\n' +
+       if (support.enumPrototypes) {
+      __p += '\n  var skipProto = typeof iterable == \'function\';\n  ';
+       }
+      __p += '\n  for (index in iterable) {';
+          if (support.enumPrototypes || obj.useHas) {
+      __p += '\n    if (';
+            if (support.enumPrototypes) {
+      __p += '!(skipProto && index == \'prototype\')';
+       }      if (support.enumPrototypes && obj.useHas) {
+      __p += ' && ';
+       }      if (obj.useHas) {
+      __p += 'hasOwnProperty.call(iterable, index)';
+       }
+      __p += ') {    ';
+       }
+      __p += 
+      (obj.loop) +
+      ';    ';
+       if (support.enumPrototypes || obj.useHas) {
+      __p += '\n    }';
+       }
+      __p += '\n  }    ';
+       if (support.nonEnumShadows) {
+      __p += '\n\n  var ctor = iterable.constructor;\n      ';
+       for (var k = 0; k < 7; k++) {
+      __p += '\n  index = \'' +
+      (obj.shadowedProps[k]) +
+      '\';\n  if (';
+            if (obj.shadowedProps[k] == 'constructor') {
+      __p += '!(ctor && ctor.prototype === iterable) && ';
+            }
+      __p += 'hasOwnProperty.call(iterable, index)) {\n    ' +
+      (obj.loop) +
+      '\n  }      ';
+       }
 
-      // iterate over the array-like value
-      '  while (++index < length) {\n' +
-      '    <%= loop %>\n' +
-      '  }\n' +
-      '}\n' +
-      'else {' +
+       }
 
-      // object iteration:
-      // add support for iterating over `arguments` objects if needed
-      '  <%  } else if (support.nonEnumArgs) { %>\n' +
-      '  var length = iterable.length; index = -1;\n' +
-      '  if (length && isArguments(iterable)) {\n' +
-      '    while (++index < length) {\n' +
-      "      index += '';\n" +
-      '      <%= loop %>\n' +
-      '    }\n' +
-      '  } else {' +
-      '  <% } %>' +
+       if (obj.arrays || support.nonEnumArgs) {
+      __p += '\n}';
+       }
+      __p += 
+      (obj.bottom) +
+      ';\nreturn result';
 
-      // avoid iterating over `prototype` properties in older Firefox, Opera, and Safari
-      '  <% if (support.enumPrototypes) { %>\n' +
-      "  var skipProto = typeof iterable == 'function';\n" +
-      '  <% } %>' +
-
-      // iterate own properties using `Object.keys` if it's fast
-      '  <% if (useHas && useKeys) { %>\n' +
-      '  var ownIndex = -1,\n' +
-      '      ownProps = objectTypes[typeof iterable] ? keys(iterable) : [],\n' +
-      '      length = ownProps.length;\n\n' +
-      '  while (++ownIndex < length) {\n' +
-      '    index = ownProps[ownIndex];\n' +
-      "    <% if (support.enumPrototypes) { %>if (!(skipProto && index == 'prototype')) {\n  <% } %>" +
-      '    <%= loop %>\n' +
-      '    <% if (support.enumPrototypes) { %>}\n<% } %>' +
-      '  }' +
-
-      // else using a for-in loop
-      '  <% } else { %>\n' +
-      '  for (index in iterable) {<%' +
-      '    if (support.enumPrototypes || useHas) { %>\n    if (<%' +
-      "      if (support.enumPrototypes) { %>!(skipProto && index == 'prototype')<% }" +
-      '      if (support.enumPrototypes && useHas) { %> && <% }' +
-      '      if (useHas) { %>hasOwnProperty.call(iterable, index)<% }' +
-      '    %>) {' +
-      '    <% } %>\n' +
-      '    <%= loop %>;' +
-      '    <% if (support.enumPrototypes || useHas) { %>\n    }<% } %>\n' +
-      '  }' +
-
-      // Because IE < 9 can't set the `[[Enumerable]]` attribute of an
-      // existing property and the `constructor` property of a prototype
-      // defaults to non-enumerable, Lo-Dash skips the `constructor`
-      // property when it infers it's iterating over a `prototype` object.
-      '    <% if (support.nonEnumShadows) { %>\n\n' +
-      '  var ctor = iterable.constructor;\n' +
-      '      <% for (var k = 0; k < 7; k++) { %>\n' +
-      "  index = '<%= shadowedProps[k] %>';\n" +
-      '  if (<%' +
-      "      if (shadowedProps[k] == 'constructor') {" +
-      '        %>!(ctor && ctor.prototype === iterable) && <%' +
-      '      } %>hasOwnProperty.call(iterable, index)) {\n' +
-      '    <%= loop %>\n' +
-      '  }' +
-      '      <% } %>' +
-      '    <% } %>' +
-      '  <% } %>' +
-      '  <% if (arrays || support.nonEnumArgs) { %>\n}<% } %>\n' +
-
-      // add code to the bottom of the iteration function
-      '<%= bottom %>;\n' +
-      // finally, return the `result`
-      'return result'
-    );
+      return __p
+    };
 
     /** Reusable iterator options for `assign` and `defaults` */
     var defaultsIteratorOptions = {
@@ -755,16 +710,13 @@
       var data = {
         // data properties
         'shadowedProps': shadowedProps,
-        'support': support,
-
         // iterator options
         'arrays': 'isArray(iterable)',
         'bottom': '',
         'init': 'iterable',
         'loop': '',
         'top': '',
-        'useHas': true,
-        'useKeys': !!keys
+        'useHas': true
       };
 
       // merge options into a template data object
@@ -946,13 +898,7 @@
      * // => false
      */
     function isArguments(value) {
-      return toString.call(value) == argsClass;
-    }
-    // fallback for browsers that can't detect `arguments` objects by [[Class]]
-    if (!support.argsClass) {
-      isArguments = function(value) {
-        return value ? hasOwnProperty.call(value, 'callee') : false;
-      };
+      return value ? hasOwnProperty.call(value, 'callee') : false;
     }
 
     /**
@@ -971,26 +917,9 @@
      * _.isArray([1, 2, 3]);
      * // => true
      */
-    var isArray = nativeIsArray || function(value) {
+    var isArray = function(value) {
       return value ? (typeof value == 'object' && toString.call(value) == arrayClass) : false;
     };
-
-    /**
-     * A fallback implementation of `Object.keys` which produces an array of the
-     * given object's own enumerable property names.
-     *
-     * @private
-     * @type Function
-     * @param {Object} object The object to inspect.
-     * @returns {Array} Returns a new array of property names.
-     */
-    var shimKeys = createIterator({
-      'args': 'object',
-      'init': '[]',
-      'top': 'if (!(objectTypes[typeof object])) return result',
-      'loop': 'result.push(index)',
-      'arrays': false
-    });
 
     /**
      * Creates an array composed of the own enumerable property names of `object`.
@@ -1005,16 +934,13 @@
      * _.keys({ 'one': 1, 'two': 2, 'three': 3 });
      * // => ['one', 'two', 'three'] (order is not guaranteed)
      */
-    var keys = !nativeKeys ? shimKeys : function(object) {
-      if (!isObject(object)) {
-        return [];
-      }
-      if ((support.enumPrototypes && typeof object == 'function') ||
-          (support.nonEnumArgs && object.length && isArguments(object))) {
-        return shimKeys(object);
-      }
-      return nativeKeys(object);
-    };
+    var keys = createIterator({
+      'args': 'object',
+      'init': '[]',
+      'top': 'if (!(objectTypes[typeof object])) return result',
+      'loop': 'result.push(index)',
+      'arrays': false
+    });
 
     /**
      * A function compiled to iterate `arguments` objects, arrays, objects, and
@@ -4258,12 +4184,7 @@
      * func();
      * // => 'hi moe'
      */
-    function bind(func, thisArg) {
-      // use `Function#bind` if it exists and is fast
-      // (in V8 `Function#bind` is slower except when partially applied)
-      return support.fastBind || (nativeBind && arguments.length > 2)
-        ? nativeBind.call.apply(nativeBind, arguments)
-        : createBound(func, thisArg, nativeSlice.call(arguments, 2));
+    function bind(func, thisArg) {return createBound(func, thisArg, nativeSlice.call(arguments, 2));
     }
 
     /**
@@ -4547,10 +4468,6 @@
     function defer(func) {
       var args = nativeSlice.call(arguments, 1);
       return setTimeout(function() { func.apply(undefined, args); }, 1);
-    }
-    // use `setImmediate` if it's available in Node.js
-    if (isV8 && freeModule && typeof setImmediate == 'function') {
-      defer = bind(setImmediate, context);
     }
 
     /**
@@ -5061,11 +4978,11 @@
       text || (text = '');
 
       // avoid missing dependencies when `iteratorTemplate` is not defined
-      options = iteratorTemplate ? defaults({}, options, settings) : settings;
+      options = defaults({}, options, settings);
 
-      var imports = iteratorTemplate && defaults({}, options.imports, settings.imports),
-          importsKeys = iteratorTemplate ? keys(imports) : ['_'],
-          importsValues = iteratorTemplate ? values(imports) : [lodash];
+      var imports = defaults({}, options.imports, settings.imports),
+          importsKeys = keys(imports),
+          importsValues = values(imports);
 
       var isEvaluating,
           index = 0,
@@ -5511,11 +5428,6 @@
         };
       });
     }
-
-    // add pseudo private property to be used and removed during the build process
-    lodash._each = each;
-    lodash._iteratorTemplate = iteratorTemplate;
-    lodash._shimKeys = shimKeys;
 
     return lodash;
   }
