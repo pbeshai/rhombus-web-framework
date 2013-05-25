@@ -73,7 +73,7 @@ var ClickerServer = _.extend({}, ParticipantServer, {
       disableChoices: "vote stop",
       ping: "ping",
       status: "status",
-      submitChoice: function (data) { return "choice" + ((data !== undefined) ? "|"+data : ""); }
+      submitChoice: function (data) { return "click" + ((data !== undefined) ? "|"+data : ""); }
     },
 
     // takes in data from the server and outputs an object of form:

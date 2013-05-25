@@ -44,7 +44,7 @@ var WebSocketHandler = {
   // initialize the handler (typically when a websocket connects)
   initialize: function (webSocket) {
     _.bindAll(this, "reconnect", "ping", "serverConnect", "serverDisconnect", "enableChoices",
-      "disableChoices", "serverStatus", "webChoice", "webSocketDisconnect");
+      "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect");
 
 
     this.id = "wsh"+(new Date().getTime());
@@ -190,7 +190,7 @@ var WebSocketHandler = {
   },
 
   submitChoice: function (data) {
-    this.serverCommand("submitChoice", data);
+    this.serverCommand("submitChoice", [data]);
   },
 
   // event handler when choices are received. data of the form "<ID>:<Choice> ..."
