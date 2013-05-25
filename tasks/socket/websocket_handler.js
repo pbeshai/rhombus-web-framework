@@ -84,7 +84,7 @@ var WebSocketHandler = {
         webSocket.emit(events.connectServer, false);
         participantServer.socket.destroy();
         participantServer.socket = null;
-        this.eventsBound = false;
+        that.eventsBound = false;
       });
 
       // attach handler for when data is sent across socket
@@ -92,7 +92,7 @@ var WebSocketHandler = {
       this.eventsBound = true;
     } else if (!this.eventsBound) {
       // attach handler for when data is sent across socket
-      participantServer.socket.on("data", _.bind(this.dataReceived, this));
+      this.participantServer.socket.on("data", _.bind(this.dataReceived, this));
       this.eventsBound = true;
 
       this.webSocket.emit(events.connectServer, true);
