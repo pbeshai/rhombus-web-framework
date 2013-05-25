@@ -38,11 +38,17 @@ function webSocketConnection(webSocket) {
 var WebSocketHandler = {
   webSocket: null,
   participantServer: null,
-  eventsBound: false, // true if we have already bound an event listener on the participantServer
+  reconnectInterval: 5000,
+  reconncetTimer: null,
+
   // initialize the handler (typically when a websocket connects)
   initialize: function (webSocket) {
-    _.bindAll(this, "serverConnect", "serverDisconnect", "enableChoices",
+    _.bindAll(this, "reconnect", "ping", "serverConnect", "serverDisconnect", "enableChoices",
       "disableChoices", "serverStatus", "webChoice", "webSocketDisconnect");
+
+
+    this.id = "wsh"+(new Date().getTime());
+    console.log("initializing new WebSocketHandler "+this.id);
 
     this.webSocket = webSocket; // the websocket
     this.participantServer = participantServers["clicker1"]; // currently always use clicker1 as the server
@@ -50,6 +56,9 @@ var WebSocketHandler = {
 
     // auto connect
     this.serverConnect();
+
+    // regularly ping the server to see if we are still connected.
+    this.reconnectTimer = setInterval(this.reconnect, this.reconnectInterval);
 
     webSocket.on(events.connectServer, this.serverConnect);
     webSocket.on(events.disconnectServer, this.serverDisconnect);
@@ -60,57 +69,67 @@ var WebSocketHandler = {
     webSocket.on("disconnect", this.webSocketDisconnect);
   },
 
+  reconnect: function () {
+    this.serverConnect(true);
+  },
+
   // connect to participant server
-  serverConnect: function (data) {
-    console.log("[connect participant server]", this.participantServer.socket == null);
+  serverConnect: function (autoreconnect) {
+    console.log("[connect participant server] ", this.id);
+    if (!this.participantServer.isConnected()) {
+      console.log(this.id +" attempting connection (connecting="+this.participantServer.connecting+")");
+      if (!this.participantServer.connecting) { //only let one person try and connect
+        console.log("connecting to socket "+this.id);
+        this.participantServer.connecting = true;
+        var webSocket = this.webSocket;
+        var that = this;
 
-    if (this.participantServer.socket == null) {
-      var webSocket = this.webSocket;
-      var that = this;
+        // connect via socket to participant server and get status on connection
+        this.participantServer.socket = net.createConnection(this.participantServer.port, this.participantServer.host,
+          function () {
+            console.log("successfully connected to participant server ("+that.id+")");
+            webSocket.emit(events.connectServer, true);
+            that.participantServerStatus();
+            that.participantServer.connecting = false;
+        });
+        var participantServer = this.participantServer;
+        participantServer.socket.setEncoding(this.participantServer.encoding);
 
-      // connect via socket to participant server and get status on connection
-      this.participantServer.socket = net.createConnection(this.participantServer.port, this.participantServer.host,
-        function () {
-          console.log("successfully connected to participant server");
-          webSocket.emit(events.connectServer, true);
-          that.participantServerStatus();
-      });
-      var participantServer = this.participantServer;
-      participantServer.socket.setEncoding(this.participantServer.encoding);
+        // error handler
+        participantServer.socket.on("error", function (error) {
+          console.log("Error with participant server: "+error.code+ " when trying to "+error.syscall);
+          webSocket.emit(events.connectServer, false);
+          participantServer.disconnect();
+          that.participantServer.connecting = false;
+        });
 
-      // error handler
-      participantServer.socket.on("error", function (error) {
-        console.log("Error with participant server: "+error.code+ " when trying to "+error.syscall);
-        webSocket.emit(events.connectServer, false);
-        participantServer.socket.destroy();
-        participantServer.socket = null;
-        that.eventsBound = false;
-      });
-
+        // attach handler for when data is sent across socket
+        participantServer.socket.on("data", _.bind(this.dataReceived, this));
+        participantServer.addListener(this.id);
+      }
+    } else if (!this.participantServer.isListening(this.id)) {
+      // socket connected, but this websocket handler is not listening for data events
       // attach handler for when data is sent across socket
-      participantServer.socket.on("data", _.bind(this.dataReceived, this));
-      this.eventsBound = true;
-    } else if (!this.eventsBound) {
-      // attach handler for when data is sent across socket
+      console.log("adding data listener "+this.id);
+      this.participantServerStatus(); // this could spam statuses on reconnects... but it's a simple fix
       this.participantServer.socket.on("data", _.bind(this.dataReceived, this));
-      this.eventsBound = true;
+      this.participantServer.addListener(this.id);
 
       this.webSocket.emit(events.connectServer, true);
-    } else {
-      // already connected
+    } else if (!autoreconnect) {
+
+      console.log("already connected on "+this.id);
+      // already connected and listening
       this.webSocket.emit(events.connectServer, true);
     }
   },
 
   // disconnect from participant server
-  serverDisconnect: function (data) {
+  serverDisconnect: function () {
     console.log("[disconnect participant server] ", this.participantServer.socket != null);
 
-    if (this.participantServer.socket != null) {
-      this.participantServer.socket.destroy();
-      this.participantServer.socket = null;
-      this.eventsBound = false;
-    }
+
+    this.participantServer.disconnect();
 
     // indicate we have disconnected.
     this.webSocket.emit(events.disconnectServer, true);
@@ -119,8 +138,10 @@ var WebSocketHandler = {
   // event handler when websocket disconnects
   webSocketDisconnect: function () {
     console.log("[websocket disconnected]");
-    // TODO: shouldn't do this if other sockets are still connected.
+
     this.participantServer.clients -= 1;
+    clearInterval(this.reconnectTimer);
+    this.reconnectTimer = null;
     if (this.participantServer.clients === 0) {
       this.serverDisconnect();
     }
@@ -141,6 +162,15 @@ var WebSocketHandler = {
 
       // output across socket
       this.participantServer.socket.write(serverCommand + "\n");
+    }
+  },
+
+  ping: function () {
+    console.log("ping");
+    if (this.participantServer.isConnected()) {
+      this.serverCommand("ping");
+    } else {
+      this.serverConnect(); // attempt auto-reconnect
     }
   },
 
@@ -174,7 +204,6 @@ var WebSocketHandler = {
     console.log("[data received]", data);
 
     var result = this.participantServer.parseData(data);
-    console.log("parsed result is: ", result);
     // garbage data?
     if (result == null) {
       return;
@@ -186,7 +215,9 @@ var WebSocketHandler = {
         this.webSocket.emit(events[result.command], { error: true, data: result.data });
       }
     } else if (result.command) {   // is it a command callback?
-      this.webSocket.emit(events[result.command], result.data);
+      if (events[result.command]) {
+        this.webSocket.emit(events[result.command], result.data);
+      }
     } else { // must have been choices.
       this.choicesReceived(result.data);
     }

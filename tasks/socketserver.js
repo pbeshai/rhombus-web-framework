@@ -198,6 +198,9 @@ module.exports = function(grunt) {
       site.use(express.compress());
     }
 
+    // setup favicon
+    site.use(express.favicon(options.favicon));
+
     // Go through each compiler and provide an identical serving experience.
     _.each(options.middleware, function(callback, extension) {
       // Investigate if there is a better way of writing this.
@@ -221,6 +224,7 @@ module.exports = function(grunt) {
         });
       });
     });
+
 
     // Map static folders to take precedence over redirection.
     Object.keys(options.map).sort().reverse().forEach(function(name) {

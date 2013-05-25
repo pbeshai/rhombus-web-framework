@@ -9,10 +9,14 @@ var ParticipantServer = {
   commandRegExp: /\[([ -\w]+)\]\n/,
   errorRegExp: /\[error:([ -\w]+)\]\n/,
   clients: 0, // keep track of number of clients to know if we should close socket to server
+  pingInterval: 5000, // in milliseconds
+  listeners: {}, // websocketHandler id : true if events bound to current socket
+  connecting: false, // set to true when attempting to connect
   commands: {
   /*  enableChoices: "",
     disableChoices: "",
     status: "",
+    ping: "",
     submitChoice: function (data) { return ""; }
   */
   },
@@ -22,6 +26,43 @@ var ParticipantServer = {
     var commands = this.commands;
     var commandKey = _.find(_.keys(commands), function (key) { return commands[key] === command });
     return commandKey;
+  },
+
+  isConnected: function () {
+    return this.socket != null;
+  },
+
+  checkConnection: function () {
+    console.log("checking connection. connected? "+this.isConnected());
+    if (this.isConnected()) {
+      // ping to see if it still is connected.
+      this.socket.write(this.commands.ping + "\n");
+
+      // an error will occur on the socket if not connected
+      // (handled elsewhere via socket.on("error") ...)
+    }
+  },
+
+  disconnect: function () {
+    if (this.socket != null) {
+      this.socket.destroy();
+      this.socket = null;
+    }
+    // reset listeners
+    this.listeners = {};
+  },
+
+  // event handling
+  addListener: function (id) {
+    this.listeners[id] = this.isConnected();
+  },
+
+  isListening: function (id) {
+    return this.listeners[id] === true;
+  },
+
+  removeListener: function (id) {
+    delete this.listeners[id];
   }
 };
 
@@ -30,6 +71,7 @@ var ClickerServer = _.extend({}, ParticipantServer, {
     commands: {
       enableChoices: "vote start",
       disableChoices: "vote stop",
+      ping: "ping",
       status: "status",
       submitChoice: function (data) { return "choice" + ((data !== undefined) ? "|"+data : ""); }
     },
@@ -55,7 +97,6 @@ var ClickerServer = _.extend({}, ParticipantServer, {
 
       // handle command response
       var command = this.commandRegExp.exec(data);
-      console.log("command is ", command)
       if (command !== null) { // then command = ["[status]\n","status"]
         command = command[1];
         var data;
@@ -68,7 +109,7 @@ var ClickerServer = _.extend({}, ParticipantServer, {
           var status = {
             time: statusRegExp.exec(data)[2],
             instructorId: statusRegExp.exec(data)[2],
-            acceptingVotes: statusRegExp.exec(data)[2] === "true",
+            acceptingChoices: statusRegExp.exec(data)[2] === "true",
             numClients: parseInt(statusRegExp.exec(data)[2])
           };
 
@@ -91,6 +132,9 @@ var ClickerServer = _.extend({}, ParticipantServer, {
       // must have been garbage, return undefined
     }
   });
+
+// setup regular checking of clickerserver
+setInterval(_.bind(ClickerServer.checkConnection, ClickerServer), ClickerServer.pingInterval);
 
 // map of configured Participant Servers
 var participantServers = {
