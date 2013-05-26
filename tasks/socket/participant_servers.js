@@ -33,7 +33,6 @@ var ParticipantServer = {
   },
 
   checkConnection: function () {
-    console.log("checking connection. connected? "+this.isConnected());
     if (this.isConnected()) {
       // ping to see if it still is connected.
       this.socket.write(this.commands.ping + "\n");

@@ -75,7 +75,6 @@ var WebSocketHandler = {
 
   // connect to participant server
   serverConnect: function (autoreconnect) {
-    console.log("[connect participant server] ", this.id);
     if (!this.participantServer.isConnected()) {
       console.log(this.id +" attempting connection (connecting="+this.participantServer.connecting+")");
       if (!this.participantServer.connecting) { //only let one person try and connect
@@ -201,8 +200,6 @@ var WebSocketHandler = {
   },
 
   dataReceived: function (data) {
-    console.log("[data received]", data);
-
     var result = this.participantServer.parseData(data);
     // garbage data?
     if (result == null) {
