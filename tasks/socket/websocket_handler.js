@@ -89,7 +89,7 @@ var WebSocketHandler = {
           function () {
             console.log("successfully connected to participant server ("+that.id+")");
             webSocket.emit(events.connectServer, true);
-            that.participantServerStatus();
+            that.serverStatus();
             that.participantServer.connecting = false;
         });
         var participantServer = this.participantServer;
@@ -111,7 +111,7 @@ var WebSocketHandler = {
       // socket connected, but this websocket handler is not listening for data events
       // attach handler for when data is sent across socket
       console.log("adding data listener "+this.id);
-      this.participantServerStatus(); // this could spam statuses on reconnects... but it's a simple fix
+      this.serverStatus(); // this could spam statuses on reconnects... but it's a simple fix
       this.participantServer.socket.on("data", _.bind(this.dataReceived, this));
       this.participantServer.addListener(this.id);
 
@@ -185,7 +185,7 @@ var WebSocketHandler = {
   },
 
   // get the status of the participant server
-  participantServerStatus: function () {
+  serverStatus: function () {
     this.serverCommand("status");
   },
 
