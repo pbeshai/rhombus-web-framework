@@ -17,6 +17,7 @@
 			clickState2: null,		 // function that is called when state2 button clicked
 			state1to2Event: null,  // string event name from Participant Server
 			state2to1Event: null,  // string event name from Participant Server
+			participantServer: null
 		};
 		return this.each(function() {
 			var config = $.extend({}, defaults, settings);
@@ -28,11 +29,11 @@
 			$button.addClass(config.classState1).text(config.textState1);
 
 			$button.on("click", clickHandler);
-			if (config.state1To2Event !== null) {
-		  	participantServer.on(config.state1To2Event, toState2);
+			if (config.state1To2Event !== null && config.participantServer) {
+		  	config.participantServer.on(config.state1To2Event, toState2);
 		  }
-		  if (config.state2To1Event !== null) {
-		  	participantServer.on(config.state2To1Event, toState1);
+		  if (config.state2To1Event !== null && config.participantServer) {
+		  	config.participantServer.on(config.state2To1Event, toState1);
 		  }
 
 		  // allow programmatic changing of visual state
