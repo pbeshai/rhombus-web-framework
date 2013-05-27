@@ -1,5 +1,5 @@
 /*
- * grunt-bbb-server with socket.io support
+ * grunt-bbb-server with socket.io support and API support
  *
  * Originally:
  * grunt-bbb-server
@@ -27,7 +27,7 @@ module.exports = function(grunt) {
   var gzip = require("gzip-js");
   var httpProxy = require("http-proxy");
   var socketio = require('socket.io');
-
+  var api = require('./api_handler');
 
   // Shorthand Lo-Dash.
   var _ = grunt.util._;
@@ -303,6 +303,9 @@ module.exports = function(grunt) {
         proxy.proxyRequest(req, res);
       });
     });
+
+    // handle API requests
+    api.initialize(site);
 
     // Compression middleware.
     site.all("*", function(content, req, res, next) {

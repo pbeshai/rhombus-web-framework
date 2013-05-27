@@ -230,7 +230,7 @@ module.exports = function(grunt) {
 
   });
 
-  grunt.loadTasks("tasks");
+  grunt.loadTasks("server"); // load the socketserver task
 
   // The debug task will remove all contents inside the dist/ folder, lint
   // all your code, precompile all the underscore templates into
