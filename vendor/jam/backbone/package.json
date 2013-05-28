@@ -5,25 +5,25 @@
   "keywords"      : ["model", "view", "controller", "router", "server", "client", "browser"],
   "author"        : "Jeremy Ashkenas <jeremy@documentcloud.org>",
   "dependencies"  : {
-    "underscore"  : "~1.4"
+    "underscore"  : ">=1.4.3"
   },
   "devDependencies": {
     "phantomjs": "0.2.2"
   },
   "scripts": {
-    "test": "phantomjs test/vendor/runner.js test/index.html"
+    "test": "phantomjs test/vendor/runner.js test/index.html?noglobals=true"
   },
   "main"          : "backbone.js",
-  "version"       : "0.9.9",
+  "version"       : "0.9.10",
   "jam": {
     "main": "backbone.js",
     "include": ["backbone.js"],
     "dependencies": {
       "underscore": "~1.4",
-      "jquery": ">=1.5"
+      "jquery": ">=1.6"
     },
     "shim": {
-      "deps": ["jquery", "underscore"],
+      "deps": ["underscore", "jquery"],
       "exports": "Backbone"
     }
   }

@@ -7,7 +7,7 @@
     "baseUrl": "./app",
 
     "dependencies": {
-      "backbone": "0.9.9",
+      "backbone": "~0.9",
       "jquery": "*",
       "lodash": "1.2.1",
       "backbone.layoutmanager": "0.8.0"

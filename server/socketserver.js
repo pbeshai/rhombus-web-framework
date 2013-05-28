@@ -198,6 +198,9 @@ module.exports = function(grunt) {
       site.use(express.compress());
     }
 
+    // setup bodyparser
+    site.use(express.bodyParser());
+
     // setup favicon
     site.use(express.favicon(options.favicon));
 
