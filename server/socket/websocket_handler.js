@@ -97,7 +97,9 @@ var WebSocketHandler = {
         // error handler
         participantServer.socket.on("error", function (error) {
           console.log("Error with participant server: "+error.code+ " when trying to "+error.syscall);
-          webSocket.emit(events.connectServer, false);
+          if (!autoreconnect) { // only let websocket know if it isn't autoreconnect
+            webSocket.emit(events.connectServer, false);
+          }
           participantServer.disconnect();
           that.participantServer.connecting = false;
         });

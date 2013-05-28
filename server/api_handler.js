@@ -14,6 +14,7 @@ function initialize(site) {
 
 	site.post("/api/participant", registerParticipant);
 	site.get("/api/participant/:action", handleParticipant)
+	site.delete("/api/participant", deleteParticipants);
 	site.all("/api/*", handle);
 }
 
@@ -21,6 +22,21 @@ function initialize(site) {
 function handle(req, res, next) {
 	console.log("API Handler: ", req.params);
 	res.send(404);
+}
+
+function deleteParticipants(req, res) {
+	console.log("deleting all participants");
+
+	dbCall(function (db) {
+		db.run("DELETE FROM participants", function (err) {
+			if (err) {
+				console.log(err);
+				res.send(500);
+			} else {
+				res.send(200, "");
+			}
+		});
+	});
 }
 
 function registerParticipant(req, res) {
