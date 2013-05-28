@@ -11,15 +11,16 @@ var fs = require('fs')
 var dbFilename = "server/app.db";
 
 function initialize(site) {
-	site.all("/api/*", handle);
+
 	site.post("/api/participant", registerParticipant);
 	site.get("/api/participant/:action", handleParticipant)
-
+	site.all("/api/*", handle);
 }
 
+// if we make it here, 404.
 function handle(req, res, next) {
 	console.log("API Handler: ", req.params);
-	next();
+	res.send(404);
 }
 
 function registerParticipant(req, res) {

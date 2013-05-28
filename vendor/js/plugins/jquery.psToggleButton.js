@@ -37,8 +37,8 @@
 		  }
 
 		  // allow programmatic changing of visual state
-		  $button.on("state1", function () { toState1(true); });
-		  $button.on("state2", function () { toState2(true); });
+		  $button.on("to-state1", function () { toState1(true); });
+		  $button.on("to-state2", function () { toState2(true); });
 
 		  // the main button click handler for changing appearance and firing actions
 		  function clickHandler() {
