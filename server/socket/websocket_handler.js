@@ -44,7 +44,7 @@ var WebSocketHandler = {
   // initialize the handler (typically when a websocket connects)
   initialize: function (webSocket) {
     _.bindAll(this, "reconnect", "ping", "serverConnect", "serverDisconnect", "enableChoices",
-      "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect");
+      "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect", "handleParsedData");
 
 
     this.id = "wsh"+(new Date().getTime());
@@ -105,16 +105,16 @@ var WebSocketHandler = {
         });
 
         // attach handler for when data is sent across socket
-        participantServer.socket.on("data", _.bind(this.dataReceived, this));
-        participantServer.addListener(this.id);
+        participantServer.socket.on("data", _.bind(participantServer.dataReceived, participantServer));
+        participantServer.addListener(this.id, this.handleParsedData);
       }
     } else if (!this.participantServer.isListening(this.id)) {
       // socket connected, but this websocket handler is not listening for data events
       // attach handler for when data is sent across socket
       console.log("adding data listener "+this.id);
       this.serverStatus(); // this could spam statuses on reconnects... but it's a simple fix
-      this.participantServer.socket.on("data", _.bind(this.dataReceived, this));
-      this.participantServer.addListener(this.id);
+      //this.participantServer.socket.on("data", this.dataReceived);
+      this.participantServer.addListener(this.id, this.handleParsedData);
 
       this.webSocket.emit(events.connectServer, true);
     } else if (!autoreconnect) {
@@ -197,12 +197,11 @@ var WebSocketHandler = {
   // event handler when choices are received. data of the form "<ID>:<Choice> ..."
   // e.g., "174132:A" or "174132:A 832185:B 321896:E"
   choicesReceived: function (data) {
-    console.log("[choices received]");
+    console.log("[choices received]", data);
     this.webSocket.emit(events.choiceData, { choices: data });
   },
 
-  dataReceived: function (data) {
-    var result = this.participantServer.parseData(data);
+  handleParsedData: function (result) {
     // garbage data?
     if (result == null) {
       return;

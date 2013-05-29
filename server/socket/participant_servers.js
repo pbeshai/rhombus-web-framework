@@ -1,7 +1,10 @@
 
-var _ = require('lodash');
+var _ = require('lodash')
+  , aliasFilter = require('./filters/alias_filter')
+  , async = require('async');
 
 var ParticipantServer = {
+  dataFilters: [],
   encoding: "utf8",
   socket: null,
   port: 4444,
@@ -52,21 +55,43 @@ var ParticipantServer = {
   },
 
   // event handling
-  addListener: function (id) {
-    this.listeners[id] = this.isConnected();
+  addListener: function (id, callback) {
+    this.listeners[id] = { listening: this.isConnected(), callback: callback };
   },
 
   isListening: function (id) {
-    return this.listeners[id] === true;
+    return this.listeners[id] !== undefined && this.listeners[id].listening === true;
   },
 
   removeListener: function (id) {
     delete this.listeners[id];
+  },
+
+  dataReceived: function (data) {
+    // must use callback since parseData may make use of asynchronous calls
+    this.parseData(data, _.bind(this.handleParsedData, this));
+  },
+
+  handleParsedData: function (result) {
+    // call all the listeners
+    _.each(this.listeners, function (listener) {
+      listener.callback(result);
+    });
+  },
+
+  // data of form { data: [ {id: xxx, choice: A}, ... ] }
+  filterData: function (data, callback) {
+    async.eachSeries(this.dataFilters, function (filter, loopCallback) {
+      filter.filter(data, loopCallback);
+    }, function (err) {
+      callback(data);
+    });
   }
 };
 
 // default configuration for Clicker Servers
 var ClickerServer = _.extend({}, ParticipantServer, {
+    dataFilters: [ aliasFilter ],
     commands: {
       enableChoices: "vote start",
       disableChoices: "vote stop",
@@ -77,19 +102,24 @@ var ClickerServer = _.extend({}, ParticipantServer, {
 
     // takes in data from the server and outputs an object of form:
     //   { error: bool, command: str, data: * } or undefined if no valid data
-    parseData: function (data) {
+    parseData: function (data, callback) {
       if (data === null) {
-        return;
+        return callback();
       }
 
-      if (data[0] !== "[") {
-        return { data: data }
-      }
+      // TODO: migrating over to JSON responses
+      try {
+        var jsonData = JSON.parse(data);
+
+        // if this succeeds, it is data.
+        return this.filterData({ data: jsonData}, callback);
+      } catch (e) { }
+
 
       // not choices, so either error or command response
       var error = this.errorRegExp.exec(data);
       if (error !== null) { // an error occurred
-        return { error: true, command: this.commandKey(error[1]), data: false };
+        return callback({ error: true, command: this.commandKey(error[1]), data: false });
       }
 
       // not error, so must be a command or garbage.
@@ -125,10 +155,11 @@ var ClickerServer = _.extend({}, ParticipantServer, {
           data = true;
         }
 
-        return { command: this.commandKey(command), data: data };
+        return callback({ command: this.commandKey(command), data: data });
       }
 
       // must have been garbage, return undefined
+      return callback();
     }
   });
 

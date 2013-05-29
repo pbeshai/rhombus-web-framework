@@ -23,6 +23,7 @@
     "grunt": "0.4.1",
     "grunt-lib-stylus": "*",
     "grunt-lib-less": "*",
-    "sqlite3": "*"
+    "sqlite3": "2.1.7",
+    "async": "0.2.9"
   }
 }
