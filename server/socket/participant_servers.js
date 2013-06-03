@@ -136,7 +136,7 @@ var ClickerServer = _.extend({}, ParticipantServer, {
           // format is Time, Instructor, Accepting Votes, #Clients
 
           var status = {
-            time: statusRegExp.exec(data)[2],
+            time: parseInt(statusRegExp.exec(data)[2]),
             instructorId: statusRegExp.exec(data)[2],
             acceptingChoices: statusRegExp.exec(data)[2] === "true",
             numClients: parseInt(statusRegExp.exec(data)[2])

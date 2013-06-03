@@ -19,7 +19,9 @@ var events = {
   enableChoices: "enable-choices",
   disableChoices: "disable-choices",
   status: "status",
-  submitChoice: "submit-choice" // for submitting choices from a web participant
+  submitChoice: "submit-choice", // for submitting choices from a web participant
+  appNext: "app-next",
+  appPrev: "app-prev"
 };
 
 
@@ -34,6 +36,18 @@ function webSocketConnection(webSocket) {
   var handler = Object.create(WebSocketHandler);
   handler.initialize(webSocket);
 }
+// collection of open websocket handlers
+var openWebSockets = [];
+
+function broadcast(event, data, exclude) {
+  console.log("broadcasting to open websockets: ", event, data);
+  _.each(openWebSockets, function (wsh) {
+    if (wsh.id !== exclude) {
+      console.log(wsh.id + " -> ", event, data);
+      wsh.webSocket.emit(event, data);
+    }
+  });
+}
 
 var WebSocketHandler = {
   webSocket: null,
@@ -44,11 +58,14 @@ var WebSocketHandler = {
   // initialize the handler (typically when a websocket connects)
   initialize: function (webSocket) {
     _.bindAll(this, "reconnect", "ping", "serverConnect", "serverDisconnect", "enableChoices",
-      "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect", "handleParsedData");
-
+      "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect", "handleParsedData",
+      "appNext", "appPrev");
 
     this.id = "wsh"+(new Date().getTime());
     console.log("initializing new WebSocketHandler "+this.id);
+
+    openWebSockets.push(this);
+
 
     this.webSocket = webSocket; // the websocket
     this.participantServer = participantServers["clicker1"]; // currently always use clicker1 as the server
@@ -67,10 +84,22 @@ var WebSocketHandler = {
     webSocket.on(events.status, this.serverStatus);
     webSocket.on(events.submitChoice, this.submitChoice);
     webSocket.on("disconnect", this.webSocketDisconnect);
+    webSocket.on(events.appNext, this.appNext);
+    webSocket.on(events.appPrev, this.appPrev);
   },
 
   reconnect: function () {
     this.serverConnect(true);
+  },
+
+  appNext: function () {
+    console.log("appNext");
+    broadcast(events.appNext, null, this.id);
+  },
+
+  appPrev: function () {
+    console.log("appPrev");
+    broadcast(events.appPrev, null, this.id);
   },
 
   // connect to participant server
@@ -140,6 +169,7 @@ var WebSocketHandler = {
   webSocketDisconnect: function () {
     console.log("[websocket disconnected]");
 
+    this.participantServer.removeListener[this.id];
     this.participantServer.clients -= 1;
     clearInterval(this.reconnectTimer);
     this.reconnectTimer = null;
@@ -147,6 +177,11 @@ var WebSocketHandler = {
       this.serverDisconnect();
     }
 
+    this.webSocket = null;
+    // remove from openWebSockets
+    openWebSockets = _.reject(openWebSockets, function (wsh) {
+      return wsh.id == this.id;
+    }, this);
   },
 
   // generic server command function
@@ -202,6 +237,9 @@ var WebSocketHandler = {
   },
 
   handleParsedData: function (result) {
+    if (this.webSocket == null) { //web socket has closed, ignore this
+      return;
+    }
     // garbage data?
     if (result == null) {
       return;
