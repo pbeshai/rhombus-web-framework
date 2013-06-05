@@ -109,7 +109,13 @@ var ClickerServer = _.extend({}, ParticipantServer, {
 
       // TODO: migrating over to JSON responses
       try {
-        var jsonData = JSON.parse(data);
+        // We may end up with multiple entries quickly passed across the socket
+        // e.g., data = [{"id":"beshai","choice":"C"}]
+        //              [{"id":"test","choice":"E"}]
+        // combine that to: [{"id":"beshai","choice":"C"},{"id":"test","choice":"E"}]
+        // so it can be parsed as JSON.
+        var combinedData = data.replace(/\]\n\[/g, ",");
+        var jsonData = JSON.parse(combinedData);
 
         // if this succeeds, it is data.
         return this.filterData({ data: jsonData}, callback);
