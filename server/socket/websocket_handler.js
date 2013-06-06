@@ -9,7 +9,13 @@ module.exports = {
 // Module dependencies
 var net = require('net'),
   _ = require('lodash'),
-  participantServers = require("./participant_servers").serverMap;
+  ClickerServer = require("./participant_servers").ClickerServer;
+
+// map of configured Participant Servers
+var participantServers = {
+  "clicker1": new ClickerServer()
+};
+
 
 // custom web socket events
 var events = {
@@ -33,8 +39,7 @@ function init(io) {
 // event handler for connection made to web socket
 function webSocketConnection(webSocket) {
   console.log("[websocket connected]");
-  var handler = Object.create(WebSocketHandler);
-  handler.initialize(webSocket);
+  var handler = new WebSocketHandler(webSocket);
 }
 // collection of open websocket handlers
 var openWebSockets = [];
@@ -49,7 +54,10 @@ function broadcast(event, data, exclude) {
   });
 }
 
-var WebSocketHandler = {
+var WebSocketHandler = function (webSocket) {
+  this.initialize(webSocket);
+};
+_.extend(WebSocketHandler.prototype, {
   webSocket: null,
   participantServer: null,
   reconnectInterval: 5000,
@@ -188,16 +196,18 @@ var WebSocketHandler = {
   serverCommand: function (command, args) {
     console.log("[" + command + "] ", this.participantServer.socket != null);
 
-    // TODO: what if socket is null?
-
     if (this.participantServer.socket != null) {
       var serverCommand = this.participantServer.commands[command] // can be string or function
       if (_.isFunction(serverCommand)) { // if function, evaluate to string
         serverCommand = serverCommand.apply(this, args);
+      } else {
+        // strings are turned into json objects
+        serverCommand = { command: serverCommand };
       }
 
       // output across socket
-      this.participantServer.socket.write(serverCommand + "\n");
+      console.log("Writing to ParticipantServer: " + JSON.stringify(serverCommand));
+      this.participantServer.socket.write(JSON.stringify(serverCommand) + "\n");
     }
   },
 
@@ -258,4 +268,4 @@ var WebSocketHandler = {
       this.choicesReceived(result.data);
     }
   }
-};
+});
