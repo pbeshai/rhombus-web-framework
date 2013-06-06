@@ -192,29 +192,10 @@ _.extend(WebSocketHandler.prototype, {
     }, this);
   },
 
-  // generic server command function
-  serverCommand: function (command, args) {
-    console.log("[" + command + "] ", this.participantServer.socket != null);
-
-    if (this.participantServer.socket != null) {
-      var serverCommand = this.participantServer.commands[command] // can be string or function
-      if (_.isFunction(serverCommand)) { // if function, evaluate to string
-        serverCommand = serverCommand.apply(this, args);
-      } else {
-        // strings are turned into json objects
-        serverCommand = { command: serverCommand };
-      }
-
-      // output across socket
-      console.log("Writing to ParticipantServer: " + JSON.stringify(serverCommand));
-      this.participantServer.socket.write(JSON.stringify(serverCommand) + "\n");
-    }
-  },
-
   ping: function () {
     console.log("ping");
     if (this.participantServer.isConnected()) {
-      this.serverCommand("ping");
+      this.participantServer.command("ping");
     } else {
       this.serverConnect(); // attempt auto-reconnect
     }
@@ -222,21 +203,21 @@ _.extend(WebSocketHandler.prototype, {
 
   // tell participant server to start voting
   enableChoices: function () {
-    this.serverCommand("enableChoices");
+    this.participantServer.command("enableChoices");
   },
 
   // tell participant server to stop voting
   disableChoices: function () {
-    this.serverCommand("disableChoices");
+    this.participantServer.command("disableChoices");
   },
 
   // get the status of the participant server
   serverStatus: function () {
-    this.serverCommand("status");
+    this.participantServer.command("status");
   },
 
   submitChoice: function (data) {
-    this.serverCommand("submitChoice", [data]);
+    this.participantServer.command("submitChoice", [data]);
   },
 
   // event handler when choices are received. data of the form "<ID>:<Choice> ..."
@@ -258,7 +239,7 @@ _.extend(WebSocketHandler.prototype, {
     // did an error occur?
     if (result.error) {
       if (result.command) {
-        this.webSocket.emit(events[result.command], { error: true, data: result.data });
+        this.webSocket.emit(events[result.command], result);
       }
     } else if (result.command) {   // is it a command callback?
       if (events[result.command]) {

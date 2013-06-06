@@ -54,7 +54,7 @@ _.extend(AliasFilter.prototype, {
 	// data of form { data: [ {id: xxx, choice: A}, ... ] }
 	filter: function (data, outerCallback) {
 		async.each(data.data, _.bind(function (choiceData, innerCallback) {
-			getAlias(choiceData, _.bind(function (alias, err) {
+			this.getAlias(choiceData, _.bind(function (alias, err) {
 				if (alias != null) {
 					choiceData.id = alias;
 				}
@@ -63,7 +63,6 @@ _.extend(AliasFilter.prototype, {
 		}, this), outerCallback);
 	}
 });
-
 
 module.exports = {
 	AliasFilter: AliasFilter

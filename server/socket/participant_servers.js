@@ -88,7 +88,26 @@ _.extend(ParticipantServer.prototype, {
     }, function (err) {
       callback(data);
     });
-  }
+  },
+
+  // generic server command function
+  command: function (command, args) {
+    console.log("[" + command + "] ", this.socket != null);
+
+    if (this.socket != null) {
+      var serverCommand = this.commands[command] // can be string or function
+      if (_.isFunction(serverCommand)) { // if function, evaluate to string
+        serverCommand = serverCommand.apply(this, args);
+      } else {
+        // strings are turned into json objects
+        serverCommand = { command: serverCommand };
+      }
+
+      // output across socket
+      console.log("Writing to ParticipantServer: " + JSON.stringify(serverCommand));
+      this.socket.write(JSON.stringify(serverCommand) + "\n");
+    }
+  },
 });
 
 var ClickerServer = function () {
@@ -100,11 +119,11 @@ ClickerServer.prototype = new ParticipantServer();
 _.extend(ClickerServer.prototype, {
   dataFilters: [ aliasFilter ],
   commands: {
-    enableChoices: "start voting",
-    disableChoices: "stop voting",
+    enableChoices: "enable choices",
+    disableChoices: "disable choices",
     ping: "ping",
     status: "status",
-    submitChoice: function (data) { return { command: "vote", arguments: data }; }
+    submitChoice: function (data) { return { command: "choose", arguments: [data] }; }
   },
 
   // takes in data from the server and outputs an object of form:
@@ -113,64 +132,30 @@ _.extend(ClickerServer.prototype, {
     if (data === null) {
       return callback();
     }
-
-    console.log("PARSE DATA: ", data);
-
-    // TODO: migrating over to JSON responses
+    var jsonData;
     try {
       // We may end up with multiple entries quickly passed across the socket
-      // e.g., data = [{"id":"beshai","choice":"C"}]
-      //              [{"id":"test","choice":"E"}]
-      // combine that to: [{"id":"beshai","choice":"C"},{"id":"test","choice":"E"}]
-      // so it can be parsed as JSON.
-      var combinedData = data.replace(/\}\n\{/g, ",");
-      var jsonData = JSON.parse(combinedData);
-      console.log("jsonData! ", jsonData);
-      // if this succeeds, it is data.
-      return this.filterData({ data: jsonData}, callback);
-    } catch (e) { }
-
-
-    // not choices, so either error or command response
-    var error = this.errorRegExp.exec(data);
-    if (error !== null) { // an error occurred
-      return callback({ error: true, command: this.commandKey(error[1]), data: false });
+      // e.g., data = {...}
+      //              {...}
+      // TODO: handle this!
+      //var combinedData = data.replace(/\}\n\{/g, ",");
+      jsonData = JSON.parse(data);
+    } catch (e) {
+      console.log("invalid JSON received: ", e, data);
+      return;
     }
 
-    // not error, so must be a command or garbage.
 
-    // handle command response
-    var command = this.commandRegExp.exec(data);
-    if (command !== null) { // then command = ["[status]\n","status"]
-      command = command[1];
-      var data;
+    if (jsonData.type === "choices") {
+      return this.filterData({ data: jsonData.data }, callback);
 
-      // status response
-      if (command === this.commands.status) {
-        var statusRegExp = /(\w+): ([ \w]+)/g;
-        // format is Time, Instructor, Accepting Votes, #Clients
+    } else if (jsonData.type === "command") {
+      var cmdData = jsonData.data;
 
-        var status = {
-          time: parseInt(statusRegExp.exec(data)[2]),
-          instructorId: statusRegExp.exec(data)[2],
-          acceptingChoices: statusRegExp.exec(data)[2] === "true",
-          numClients: parseInt(statusRegExp.exec(data)[2])
-        };
+      return callback({ command: this.commandKey(jsonData.command), data: jsonData.data });
 
-        data = status;
-      }
-
-      // enable choices response
-      else if (command === this.commands.enableChoices) {
-        data = true;
-      }
-
-      // disable choices response
-      else if (command === this.commands.disableChoices) {
-        data = true;
-      }
-
-      return callback({ command: this.commandKey(command), data: data });
+    } else if (jsonData.type === "error") {
+      return callback({ error: true, message: jsonData.error, command: jsonData.command, data: false });
     }
 
     // must have been garbage, return undefined
