@@ -1,9 +1,9 @@
 
 var _ = require('lodash')
-  , AliasFilter = require('./filters/alias_filter').AliasFilter
+//  , AliasFilter = require('./filters/alias_filter').AliasFilter
   , async = require('async');
 
-var aliasFilter = new AliasFilter();
+//var aliasFilter = new AliasFilter();
 
 var ParticipantServer = function () { }
 _.extend(ParticipantServer.prototype, {
@@ -117,7 +117,7 @@ var ClickerServer = function () {
 
 ClickerServer.prototype = new ParticipantServer();
 _.extend(ClickerServer.prototype, {
-  dataFilters: [ aliasFilter ],
+//  dataFilters: [ aliasFilter ],
   commands: {
     enableChoices: "enable choices",
     disableChoices: "disable choices",
