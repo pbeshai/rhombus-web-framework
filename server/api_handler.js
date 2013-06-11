@@ -45,11 +45,12 @@ function registerParticipant(req, res) {
 	dbCall(function (db) {
 		// TODO: probably should be more secure....
 		var params = {
-			$serverId: req.body.serverId,
-			$alias: req.body.alias
+			$alias: req.body.alias,
+			$name: req.body.name,
+			$picture: null // TODO: photo support
 		};
 
-		db.run("INSERT INTO participants (serverId, alias) VALUES ($serverId, $alias)", params,
+		db.run("INSERT INTO participants (alias, name, picture) VALUES ($alias, $name, $picture)", params,
 			function (err) {
 				if (err) {
 					console.log(err);
