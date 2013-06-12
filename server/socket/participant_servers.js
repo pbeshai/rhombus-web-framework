@@ -132,20 +132,34 @@ _.extend(ClickerServer.prototype, {
     if (data === null) {
       return callback();
     }
-    var jsonData;
+
     try {
       // We may end up with multiple entries quickly passed across the socket
       // e.g., data = {...}
       //              {...}
       // TODO: handle this!
-      //var combinedData = data.replace(/\}\n\{/g, ",");
-      jsonData = JSON.parse(data);
+      var combinedRegExp = /\}\n\{/g;
+      if (combinedRegExp.test(data)) {
+        // convert it into an array
+        // handle each data response separately
+        var combinedData = "[" + data.replace(combinedRegExp, "},{") + "]";
+        var jsonDataArray = JSON.parse(combinedData);
+        _.each(jsonDataArray, function(jsonData) {
+          this.handleJsonData(jsonData, callback);
+        }, this);
+      } else {
+        var jsonData = JSON.parse(data);
+        this.handleJsonData(jsonData, callback);
+      }
     } catch (e) {
       console.log("invalid JSON received: ", e, data);
       return;
     }
 
 
+  },
+
+  handleJsonData: function (jsonData, callback) {
     if (jsonData.type === "choices") {
       return this.filterData({ data: jsonData.data }, callback);
 

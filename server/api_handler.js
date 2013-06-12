@@ -6,15 +6,16 @@ module.exports = {
 };
 
 var fs = require('fs')
-	, sqlite3 = require('sqlite3').verbose();
+	, sqlite3 = require('sqlite3').verbose()
+	, _ = require('lodash');
 
 var dbFilename = "server/app.db";
 
 function initialize(site) {
 
-	site.post("/api/participant", registerParticipant);
-	site.get("/api/participant/:action", handleParticipant)
-	site.delete("/api/participant", deleteParticipants);
+	site.post("/api/participants", registerParticipants);
+	site.get("/api/participants", listParticipants)
+	site.delete("/api/participants/:id", deleteParticipants);
 	site.all("/api/*", handle);
 }
 
@@ -39,43 +40,57 @@ function deleteParticipants(req, res) {
 	});
 }
 
-function registerParticipant(req, res) {
-	console.log("saving participant! ", req.body);
+// supports either an array of participants or an object (single participant)
+function registerParticipants(req, res) {
+	console.log("saving participants!", req.body);
+
+	if (req.body == null) return;
+
+	var participants = _.isArray(req.body) ? req.body : [req.body];
 
 	dbCall(function (db) {
-		// TODO: probably should be more secure....
-		var params = {
-			$alias: req.body.alias,
-			$name: req.body.name,
-			$picture: null // TODO: photo support
-		};
-
-		db.run("INSERT INTO participants (alias, name, picture) VALUES ($alias, $name, $picture)", params,
-			function (err) {
+		var statement = db.prepare("INSERT INTO participants (alias, name, picture) VALUES ($alias, $name, $picture)");
+		var errors = [];
+		_.each(participants, function (participant) {
+			// TODO: probably should be more secure....
+			var params = {
+				$alias: participant.alias,
+				$name: participant.name,
+				$picture: null // TODO: photo support
+			};
+			statement.run(params, function (err) {
 				if (err) {
-					console.log(err);
-					res.send(500);
-				} else {
-					res.send(200, "");
+					errors.push(err);
 				}
 			});
+		});
+
+		// send response after all participants have been added
+		statement.finalize(function (err) {
+			if (err || errors.length) {
+				if (err) {
+					console.log(err);
+				}
+				if (errors.length) {
+					console.log(errors);
+				}
+
+				res.send(500);
+			} else {
+				res.send(200, "");
+			}
+		});
 	});
 }
 
-function handleParticipant(req, res, next) {
-	console.log("participant handler! ", req.params.action, req.params);
-	var action = req.params.action;
-	if (action === "list") {
-		// list all participants
-		dbCall(function (db) {
-			db.all("SELECT * FROM participants", function (err, rows) {
-				res.send(rows);
-			})
-		});
-
-	} else {
-		res.send(404);
-	}
+function listParticipants(req, res) {
+	console.log("participant list!");
+	// list all participants
+	dbCall(function (db) {
+		db.all("SELECT * FROM participants", function (err, rows) {
+			res.send(rows);
+		})
+	});
 }
 
 function dbCall(callback) {
