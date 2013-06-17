@@ -148,8 +148,21 @@ _.extend(ClickerServer.prototype, {
         // handle each data response separately
         var combinedData = "[" + data.replace(combinedRegExp, "},{") + "]";
         var jsonDataArray = JSON.parse(combinedData);
-        _.each(jsonDataArray, function(jsonData) {
-          this.handleJsonData(jsonData, callback);
+
+        // group by type to allow merging for efficiency
+        var dataGroupedByType = _.groupBy(jsonDataArray, function (d) { return d.type; });
+
+        // if we have multiple choices, merge them together
+        if (dataGroupedByType.choices) {
+          var mergedData = _.flatten(_.pluck(dataGroupedByType.choices, "data"));
+          dataGroupedByType.choices = [{ type: "choices", data: mergedData }];
+        }
+
+        // handle each group data individually
+        _.each(_.values(dataGroupedByType), function (groupData) {
+          _.each(groupData, function (jsonData) {
+            this.handleJsonData(jsonData, callback);
+          }, this);
         }, this);
       } else {
         var jsonData = JSON.parse(data);
