@@ -134,8 +134,8 @@ _.extend(WebSocketHandler.prototype, {
         // error handler
         participantServer.socket.on("error", function (error) {
           console.log("Error with participant server: "+error.code+ " when trying to "+error.syscall);
-          if (!autoreconnect) { // only let websocket know if it isn't autoreconnect
-            webSocket.emit(events.connectServer, false);
+          if (participantServer.isConnected()) { // only let websocket know if we had and lost connection to the server
+            broadcast(events.connectServer, false);
           }
           participantServer.disconnect();
           that.participantServer.connecting = false;
@@ -143,22 +143,28 @@ _.extend(WebSocketHandler.prototype, {
 
         // attach handler for when data is sent across socket
         participantServer.socket.on("data", _.bind(participantServer.dataReceived, participantServer));
+        console.log("adding data listener "+this.id);
         participantServer.addListener(this.id, this.handleParsedData);
       }
-    } else if (!this.participantServer.isListening(this.id)) {
-      // socket connected, but this websocket handler is not listening for data events
-      // attach handler for when data is sent across socket
-      console.log("adding data listener "+this.id);
-      this.serverStatus(); // this could spam statuses on reconnects... but it's a simple fix
-      //this.participantServer.socket.on("data", this.dataReceived);
-      this.participantServer.addListener(this.id, this.handleParsedData);
+    } else if (!this.participantServer.isConnecting()) {
+      if (!this.participantServer.isListening(this.id)) {
+        // socket connected, but this websocket handler is not listening for data events
+        // attach handler for when data is sent across socket
+        console.log("adding data listener "+this.id);
+        this.serverStatus(); // this could spam statuses on reconnects... but it's a simple fix
+        //this.participantServer.socket.on("data", this.dataReceived);
+        this.participantServer.addListener(this.id, this.handleParsedData);
 
-      this.webSocket.emit(events.connectServer, true);
-    } else if (!autoreconnect) {
+        this.webSocket.emit(events.connectServer, true);
+      } else if (!autoreconnect) {
 
-      console.log("already connected on "+this.id);
-      // already connected and listening
-      this.webSocket.emit(events.connectServer, true);
+        console.log("already connected on "+this.id);
+        // already connected and listening
+        this.webSocket.emit(events.connectServer, true);
+      }
+    } else {
+      // not connected, but in the process of connecting.
+      this.webSocket.emit(events.connectServer, false);
     }
   },
 

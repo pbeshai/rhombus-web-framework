@@ -32,8 +32,12 @@ _.extend(ParticipantServer.prototype, {
     return commandKey;
   },
 
+  isConnecting: function () {
+    return this.connecting;
+  },
+
   isConnected: function () {
-    return this.socket != null;
+    return this.connecting === false && this.socket != null;
   },
 
   checkConnection: function () {
@@ -58,11 +62,11 @@ _.extend(ParticipantServer.prototype, {
 
   // event handling
   addListener: function (id, callback) {
-    this.listeners[id] = { listening: this.isConnected(), callback: callback };
+    this.listeners[id] = { callback: callback };
   },
 
   isListening: function (id) {
-    return this.listeners[id] !== undefined && this.listeners[id].listening === true;
+    return this.listeners[id] !== undefined;
   },
 
   removeListener: function (id) {
