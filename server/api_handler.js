@@ -15,7 +15,7 @@ function initialize(site) {
 
 	site.post("/api/participants", registerParticipants);
 	site.get("/api/participants", listParticipants)
-	site.delete("/api/participants/:id", deleteParticipants);
+	site.delete("/api/participants", deleteParticipants);
 	site.all("/api/*", handle);
 }
 
