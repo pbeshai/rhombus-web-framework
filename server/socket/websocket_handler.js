@@ -102,12 +102,12 @@ _.extend(WebSocketHandler.prototype, {
 
   appNext: function () {
     console.log("appNext");
-    broadcast(events.appNext, null, this.id);
+    broadcast(events.appNext);
   },
 
   appPrev: function () {
     console.log("appPrev");
-    broadcast(events.appPrev, null, this.id);
+    broadcast(events.appPrev);
   },
 
   // connect to participant server

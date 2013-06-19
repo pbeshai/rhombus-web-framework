@@ -10,7 +10,7 @@ _.extend(ParticipantServer.prototype, {
   dataFilters: [],
   encoding: "utf8",
   socket: null,
-  port: 4444,
+  port: 4445,
   host: "localhost",
   clients: 0, // keep track of number of clients to know if we should close socket to server
   pingInterval: 5000, // in milliseconds
