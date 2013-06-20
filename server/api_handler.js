@@ -16,6 +16,7 @@ function initialize(site) {
 	site.post("/api/participants", registerParticipants);
 	site.get("/api/participants", listParticipants)
 	site.delete("/api/participants", deleteParticipants);
+	site.post("/api/apps/pd/results", pdResults);
 	site.all("/api/*", handle);
 }
 
@@ -23,6 +24,32 @@ function initialize(site) {
 function handle(req, res, next) {
 	console.log("API Handler: ", req.params);
 	res.send(404);
+}
+
+function pdResults(req, res) {
+	var now = new Date();
+	var results = req.body.results;
+	function z (str) { // add leading zero
+		return ("0"+str).slice(-2);
+	}
+	var formattedDateTime = now.getFullYear()+z(now.getMonth()+1)+z(now.getDate())+"_"+z(now.getHours())+z(now.getMinutes())+z(now.getSeconds());
+	var stream = fs.createWriteStream("log/pd/results." + formattedDateTime + ".txt");
+	stream.once('open', function(fd) {
+		function output (str) {
+			console.log(str);
+			stream.write(str + "\n");
+		}
+		output("Prisoner's Dilemma Results");
+		output(now.toString());
+
+	  output("Alias,Choice,Score,PartnerAlias,PartnerChoice,PartnerScore");
+	  _.each(results, function (result) {
+			output(result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score);
+		});
+	  stream.end();
+	});
+
+	res.send(200);
 }
 
 function deleteParticipants(req, res) {
