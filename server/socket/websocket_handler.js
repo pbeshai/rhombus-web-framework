@@ -16,7 +16,6 @@ var participantServers = {
   "clicker1": new ClickerServer()
 };
 
-
 // custom web socket events
 var events = {
   connectServer: "connect-participant-server",
@@ -27,7 +26,8 @@ var events = {
   status: "status",
   submitChoice: "submit-choice", // for submitting choices from a web participant
   appNext: "app-next",
-  appPrev: "app-prev"
+  appPrev: "app-prev",
+  instructorFocus: "instructor-focus"
 };
 
 
@@ -54,6 +54,13 @@ function broadcast(event, data, exclude) {
   });
 }
 
+function shiftInstructorFocus(id) {
+  _.each(openWebSockets, function (wsh) {
+    wsh.instructorFocus = (wsh.id === id);
+    wsh.webSocket.emit(events.instructorFocus, wsh.instructorFocus);
+  });
+}
+
 var WebSocketHandler = function (webSocket) {
   this.initialize(webSocket);
 };
@@ -61,19 +68,19 @@ _.extend(WebSocketHandler.prototype, {
   webSocket: null,
   participantServer: null,
   reconnectInterval: 5000,
-  reconncetTimer: null,
+  reconnectTimer: null,
+  instructorFocus: false,
 
   // initialize the handler (typically when a websocket connects)
   initialize: function (webSocket) {
     _.bindAll(this, "reconnect", "ping", "serverConnect", "serverDisconnect", "enableChoices",
       "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect", "handleParsedData",
-      "appNext", "appPrev");
+      "appNext", "appPrev", "claimInstructorFocus");
 
     this.id = "wsh"+(new Date().getTime());
     console.log("initializing new WebSocketHandler "+this.id);
 
     openWebSockets.push(this);
-
 
     this.webSocket = webSocket; // the websocket
     this.participantServer = participantServers["clicker1"]; // currently always use clicker1 as the server
@@ -85,6 +92,10 @@ _.extend(WebSocketHandler.prototype, {
     // regularly ping the server to see if we are still connected.
     this.reconnectTimer = setInterval(this.reconnect, this.reconnectInterval);
 
+    // claim instructor focus
+    this.claimInstructorFocus();
+
+    // attach websocket event handlers
     webSocket.on(events.connectServer, this.serverConnect);
     webSocket.on(events.disconnectServer, this.serverDisconnect);
     webSocket.on(events.enableChoices, this.enableChoices);
@@ -94,6 +105,12 @@ _.extend(WebSocketHandler.prototype, {
     webSocket.on("disconnect", this.webSocketDisconnect);
     webSocket.on(events.appNext, this.appNext);
     webSocket.on(events.appPrev, this.appPrev);
+    webSocket.on(events.instructorFocus, this.claimInstructorFocus);
+  },
+
+  claimInstructorFocus: function () {
+    console.log("claiming instructor focus for " + this.id);
+    shiftInstructorFocus(this.id);
   },
 
   reconnect: function () {
@@ -230,6 +247,11 @@ _.extend(WebSocketHandler.prototype, {
   // e.g., "174132:A" or "174132:A 832185:B 321896:E"
   choicesReceived: function (data) {
     console.log("[choices received]", data);
+
+    // TODO: filter out instructor clicks if we do not have instructorFocus?
+    // currently we trust the client side to ignore them if they do not
+    // have instructor focus. Works for now, but could be reconsidered.
+
     this.webSocket.emit(events.choiceData, { choices: data });
   },
 
