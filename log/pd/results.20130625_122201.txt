@@ -1,0 +1,5 @@
+Prisoner's Dilemma Results
+Tue Jun 25 2013 12:22:01 GMT-0700 (PDT)
+Alias,Choice,Score,PartnerAlias,PartnerChoice,PartnerScore
+P01,C,3,P02,C,3
+P02,C,3,P01,C,3
