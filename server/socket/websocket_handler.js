@@ -25,6 +25,7 @@ var events = {
   disableChoices: "disable-choices",
   status: "status",
   submitChoice: "submit-choice", // for submitting choices from a web participant
+  appConfig: "app-config",
   appNext: "app-next",
   appPrev: "app-prev",
   instructorFocus: "instructor-focus"
@@ -75,7 +76,7 @@ _.extend(WebSocketHandler.prototype, {
   initialize: function (webSocket) {
     _.bindAll(this, "reconnect", "ping", "serverConnect", "serverDisconnect", "enableChoices",
       "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect", "handleParsedData",
-      "appNext", "appPrev", "claimInstructorFocus");
+      "appConfig", "appNext", "appPrev", "claimInstructorFocus");
 
     this.id = "wsh"+(new Date().getTime());
     console.log("initializing new WebSocketHandler "+this.id);
@@ -103,6 +104,8 @@ _.extend(WebSocketHandler.prototype, {
     webSocket.on(events.status, this.serverStatus);
     webSocket.on(events.submitChoice, this.submitChoice);
     webSocket.on("disconnect", this.webSocketDisconnect);
+
+    webSocket.on(events.appConfig, this.appConfig);
     webSocket.on(events.appNext, this.appNext);
     webSocket.on(events.appPrev, this.appPrev);
     webSocket.on(events.instructorFocus, this.claimInstructorFocus);
@@ -115,6 +118,11 @@ _.extend(WebSocketHandler.prototype, {
 
   reconnect: function () {
     this.serverConnect(true);
+  },
+
+  appConfig: function (data) {
+    console.log("appConfig", data);
+    broadcast(events.appConfig, data);
   },
 
   appNext: function () {
