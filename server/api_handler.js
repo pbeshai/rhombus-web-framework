@@ -29,6 +29,7 @@ function handle(req, res, next) {
 function pdResults(req, res) {
 	var now = new Date();
 	var results = req.body.results;
+	var config = req.body.config;
 	function z (str) { // add leading zero
 		return ("0"+str).slice(-2);
 	}
@@ -41,6 +42,13 @@ function pdResults(req, res) {
 		}
 		output("Prisoner's Dilemma Results");
 		output(now.toString());
+		if (config.message) {
+			output(config.message);
+		}
+		if (config.scoringMatrix) {
+			output("CC," + config.scoringMatrix.CC + ",CD," + config.scoringMatrix.CD);
+			output("DC," + config.scoringMatrix.DC + ",DD," + config.scoringMatrix.DD);
+		}
 
 	  output("Alias,Choice,Score,PartnerAlias,PartnerChoice,PartnerScore");
 	  _.each(results, function (result) {
