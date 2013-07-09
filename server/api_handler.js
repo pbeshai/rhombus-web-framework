@@ -17,6 +17,7 @@ function initialize(site) {
 	site.get("/api/participants", listParticipants)
 	site.delete("/api/participants", deleteParticipants);
 	site.post("/api/apps/pd/results", pdResults);
+	site.post("/api/apps/pdm/results", pdmResults);
 	site.all("/api/*", handle);
 }
 
@@ -26,21 +27,27 @@ function handle(req, res, next) {
 	res.send(404);
 }
 
+function z (str) { // add leading zero
+	return ("0"+str).slice(-2);
+}
+
+function filenameFormat(date) {
+	return date.getFullYear()+z(date.getMonth()+1)+z(date.getDate())+"_"+z(date.getHours())+z(date.getMinutes())+z(date.getSeconds());
+}
+
 function pdResults(req, res) {
 	var now = new Date();
 	var results = req.body.results;
 	var config = req.body.config;
-	function z (str) { // add leading zero
-		return ("0"+str).slice(-2);
-	}
-	var formattedDateTime = now.getFullYear()+z(now.getMonth()+1)+z(now.getDate())+"_"+z(now.getHours())+z(now.getMinutes())+z(now.getSeconds());
-	var stream = fs.createWriteStream("log/pd/results." + formattedDateTime + ".txt");
+	var version = req.body.version;
+
+	var stream = fs.createWriteStream("log/pd/results." + filenameFormat(now) + ".txt");
 	stream.once('open', function(fd) {
 		function output (str) {
 			console.log(str);
 			stream.write(str + "\n");
 		}
-		output("Prisoner's Dilemma Results");
+		output("Prisoner's Dilemma Results (v" + version + ")");
 		output(now.toString());
 		if (config.message) {
 			output(config.message);
@@ -53,6 +60,53 @@ function pdResults(req, res) {
 	  output("Alias,Choice,Score,PartnerAlias,PartnerChoice,PartnerScore");
 	  _.each(results, function (result) {
 			output(result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score);
+		});
+	  stream.end();
+	});
+
+	res.send(200);
+}
+
+function pdmResults(req, res) {
+	var now = new Date();
+	var results = req.body.results;
+	var config = req.body.config;
+	var version = req.body.version;
+	var round = req.body.round;
+
+	var stream = fs.createWriteStream("log/pdm/results." + filenameFormat(now) + ".txt");
+	stream.once('open', function(fd) {
+		function output (str) {
+			console.log(str);
+			stream.write(str + "\n");
+		}
+		output("Multiround Prisoner's Dilemma Results (v" + version + ")");
+		output(now.toString());
+
+		if (config.message) {
+			output(config.message);
+		}
+		if (config.scoringMatrix) {
+			output("CC," + config.scoringMatrix.CC + ",CD," + config.scoringMatrix.CD);
+			output("DC," + config.scoringMatrix.DC + ",DD," + config.scoringMatrix.DD);
+		}
+
+		output("Round " + round);
+		var r, header = "Alias,Choice,Score,PartnerAlias,PartnerChoice,PartnerScore";
+		for (r = 1; r < round; r++) {
+			header += ",Round" + r + ",Round" + r + "Score";
+		}
+	  output(header);
+	  var data, roundData;
+	  _.each(results, function (result) {
+			data = result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score;
+
+			// output the scores from previous rounds too
+			for (r = 1; r < round; r++) {
+				roundData = result.history[r - 1];
+				data += "," + roundData.pairChoices + "," + roundData.score;
+			}
+			output(data);
 		});
 	  stream.end();
 	});
