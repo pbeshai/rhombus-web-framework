@@ -91,7 +91,7 @@ function pdmResults(req, res) {
 			output("DC," + config.scoringMatrix.DC + ",DD," + config.scoringMatrix.DD);
 		}
 
-		output("Round " + round);
+		output("Round " + round + " of " + config.numRounds + " (range was " + config.minRounds + "-" + config.maxRounds +")");
 		var r, header = "Alias,Choice,Score,PartnerAlias,PartnerChoice,PartnerScore";
 		for (r = 1; r < round; r++) {
 			header += ",Round" + r + ",Round" + r + "Score";
