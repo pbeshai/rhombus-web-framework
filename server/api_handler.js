@@ -18,6 +18,7 @@ function initialize(site) {
 	site.delete("/api/participants", deleteParticipants);
 	site.post("/api/apps/pd/results", pdResults);
 	site.post("/api/apps/pdm/results", pdmResults);
+	site.post("/api/apps/npd/results", npdResults);
 	site.all("/api/*", handle);
 }
 
@@ -57,7 +58,7 @@ function pdResults(req, res) {
 			output("DC," + config.scoringMatrix.DC + ",DD," + config.scoringMatrix.DD);
 		}
 
-	  output("Alias,Choice,Score,PartnerAlias,PartnerChoice,PartnerScore");
+	  output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
 	  _.each(results, function (result) {
 			output(result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score);
 		});
@@ -92,9 +93,9 @@ function pdmResults(req, res) {
 		}
 
 		output("Round " + round + " of " + config.numRounds + " (range was " + config.minRounds + "-" + config.maxRounds +")");
-		var r, header = "Alias,Choice,Score,PartnerAlias,PartnerChoice,PartnerScore";
+		var r, header = "Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff";
 		for (r = 1; r < round; r++) {
-			header += ",Round" + r + ",Round" + r + "Score";
+			header += ",Round" + r + ",Round" + r + "Payoff";
 		}
 	  output(header);
 	  var data, roundData;
@@ -107,6 +108,47 @@ function pdmResults(req, res) {
 				data += "," + roundData.pairChoices + "," + roundData.score;
 			}
 			output(data);
+		});
+	  stream.end();
+	});
+
+	res.send(200);
+}
+
+function npdResults(req, res) {
+	var now = new Date();
+	var results = req.body.results;
+	var config = req.body.config;
+	var version = req.body.version;
+	var payoff = req.body.payoff;
+	var N = (payoff !== undefined) ? (parseInt(payoff.numCooperators) + parseInt(payoff.numDefectors)) : 0;
+
+	var stream = fs.createWriteStream("log/npd/results." + filenameFormat(now) + ".txt");
+	stream.once('open', function(fd) {
+		function output (str) {
+			console.log(str);
+			stream.write(str + "\n");
+		}
+		output("N-Person Prisoner's Dilemma Results (v" + version + ")");
+		output(now.toString());
+		if (config.message) {
+			output(config.message);
+		}
+		if (config.payoff) {
+			output("Rratio," + config.payoff.Rratio + ",R,"+ (config.payoff.Rratio*N).toFixed(2));
+			output("H," + config.payoff.H);
+		}
+    if (payoff) {
+    	output("N," + N);
+    	output("Cooperator Payoff," + payoff.cooperatorPayoff + ",# Cooperators," + payoff.numCooperators);
+    	output("Defector Payoff," + payoff.defectorPayoff + ",# Defectors," + payoff.numDefectors);
+    	output("Total Payoff," + payoff.totalPayoff);
+    	output("Max Possible Total Payoff," + payoff.maxPayoff);
+    }
+
+	  output("Alias,Choice,Payoff");
+	  _.each(results, function (result) {
+			output(result.alias + "," + result.choice + "," + result.score);
 		});
 	  stream.end();
 	});
