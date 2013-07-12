@@ -134,10 +134,13 @@ function npdResults(req, res) {
 		if (config.message) {
 			output(config.message);
 		}
-		if (config.payoff) {
-			output("Rratio," + config.payoff.Rratio + ",R,"+ (config.payoff.Rratio*N).toFixed(2));
-			output("H," + config.payoff.H);
+		if (config.Rratio) {
+			output("Rratio," + config.Rratio + ",R,"+ (config.Rratio*(N-1)).toFixed(2));
 		}
+		if (config.H) {
+			output("H," + config.H);
+		}
+
     if (payoff) {
     	output("N," + N);
     	output("Cooperator Payoff," + payoff.cooperatorPayoff + ",# Cooperators," + payoff.numCooperators);
