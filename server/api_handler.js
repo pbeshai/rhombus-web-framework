@@ -19,6 +19,7 @@ function initialize(site) {
 	site.post("/api/apps/pd/results", pdResults);
 	site.post("/api/apps/pdm/results", pdmResults);
 	site.post("/api/apps/npd/results", npdResults);
+	site.post("/api/apps/teampd/results", teampdResults);
 	site.all("/api/*", handle);
 }
 
@@ -152,6 +153,49 @@ function npdResults(req, res) {
 	  output("Alias,Choice,Payoff");
 	  _.each(results, function (result) {
 			output(result.alias + "," + result.choice + "," + result.score);
+		});
+	  stream.end();
+	});
+
+	res.send(200);
+}
+
+function teampdResults(req, res) {
+	var now = new Date();
+	var results = req.body.results;
+	var config = req.body.config;
+	var version = req.body.version;
+
+	var stream = fs.createWriteStream("log/teampd/results." + filenameFormat(now) + ".txt");
+	stream.once('open', function(fd) {
+		function output (str) {
+			console.log(str);
+			stream.write(str + "\n");
+		}
+		output("Team Prisoner's Dilemma Results (v" + version + ")");
+		output(now.toString());
+		if (config.message) {
+			output(config.message);
+		}
+		if (config.scoringMatrix) {
+			output("CC," + config.scoringMatrix.CC + ",CD," + config.scoringMatrix.CD);
+			output("DC," + config.scoringMatrix.DC + ",DD," + config.scoringMatrix.DD);
+		}
+
+		output("Team 1 (" + config.team1Name + ") vs. Team 2 (" + config.team2Name + ")");
+		output("");
+
+		output("Team 1 (" + config.team1Name + ") Results");
+	  output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
+	  _.each(results.team1, function (result) {
+			output(result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score);
+		});
+
+	  output("");
+		output("Team 2 (" + config.team2Name + ") Results");
+	  output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
+	  _.each(results.team2, function (result) {
+			output(result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score);
 		});
 	  stream.end();
 	});
