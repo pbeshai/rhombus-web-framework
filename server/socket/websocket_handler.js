@@ -68,6 +68,7 @@ _.extend(App.prototype, {
   }
 });
 
+// creates a new app if one does not exist, or returns the one that maps to the id
 function getApp(id) {
   var app = runningApps[id];
   if (app === undefined) {
@@ -80,7 +81,7 @@ function getApp(id) {
 // event handler for connection made to web socket
 function webSocketConnection(webSocket) {
   console.log("[websocket connected]");
-  webSocket.emit("request-register");
+  webSocket.emit("request-register"); // ask the websocket connectee to introduce itself
   webSocket.on("register", function (data) {
     var app = getApp(data.app);
     console.log("websocket register", data);
@@ -94,49 +95,41 @@ function webSocketConnection(webSocket) {
   });
 }
 // collection of open websocket handlers
-var openWebSockets = [];
+// var openWebSockets = [];
 
-function broadcast(event, data, exclude) {
-  console.log("broadcasting to open websockets: ", event, data);
-  _.each(openWebSockets, function (wsh) {
-    if (wsh.id !== exclude) {
-      console.log(wsh.id + " -> ", event, data);
-      wsh.webSocket.emit(event, data);
-    }
-  });
-}
+// function broadcast(event, data, exclude) {
+//   console.log("broadcasting to open websockets: ", event, data);
+//   _.each(openWebSockets, function (wsh) {
+//     if (wsh.id !== exclude) {
+//       console.log(wsh.id + " -> ", event, data);
+//       wsh.webSocket.emit(event, data);
+//     }
+//   });
+// }
 
-function shiftInstructorFocus(id) {
-  _.each(openWebSockets, function (wsh) {
-    wsh.instructorFocus = (wsh.id === id);
-    wsh.webSocket.emit(events.instructorFocus, wsh.instructorFocus);
-  });
-}
+// function shiftInstructorFocus(id) {
+//   _.each(openWebSockets, function (wsh) {
+//     wsh.instructorFocus = (wsh.id === id);
+//     wsh.webSocket.emit(events.instructorFocus, wsh.instructorFocus);
+//   });
+// }
+// new AppParticipantServerHandler(app, participantServers.clicker);
 
-/*
-var OldWebSocketHandler = function (webSocket) {
-  this.initialize(webSocket);
+var AppParticipantServerHandler = function (app, participantServer) {
+  this.initialize(app, participantServer);
 };
 _.extend(WebSocketHandler.prototype, {
   webSocket: null,
-  participantServer: null,
   reconnectInterval: 5000,
   reconnectTimer: null,
   instructorFocus: false,
 
   // initialize the handler (typically when a websocket connects)
-  initialize: function (webSocket) {
-    _.bindAll(this, "reconnect", "ping", "serverConnect", "serverDisconnect", "enableChoices",
-      "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect", "handleParsedData",
-      "appMessage", "claimInstructorFocus");
+  initialize: function (app, participantServer) {
+    console.log("initializing app participant server handler");
+    this.app = app;
 
-    this.id = "wsh"+(new Date().getTime());
-    console.log("initializing new WebSocketHandler "+this.id);
-
-    openWebSockets.push(this);
-
-    this.webSocket = webSocket; // the websocket
-    this.participantServer = participantServers["clicker"]; // currently always use clicker1 as the server
+    this.participantServer = participantServer;
     this.participantServer.clients += 1;
 
     // auto connect
@@ -144,47 +137,10 @@ _.extend(WebSocketHandler.prototype, {
 
     // regularly ping the server to see if we are still connected.
     this.reconnectTimer = setInterval(this.reconnect, this.reconnectInterval);
-
-    // claim instructor focus
-    this.claimInstructorFocus();
-
-    // attach websocket event handlers
-    webSocket.on(events.connectServer, this.serverConnect);
-    webSocket.on(events.disconnectServer, this.serverDisconnect);
-    webSocket.on(events.enableChoices, this.enableChoices);
-    webSocket.on(events.disableChoices, this.disableChoices);
-    webSocket.on(events.status, this.serverStatus);
-    webSocket.on(events.submitChoice, this.submitChoice);
-    webSocket.on("disconnect", this.webSocketDisconnect);
-
-    webSocket.on(events.appConfig, this.appConfig);
-    webSocket.on(events.appNext, this.appNext);
-    webSocket.on(events.appPrev, this.appPrev);
-    webSocket.on(events.instructorFocus, this.claimInstructorFocus);
-  },
-
-  claimInstructorFocus: function () {
-    console.log("claiming instructor focus for " + this.id);
-    shiftInstructorFocus(this.id);
   },
 
   reconnect: function () {
     this.serverConnect(true);
-  },
-
-  appMessage: function (message) {
-
-    broadcast(events.appConfig, data);
-  },
-
-  appNext: function () {
-    console.log("appNext");
-    broadcast(events.appNext);
-  },
-
-  appPrev: function () {
-    console.log("appPrev");
-    broadcast(events.appPrev);
   },
 
   // connect to participant server
@@ -256,24 +212,6 @@ _.extend(WebSocketHandler.prototype, {
     this.webSocket.emit(events.disconnectServer, true);
   },
 
-  // event handler when websocket disconnects
-  webSocketDisconnect: function () {
-    console.log("[websocket disconnected]");
-
-    this.participantServer.removeListener[this.id];
-    this.participantServer.clients -= 1;
-    clearInterval(this.reconnectTimer);
-    this.reconnectTimer = null;
-    if (this.participantServer.clients === 0) {
-      this.serverDisconnect();
-    }
-
-    this.webSocket = null;
-    // remove from openWebSockets
-    openWebSockets = _.reject(openWebSockets, function (wsh) {
-      return wsh.id == this.id;
-    }, this);
-  },
 
   ping: function () {
     console.log("ping");
@@ -339,7 +277,6 @@ _.extend(WebSocketHandler.prototype, {
   }
 });
 
-*/
 
 var WebSocketHandler = function (webSocket, app) {
   EventEmitter.call(this);
@@ -421,5 +358,24 @@ _.extend(ControllerWSH.prototype, {
     this.app.messageFromController(message);
   }
 });
+/* these should be added to controller that then tellls the App what to do
+    // attach websocket event handlers
+    webSocket.on(events.connectServer, this.serverConnect);
+    webSocket.on(events.disconnectServer, this.serverDisconnect);
+    webSocket.on(events.enableChoices, this.enableChoices);
+    webSocket.on(events.disableChoices, this.disableChoices);
+    webSocket.on(events.status, this.serverStatus);
+    webSocket.on(events.submitChoice, this.submitChoice);
+    webSocket.on("disconnect", this.webSocketDisconnect);
+
+    webSocket.on(events.appConfig, this.appConfig);
+    webSocket.on(events.appNext, this.appNext);
+    webSocket.on(events.appPrev, this.appPrev);
+    webSocket.on(events.instructorFocus, this.claimInstructorFocus);
+
+
+
+*/
+
 
 // TODO: add participant server stuff to the APP! not the websockethandler :)
