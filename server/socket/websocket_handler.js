@@ -19,9 +19,8 @@ var participantServers = {
 };
 
 // custom web socket events
-var events = {
+var webSocketEvents = {
   connectServer: "connect-participant-server",
-  disconnectServer: "disconnect-participant-server",
   choiceData: "choice-data", // for sending choice data to client
   enableChoices: "enable-choices",
   disableChoices: "disable-choices",
@@ -43,6 +42,7 @@ function App(id) {
   this.id = id;
   this.viewers = [];      // collection of ViewerWSH
   this.controller = null; // ControllerWSH
+  this.participantServerHandler = new AppParticipantServerHandler(this, participantServers.clicker);
 };
 _.extend(App.prototype, {
   addViewer: function (viewer) {
@@ -55,7 +55,7 @@ _.extend(App.prototype, {
   },
 
   messageFromViewer: function (message) {
-    console.log("App got message from viewer ", message);
+    console.log("TODO: App got message from viewer ", message);
   },
 
   setController: function (controller) {
@@ -64,7 +64,34 @@ _.extend(App.prototype, {
   },
 
   messageFromController: function (message) {
-    console.log("app message from controller", message);
+    console.log("TODO: app message from controller", message);
+  },
+
+  runServerCommand: function (command, args) {
+    this.participantServerHandler.runCommand(command, args);
+  },
+
+  serverConnected: function (connected) {
+    if (!this.controller) return;
+    this.controller.serverConnected(connected);
+  },
+
+  // from the participant server
+  choicesReceived: function (data) {
+    if (!this.controller) return;
+    this.controller.sendChoices(data);
+  },
+
+  errorReceived: function (error) {
+    if (!this.controller) return;
+    if (error.command) {
+      this.controller.sendCommandError(error);
+    }
+  },
+
+  commandReceived: function (command) {
+    if (!this.controller) return;
+    this.controller.sendCommand(command);
   }
 });
 
@@ -110,7 +137,7 @@ function webSocketConnection(webSocket) {
 // function shiftInstructorFocus(id) {
 //   _.each(openWebSockets, function (wsh) {
 //     wsh.instructorFocus = (wsh.id === id);
-//     wsh.webSocket.emit(events.instructorFocus, wsh.instructorFocus);
+//     wsh.webSocket.emit(webSocketEvents.instructorFocus, wsh.instructorFocus);
 //   });
 // }
 // new AppParticipantServerHandler(app, participantServers.clicker);
@@ -118,7 +145,7 @@ function webSocketConnection(webSocket) {
 var AppParticipantServerHandler = function (app, participantServer) {
   this.initialize(app, participantServer);
 };
-_.extend(WebSocketHandler.prototype, {
+_.extend(AppParticipantServerHandler.prototype, {
   webSocket: null,
   reconnectInterval: 5000,
   reconnectTimer: null,
@@ -127,6 +154,8 @@ _.extend(WebSocketHandler.prototype, {
   // initialize the handler (typically when a websocket connects)
   initialize: function (app, participantServer) {
     console.log("initializing app participant server handler");
+    _.bindAll(this, "reconnect", "serverConnect", "serverDisconnect", "handleParsedData");
+
     this.app = app;
 
     this.participantServer = participantServer;
@@ -150,15 +179,14 @@ _.extend(WebSocketHandler.prototype, {
       if (!this.participantServer.connecting) { //only let one person try and connect
         console.log("connecting to socket "+this.id);
         this.participantServer.connecting = true;
-        var webSocket = this.webSocket;
         var that = this;
 
         // connect via socket to participant server and get status on connection
         this.participantServer.socket = net.createConnection(this.participantServer.port, this.participantServer.host,
           function () {
             console.log("successfully connected to participant server ("+that.id+")");
-            webSocket.emit(events.connectServer, true);
-            that.serverStatus();
+            that.app.serverConnected(true);
+            that.runCommand("status");
             that.participantServer.connecting = false;
         });
         var participantServer = this.participantServer;
@@ -168,7 +196,9 @@ _.extend(WebSocketHandler.prototype, {
         participantServer.socket.on("error", function (error) {
           console.log("Error with participant server: "+error.code+ " when trying to "+error.syscall);
           if (participantServer.isConnected()) { // only let websocket know if we had and lost connection to the server
-            broadcast(events.connectServer, false);
+            _.each(runningApps, function (app) {
+              app.serverConnected(false);
+            });
           }
           participantServer.disconnect();
           that.participantServer.connecting = false;
@@ -184,37 +214,23 @@ _.extend(WebSocketHandler.prototype, {
         // socket connected, but this websocket handler is not listening for data events
         // attach handler for when data is sent across socket
         console.log("adding data listener "+this.id);
-        this.serverStatus(); // this could spam statuses on reconnects... but it's a simple fix
+        this.runCommand("status"); // this could spam statuses on reconnects... but it's a simple fix
         //this.participantServer.socket.on("data", this.dataReceived);
         this.participantServer.addListener(this.id, this.handleParsedData);
-
-        this.webSocket.emit(events.connectServer, true);
+        this.app.serverConnected(true);
       } else if (!autoreconnect) {
 
         console.log("already connected on "+this.id);
         // already connected and listening
-        this.webSocket.emit(events.connectServer, true);
+        this.app.serverConnected(true);
       }
     } else {
       // not connected, but in the process of connecting.
-      this.webSocket.emit(events.connectServer, false);
+      this.app.serverConnected(false);
     }
   },
 
-  // disconnect from participant server
-  serverDisconnect: function () {
-    console.log("[disconnect participant server] ", this.participantServer.socket != null);
-
-
-    this.participantServer.disconnect();
-
-    // indicate we have disconnected.
-    this.webSocket.emit(events.disconnectServer, true);
-  },
-
-
   ping: function () {
-    console.log("ping");
     if (this.participantServer.isConnected()) {
       this.participantServer.command("ping");
     } else {
@@ -222,41 +238,11 @@ _.extend(WebSocketHandler.prototype, {
     }
   },
 
-  // tell participant server to start voting
-  enableChoices: function () {
-    this.participantServer.command("enableChoices");
-  },
-
-  // tell participant server to stop voting
-  disableChoices: function () {
-    this.participantServer.command("disableChoices");
-  },
-
-  // get the status of the participant server
-  serverStatus: function () {
-    this.participantServer.command("status");
-  },
-
-  submitChoice: function (data) {
-    this.participantServer.command("submitChoice", [data]);
-  },
-
-  // event handler when choices are received. data of the form "<ID>:<Choice> ..."
-  // e.g., "174132:A" or "174132:A 832185:B 321896:E"
-  choicesReceived: function (data) {
-    console.log("[choices received]", data);
-
-    // TODO: filter out instructor clicks if we do not have instructorFocus?
-    // currently we trust the client side to ignore them if they do not
-    // have instructor focus. Works for now, but could be reconsidered.
-
-    this.webSocket.emit(events.choiceData, { choices: data });
+  runCommand: function (command, args) {
+    this.participantServer.command(command, args);
   },
 
   handleParsedData: function (result) {
-    if (this.webSocket == null) { //web socket has closed, ignore this
-      return;
-    }
     // garbage data?
     if (result == null) {
       return;
@@ -264,15 +250,11 @@ _.extend(WebSocketHandler.prototype, {
 
     // did an error occur?
     if (result.error) {
-      if (result.command) {
-        this.webSocket.emit(events[result.command], result);
-      }
+      this.app.errorReceived(result);
     } else if (result.command) {   // is it a command callback?
-      if (events[result.command]) {
-        this.webSocket.emit(events[result.command], result.data);
-      }
+      this.app.commandReceived(result);
     } else { // must have been choices.
-      this.choicesReceived(result.data);
+      this.app.choicesReceived(result.data);
     }
   }
 });
@@ -285,9 +267,8 @@ var WebSocketHandler = function (webSocket, app) {
 util.inherits(WebSocketHandler, EventEmitter);
 _.extend(WebSocketHandler.prototype, {
   webSocket: null,
-  boundFunctions: [ "appMessage", "webSocketDisconnect" ],
   webSocketEvents: [
-    { event: events.appMessage, handler: "appMessage" },
+    { event: webSocketEvents.appMessage, handler: "appMessageReceived" },
     { event: "disconnect", handler: "webSocketDisconnect" }
   ],
 
@@ -301,7 +282,8 @@ _.extend(WebSocketHandler.prototype, {
 
   // initialize the handler (typically when a websocket connects)
   initialize: function (webSocket, app) {
-    _.bindAll.apply(this, [this].concat(this.boundFunctions));
+    var boundFunctions = _.pluck(this.webSocketEvents, "handler");
+    _.bindAll.apply(this, [this].concat(boundFunctions));
 
     this.id = this.generateId();
     console.log("initializing new handler " + this);
@@ -320,7 +302,13 @@ _.extend(WebSocketHandler.prototype, {
     }, this);
   },
 
-  appMessage: function (message) {
+  appMessageReceived: function (message) { },
+
+  // sends a message over the websocket
+  sendMessage: function (type, message) {
+    if (this.webSocket) {
+      this.webSocket.emit(type, message);
+    }
   },
 
   // event handler when websocket disconnects (basically a destructor)
@@ -340,7 +328,7 @@ _.extend(ViewerWSH.prototype, {
     return "ViewerWSH"+(new Date().getTime());
   },
 
-  appMessage: function (message) {
+  appMessageReceived: function (message) {
     this.app.messageFromViewer(message);
   },
 });
@@ -350,32 +338,63 @@ var ControllerWSH = function (webSocket, app) {
 };
 util.inherits(ControllerWSH, WebSocketHandler);
 _.extend(ControllerWSH.prototype, {
+  webSocketEvents: WebSocketHandler.prototype.webSocketEvents.concat([
+    { event: webSocketEvents.enableChoices, handler: "enableChoicesReceived" },
+    { event: webSocketEvents.disableChoices, handler: "disableChoicesReceived" },
+    { event: webSocketEvents.serverStatus, handler: "serverStatusReceived" },
+    { event: webSocketEvents.submitChoice, handler: "submitChoiceReceived" },
+  ]),
+
   generateId: function () {
     return "ControllerWSH"+(new Date().getTime());
   },
 
-  appMessage: function (message) {
+  // message came in over websocket
+  appMessageReceived: function (message) {
     this.app.messageFromController(message);
+  },
+
+  // tell participant server to start voting
+  enableChoicesReceived: function () {
+    this.app.runServerCommand("enableChoices");
+  },
+
+  // tell participant server to stop voting
+  disableChoicesReceived: function () {
+    this.app.runServerCommand("disableChoices");
+  },
+
+  // get the status of the participant server
+  serverStatusReceived: function () {
+    this.app.runServerCommand("status");
+  },
+
+  submitChoiceReceived: function (data) {
+    this.app.runServerCommand("submitChoice", [data]);
+  },
+
+  serverConnected: function (connected) {
+    this.sendMessage(webSocketEvents.connectServer, connected);
+  },
+
+  sendChoices: function (data) {
+    this.sendMessage(webSocketEvents.choiceData, { choices: data });
+  },
+
+  sendCommandError: function (error) {
+    this.sendMessage(webSocketEvents[error.command], error);
+  },
+
+  sendCommand: function (command) {
+    if (webSocketEvents[command.command]) {
+      this.sendMessage(webSocketEvents[command.command], command.data);
+    }
   }
 });
-/* these should be added to controller that then tellls the App what to do
+/* these should be added to controller that then tells the App what to do
     // attach websocket event handlers
-    webSocket.on(events.connectServer, this.serverConnect);
-    webSocket.on(events.disconnectServer, this.serverDisconnect);
-    webSocket.on(events.enableChoices, this.enableChoices);
-    webSocket.on(events.disableChoices, this.disableChoices);
-    webSocket.on(events.status, this.serverStatus);
-    webSocket.on(events.submitChoice, this.submitChoice);
-    webSocket.on("disconnect", this.webSocketDisconnect);
-
-    webSocket.on(events.appConfig, this.appConfig);
-    webSocket.on(events.appNext, this.appNext);
-    webSocket.on(events.appPrev, this.appPrev);
-    webSocket.on(events.instructorFocus, this.claimInstructorFocus);
-
-
-
+    webSocket.on(webSocketEvents.appConfig, this.appConfig);
+    webSocket.on(webSocketEvents.appNext, this.appNext);
+    webSocket.on(webSocketEvents.appPrev, this.appPrev);
+    webSocket.on(webSocketEvents.instructorFocus, this.claimInstructorFocus);
 */
-
-
-// TODO: add participant server stuff to the APP! not the websockethandler :)
