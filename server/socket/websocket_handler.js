@@ -9,11 +9,13 @@ module.exports = {
 // Module dependencies
 var net = require('net'),
   _ = require('lodash'),
+  util = require('util'),
+  EventEmitter = require('events').EventEmitter,
   ClickerServer = require("./participant_servers").ClickerServer;
 
 // map of configured Participant Servers
 var participantServers = {
-  "clicker1": new ClickerServer()
+  "clicker": new ClickerServer()
 };
 
 // custom web socket events
@@ -25,9 +27,7 @@ var events = {
   disableChoices: "disable-choices",
   status: "status",
   submitChoice: "submit-choice", // for submitting choices from a web participant
-  appConfig: "app-config",
-  appNext: "app-next",
-  appPrev: "app-prev",
+  appMessage: "app-message",
   instructorFocus: "instructor-focus"
 };
 
@@ -37,10 +37,61 @@ function init(io) {
   io.sockets.on('connection', webSocketConnection);
 }
 
+var runningApps = {};
+
+function App(id) {
+  this.id = id;
+  this.viewers = [];      // collection of ViewerWSH
+  this.controller = null; // ControllerWSH
+};
+_.extend(App.prototype, {
+  addViewer: function (viewer) {
+    viewer.on("disconnect", _.bind(this.removeViewer, this, [viewer]));  // remove on disconnect
+    this.viewers.push(viewer);
+  },
+
+  removeViewer: function (viewer) {
+    console.log("TODO remove viewer", viewer);
+  },
+
+  messageFromViewer: function (message) {
+    console.log("App got message from viewer ", message);
+  },
+
+  setController: function (controller) {
+    if (controller) controller.on("disconnect", _.bind(this.setController, this)); // remove on disconnect
+    this.controller = controller;
+  },
+
+  messageFromController: function (message) {
+    console.log("app message from controller", message);
+  }
+});
+
+function getApp(id) {
+  var app = runningApps[id];
+  if (app === undefined) {
+    app = runningApps[id] = new App(id);
+  }
+  return app;
+}
+
+
 // event handler for connection made to web socket
 function webSocketConnection(webSocket) {
   console.log("[websocket connected]");
-  var handler = new WebSocketHandler(webSocket);
+  webSocket.emit("request-register");
+  webSocket.on("register", function (data) {
+    var app = getApp(data.app);
+    console.log("websocket register", data);
+    if (data.type === "controller") {
+      console.log("registering new controller");
+      app.setController(new ControllerWSH(webSocket, app));
+    } else {
+      console.log("registering new viewer");
+      app.addViewer(new ViewerWSH(webSocket, app));
+    }
+  });
 }
 // collection of open websocket handlers
 var openWebSockets = [];
@@ -62,7 +113,8 @@ function shiftInstructorFocus(id) {
   });
 }
 
-var WebSocketHandler = function (webSocket) {
+/*
+var OldWebSocketHandler = function (webSocket) {
   this.initialize(webSocket);
 };
 _.extend(WebSocketHandler.prototype, {
@@ -76,7 +128,7 @@ _.extend(WebSocketHandler.prototype, {
   initialize: function (webSocket) {
     _.bindAll(this, "reconnect", "ping", "serverConnect", "serverDisconnect", "enableChoices",
       "disableChoices", "serverStatus", "submitChoice", "webSocketDisconnect", "handleParsedData",
-      "appConfig", "appNext", "appPrev", "claimInstructorFocus");
+      "appMessage", "claimInstructorFocus");
 
     this.id = "wsh"+(new Date().getTime());
     console.log("initializing new WebSocketHandler "+this.id);
@@ -84,7 +136,7 @@ _.extend(WebSocketHandler.prototype, {
     openWebSockets.push(this);
 
     this.webSocket = webSocket; // the websocket
-    this.participantServer = participantServers["clicker1"]; // currently always use clicker1 as the server
+    this.participantServer = participantServers["clicker"]; // currently always use clicker1 as the server
     this.participantServer.clients += 1;
 
     // auto connect
@@ -120,8 +172,8 @@ _.extend(WebSocketHandler.prototype, {
     this.serverConnect(true);
   },
 
-  appConfig: function (data) {
-    console.log("appConfig", data);
+  appMessage: function (message) {
+
     broadcast(events.appConfig, data);
   },
 
@@ -286,3 +338,88 @@ _.extend(WebSocketHandler.prototype, {
     }
   }
 });
+
+*/
+
+var WebSocketHandler = function (webSocket, app) {
+  EventEmitter.call(this);
+  this.initialize(webSocket, app);
+};
+util.inherits(WebSocketHandler, EventEmitter);
+_.extend(WebSocketHandler.prototype, {
+  webSocket: null,
+  boundFunctions: [ "appMessage", "webSocketDisconnect" ],
+  webSocketEvents: [
+    { event: events.appMessage, handler: "appMessage" },
+    { event: "disconnect", handler: "webSocketDisconnect" }
+  ],
+
+  toString: function () {
+    return this.id;
+  },
+
+  generateId: function () {
+    return "WSH"+(new Date().getTime());
+  },
+
+  // initialize the handler (typically when a websocket connects)
+  initialize: function (webSocket, app) {
+    _.bindAll.apply(this, [this].concat(this.boundFunctions));
+
+    this.id = this.generateId();
+    console.log("initializing new handler " + this);
+
+    this.app = app;
+
+    // attach websocket event handlers
+    this.webSocket = webSocket; // the websocket
+    _.each(this.webSocketEvents, function (eventDef) {
+      var handler = eventDef.handler;
+      if (_.isString(handler)) {
+        handler = this[handler];
+      }
+
+      webSocket.on(eventDef.event, handler);
+    }, this);
+  },
+
+  appMessage: function (message) {
+  },
+
+  // event handler when websocket disconnects (basically a destructor)
+  webSocketDisconnect: function () {
+    console.log("[websocket disconnected] " + this);
+    this.webSocket = null;
+    this.emit("disconnect");
+  },
+});
+
+var ViewerWSH = function (webSocket, app) {
+  WebSocketHandler.apply(this, arguments);
+}
+util.inherits(ViewerWSH, WebSocketHandler);
+_.extend(ViewerWSH.prototype, {
+  generateId: function () {
+    return "ViewerWSH"+(new Date().getTime());
+  },
+
+  appMessage: function (message) {
+    this.app.messageFromViewer(message);
+  },
+});
+
+var ControllerWSH = function (webSocket, app) {
+  WebSocketHandler.apply(this, arguments);
+};
+util.inherits(ControllerWSH, WebSocketHandler);
+_.extend(ControllerWSH.prototype, {
+  generateId: function () {
+    return "ControllerWSH"+(new Date().getTime());
+  },
+
+  appMessage: function (message) {
+    this.app.messageFromController(message);
+  }
+});
+
+// TODO: add participant server stuff to the APP! not the websockethandler :)
