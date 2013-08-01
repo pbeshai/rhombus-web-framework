@@ -19,7 +19,7 @@ module.exports = function(grunt) {
   var https = require("https");
   var http = require("http");
 
-  var websocketHandler = require("./socket/websocket_handler"); // TODO: probably not the best organization
+  var websockets = require("./socket/websockets"); // TODO: probably not the best organization
 
   // External libs.
   var express = require("express");
@@ -53,6 +53,7 @@ module.exports = function(grunt) {
       // Should this server exist forever or die immediately after all tasks
       // are done.
       forever: true,
+      force: true,
 
       // Controls how the server is run.
       ssl: ENV.SSL || false,
@@ -163,6 +164,9 @@ module.exports = function(grunt) {
       return memo;
     }, {}));
 
+    // enable stack traces
+    grunt.option("stack", options.stack);
+
     // Run forever and disable crashing.
     if (options.forever === true) {
       // Put this task into async mode, and never complete it.
@@ -170,7 +174,7 @@ module.exports = function(grunt) {
 
       // Setting force to true, keeps Grunt from crashing while running the
       // server.
-      grunt.option("force", true);
+      grunt.option("force", options.force);
     }
 
     // Make this value more meaningful otherwise you can provide your own keys.
@@ -334,7 +338,7 @@ module.exports = function(grunt) {
     if (!options.ssl) {
       var httpServer = http.createServer(site);
       // attach socket.io and handler
-      websocketHandler.init(socketio.listen(httpServer));
+      websockets.init(socketio.listen(httpServer));
 
       return httpServer.listen(options.port, options.host);
     }
@@ -342,6 +346,6 @@ module.exports = function(grunt) {
 
     // Create the SSL server instead...
     var httpsServer = https.createServer(options.ssl, site).listen(options.port, options.host);
-    websocketHandler.init(socketio.listen(httpsServer)); // not tested
+    websockets.init(socketio.listen(httpsServer)); // not tested
   }
 };

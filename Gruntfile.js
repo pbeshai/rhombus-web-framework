@@ -4,7 +4,6 @@
 module.exports = function(grunt) {
 
   grunt.initConfig({
-
     // The lint task will run the build configuration and the application
     // JavaScript through JSHint and report any errors.  You can change the
     // options for this task, by reading this:
@@ -133,6 +132,11 @@ module.exports = function(grunt) {
       options: {
         port: 8000,
 
+        // crash on warnings
+        force: false,
+
+        // show stack trace on errors/warnings
+        stack: true,
         // Ensure the favicon is mapped correctly.
         files: { "favicon.ico": "favicon.ico" },
 
@@ -141,7 +145,6 @@ module.exports = function(grunt) {
       },
 
       debug: {
-
         // Ensure the favicon is mapped correctly.
         files: "<config:server.files>",
 
