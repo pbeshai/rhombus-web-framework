@@ -72,6 +72,11 @@ _.extend(Manager.prototype, {
       controller.on("disconnect", _.bind(this.setController, this)); // remove on disconnect
       controller.sendRegistered();
       controller.sendViewerList(this.viewers);
+      if (this.participantServerHandler.isConnected()) {
+        controller.serverConnected(true);
+        this.participantServerHandler.runCommand("status");
+      }
+
     }
 
     this.controller = controller;
@@ -157,6 +162,12 @@ _.extend(ManagerParticipantServerHandler.prototype, {
   reconnect: function () {
     this.serverConnect(true);
   },
+
+  isConnected: function () {
+    return this.participantServer.isConnected();
+  },
+
+  // TODO: potentially simplify this/ handle when controller reconnects or a new controller attaches to the manager
 
   // connect to participant server
   serverConnect: function (autoreconnect) {
