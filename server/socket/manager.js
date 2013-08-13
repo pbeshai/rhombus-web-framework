@@ -27,7 +27,13 @@ var webSocketEvents = {
   status: "status",
   submitChoice: "submit-choice", // for submitting choices from a web participant
   appMessage: "app-message",
-  instructorFocus: "instructor-focus"
+  instructorFocus: "instructor-focus",
+  viewerConnect: "viewer-connect",
+  viewerDisconnect: "viewer-disconnect",
+  viewerList: "viewer-list",
+  registered: "registered",
+  loadView: "load-view",
+  updateView: "update-view"
 };
 
 function Manager(id) {
@@ -41,6 +47,12 @@ _.extend(Manager.prototype, {
   addViewer: function (viewer) {
     viewer.on("disconnect", _.bind(this.removeViewer, this, viewer));  // remove on disconnect
     this.viewers.push(viewer);
+
+    if (this.controller) {
+      this.controller.sendViewerConnected(viewer);
+    }
+
+    viewer.sendRegistered();
   },
 
   removeViewer: function (viewer) {
@@ -49,10 +61,19 @@ _.extend(Manager.prototype, {
       this.viewers[i] = this.viewers[this.viewers.length - 1];
       this.viewers.length -= 1;
     }
+
+    if (this.controller) {
+      this.controller.sendViewerDisconnected(viewer);
+    }
   },
 
   setController: function (controller) {
-    if (controller) controller.on("disconnect", _.bind(this.setController, this)); // remove on disconnect
+    if (controller) {
+      controller.on("disconnect", _.bind(this.setController, this)); // remove on disconnect
+      controller.sendRegistered();
+      controller.sendViewerList(this.viewers);
+    }
+
     this.controller = controller;
   },
 
@@ -67,9 +88,12 @@ _.extend(Manager.prototype, {
   // controller sends to viewers
   appMessageFromController: function (message) {
     console.log("Manager got message from controller ", message);
+
     _.each(this.viewers, function (viewer) {
-      console.log("sending message to " + viewer);
-      viewer.sendAppMessage(message);
+      if (!message.viewer || viewer.id === message.viewer) {
+        console.log("sending message to " + viewer);
+        viewer.sendAppMessage(message);
+      }
     });
   },
 
@@ -285,20 +309,29 @@ _.extend(WebSocketHandler.prototype, {
   },
 });
 
+
+var idLimit = 1000; // simple limit of IDs to 1000.
+var viewerIdCount = 1;
 function ViewerWSH(webSocket, manager) {
   WebSocketHandler.apply(this, arguments);
 }
 util.inherits(ViewerWSH, WebSocketHandler);
 _.extend(ViewerWSH.prototype, {
   generateId: function () {
-    return "ViewerWSH"+(new Date().getTime());
+    if (viewerIdCount > idLimit) viewerIdCount = 1;
+    return "Viewer"+(viewerIdCount++);
   },
 
   appMessageReceived: function (message) {
     this.manager.appMessageFromViewer(message, this);
   },
+
+  sendRegistered: function () {
+    this.sendMessage(webSocketEvents.registered, { type: "viewer", id: this.id });
+  }
 });
 
+var controllerIdCount = 1;
 function ControllerWSH(webSocket, manager) {
   WebSocketHandler.apply(this, arguments);
 };
@@ -312,7 +345,8 @@ _.extend(ControllerWSH.prototype, {
   ]),
 
   generateId: function () {
-    return "ControllerWSH"+(new Date().getTime());
+    if (controllerIdCount > idLimit) controllerIdCount = 1;
+    return "Controller"+(controllerIdCount++);
   },
 
   // message came in over websocket
@@ -339,6 +373,18 @@ _.extend(ControllerWSH.prototype, {
     this.manager.runServerCommand("submitChoice", [data]);
   },
 
+  sendViewerConnected: function (viewer) {
+    this.sendMessage(webSocketEvents.viewerConnect, { id: viewer.id });
+  },
+
+  sendViewerDisconnected: function (viewer) {
+    this.sendMessage(webSocketEvents.viewerDisconnect, { id: viewer.id });
+  },
+
+  sendViewerList: function (viewers) {
+    this.sendMessage(webSocketEvents.viewerList, { viewers: _.pluck(viewers, "id")});
+  },
+
   serverConnected: function (connected) {
     this.sendMessage(webSocketEvents.connectServer, connected);
   },
@@ -355,6 +401,10 @@ _.extend(ControllerWSH.prototype, {
     if (webSocketEvents[command.command]) {
       this.sendMessage(webSocketEvents[command.command], command.data);
     }
+  },
+
+  sendRegistered: function () {
+    this.sendMessage(webSocketEvents.registered, { type: "controller", id: this.id });
   }
 });
 /* these should be added to controller that then tells the Manager what to do

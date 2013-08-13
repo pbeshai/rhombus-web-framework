@@ -13,22 +13,30 @@ var runningManagers = {};
 
 function init(io) {
   console.log("initialized web sockets");
+  //io.set('log level', 1); // reduces logging.. probably shouldn't be set here.
   io.sockets.on('connection', webSocketConnection);
 }
 
 // event handler for connection made to web socket
 function webSocketConnection(webSocket) {
   console.log("[websocket connected]");
-  webSocket.emit("request-register"); // ask the websocket connectee to introduce itself
+
   webSocket.on("register", function (data) {
     var manager = getManager(data.manager);
     console.log("websocket register", data);
-    if (data.type === "controller") {
+    var handler;
+    var type = data.type;
+    if (type === "controller") {
       console.log("registering new controller");
-      manager.setController(new Manager.ControllerWSH(webSocket, manager));
-    } else {
+      handler = new Manager.ControllerWSH(webSocket, manager);
+      manager.setController(handler);
+    } else if (type === "viewer") {
+      type = "viewer";
       console.log("registering new viewer");
-      manager.addViewer(new Manager.ViewerWSH(webSocket, manager));
+      handler = new Manager.ViewerWSH(webSocket, manager);
+      manager.addViewer(handler);
+    } else {
+      console.log("invalid type to register:", data.type);
     }
   });
 }
