@@ -94,6 +94,21 @@ _.extend(Manager.prototype, {
   appMessageFromController: function (message) {
     console.log("Manager got message from controller ", message);
 
+    // TODO: Debugging
+    if (message.type === "load-view") {
+      if (message.message.options.participants) {
+        _.each(message.message.options.participants, function (p) {
+          console.log(p);
+        });
+      }
+    } else if (message.type === "update-view") {
+      if (message.message.participants) {
+        _.each(message.message.participants, function (p) {
+          console.log(p);
+        });
+      }
+    }
+
     _.each(this.viewers, function (viewer) {
       if (!message.viewer || viewer.id === message.viewer) {
         console.log("sending message to " + viewer);
