@@ -272,9 +272,9 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 });
 
 
-function WebSocketHandler(webSocket, manager) {
+function WebSocketHandler(webSocket, manager, name) {
   EventEmitter.call(this);
-  this.initialize(webSocket, manager);
+  this.initialize.apply(this, arguments);
 };
 util.inherits(WebSocketHandler, EventEmitter);
 _.extend(WebSocketHandler.prototype, {
@@ -285,7 +285,15 @@ _.extend(WebSocketHandler.prototype, {
   ],
 
   toString: function () {
+    if (this.name) {
+      return this.id + ":" + this.name;
+    }
+
     return this.id;
+  },
+
+  toJSON: function () {
+    return { id: this.id, name: this.name };
   },
 
   generateId: function () {
@@ -293,7 +301,7 @@ _.extend(WebSocketHandler.prototype, {
   },
 
   // initialize the handler (typically when a websocket connects)
-  initialize: function (webSocket, manager) {
+  initialize: function (webSocket, manager, name) {
     var boundFunctions = _.pluck(this.webSocketEvents, "handler");
     _.bindAll.apply(this, [this].concat(boundFunctions));
 
@@ -301,6 +309,7 @@ _.extend(WebSocketHandler.prototype, {
     console.log("initializing new handler " + this);
 
     this.manager = manager;
+    this.name = name;
 
     // attach websocket event handlers
     this.webSocket = webSocket; // the websocket
@@ -353,7 +362,7 @@ _.extend(ViewerWSH.prototype, {
   },
 
   sendRegistered: function () {
-    this.sendMessage(webSocketEvents.registered, { type: "viewer", id: this.id });
+    this.sendMessage(webSocketEvents.registered, { type: "viewer", id: this.id, name: this.name });
   }
 });
 
@@ -400,15 +409,19 @@ _.extend(ControllerWSH.prototype, {
   },
 
   sendViewerConnected: function (viewer) {
-    this.sendMessage(webSocketEvents.viewerConnect, { id: viewer.id });
+    this.sendMessage(webSocketEvents.viewerConnect, viewer.toJSON());
   },
 
   sendViewerDisconnected: function (viewer) {
-    this.sendMessage(webSocketEvents.viewerDisconnect, { id: viewer.id });
+    this.sendMessage(webSocketEvents.viewerDisconnect, viewer.toJSON());
   },
 
   sendViewerList: function (viewers) {
-    this.sendMessage(webSocketEvents.viewerList, { viewers: _.pluck(viewers, "id")});
+    var jsonViewers = _.map(viewers, function (v) {
+      return v.toJSON();
+    });
+
+    this.sendMessage(webSocketEvents.viewerList, { viewers: jsonViewers });
   },
 
   serverConnected: function (connected) {
