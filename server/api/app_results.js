@@ -7,12 +7,12 @@ var fs = require('fs')
 
 function initialize(site) {
 	console.log("initializing app results");
-	site.post("/api/apps/pd/results", pdResults);
-	site.post("/api/apps/pdm/results", pdmResults);
-	site.post("/api/apps/npd/results", npdResults);
-	site.post("/api/apps/teampd/results", teampdResults);
-	site.post("/api/apps/ultimatum/results", ultimatumResults);
-	site.post("/api/apps/ultimatum-partition/results", ultimatumPartitionedResults);
+	site.post("/api/apps/pd/log", pdResults);
+	site.post("/api/apps/pdm/log", pdmResults);
+	site.post("/api/apps/npd/log", npdResults);
+	site.post("/api/apps/teampd/log", teampdResults);
+	site.post("/api/apps/ultimatum/log", ultimatumResults);
+	site.post("/api/apps/ultimatum-partition/log", ultimatumPartitionedResults);
 }
 
 
