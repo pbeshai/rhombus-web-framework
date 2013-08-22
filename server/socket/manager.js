@@ -4,6 +4,7 @@ module.exports = {
   ControllerWSH: ControllerWSH,
   ViewerWSH: ViewerWSH
 };
+var debug = false;
 
 // Module dependencies
 var net = require('net'),
@@ -95,17 +96,19 @@ _.extend(Manager.prototype, {
     console.log("Manager got message from controller ", message);
 
     // TODO: Debugging
-    if (message.type === "load-view") {
-      if (message.message.options.participants) {
-        _.each(message.message.options.participants, function (p) {
-          console.log(p);
-        });
-      }
-    } else if (message.type === "update-view") {
-      if (message.message.participants) {
-        _.each(message.message.participants, function (p) {
-          console.log(p);
-        });
+    if (debug) {
+      if (message.type === "load-view") {
+        if (message.message.options.participants) {
+          _.each(message.message.options.participants, function (p) {
+            console.log(p);
+          });
+        }
+      } else if (message.type === "update-view") {
+        if (message.message.participants) {
+          _.each(message.message.participants, function (p) {
+            console.log(p);
+          });
+        }
       }
     }
 
