@@ -59,7 +59,6 @@ function pdResults(req, res) {
 
 function pdmResults(req, res) {
 	var now = new Date();
-	var results = req.body.results;
 	var config = req.body.config;
 	var version = req.body.version;
 	var round = req.body.round;
@@ -81,23 +80,25 @@ function pdmResults(req, res) {
 			output("DC," + config.scoringMatrix.DC + ",DD," + config.scoringMatrix.DD);
 		}
 
-		output("Round " + round + " of " + config.numRounds + " (range was " + config.minRounds + "-" + config.maxRounds +")");
-		var r, header = "Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff";
-		for (r = 1; r < round; r++) {
-			header += ",Round" + r + ",Round" + r + "Payoff";
+		output(config.numRounds + " rounds (range was " + config.minRounds + "-" + config.maxRounds +")");
+		var r, header = "Alias,PartnerAlias";
+		for (r = 1; r <= config.numRounds; r++) {
+			header += ",Round" + r + "Choice,Round" + r + "Payoff";
 		}
 	  output(header);
-	  var data, roundData;
-	  _.each(results, function (result) {
-			data = result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score;
 
-			// output the scores from previous rounds too
-			for (r = 1; r < round; r++) {
-				roundData = result.history[r - 1];
-				data += "," + roundData.pairChoices + "," + roundData.score;
-			}
-			output(data);
-		});
+	  // for each participant, output choices and scores from each round
+	  _.each(req.body.round1, function (participant, i) {
+	  	var roundData, data = participant.alias + "," + participant.partner.alias;
+
+	  	for (r = 1; r <= config.numRounds; r++) {
+	  		roundData = req.body["round" + r];
+	  		data += "," + roundData[i].choice + "," + roundData[i].score;
+  		}
+
+  		output(data);
+	  });
+
 	  stream.end();
 	});
 
