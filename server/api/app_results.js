@@ -13,6 +13,7 @@ function initialize(site) {
 	site.post("/api/apps/teampd/log", teampdResults);
 	site.post("/api/apps/ultimatum/log", ultimatumResults);
 	site.post("/api/apps/ultimatum-partition/log", ultimatumPartitionedResults);
+	site.post("/api/apps/coin-matching/log", coinMatchingResults);
 }
 
 
@@ -92,8 +93,8 @@ function pdmResults(req, res) {
 	  	var roundData, data = participant.alias + "," + participant.partner.alias;
 
 	  	for (r = 1; r <= config.numRounds; r++) {
-	  		roundData = req.body["round" + r];
-	  		data += "," + roundData[i].choice + "," + roundData[i].score;
+	  		roundData = req.body["round" + r][i];
+	  		data += "," + roundData.choice + "," + roundData.score;
   		}
 
   		output(data);
@@ -257,6 +258,89 @@ function ultimatumPartitionedResults(req, res) {
 	  _.each(results.receivers, function (result) {
 			output(result.alias + "," + result.offer + "," + result.score + "," + result.partner);
 		});
+	  stream.end();
+	});
+
+	res.send(200);
+}
+
+function coinMatchingResults(req, res) {
+	var now = new Date();
+	var config = req.body.config;
+	var version = req.body.version;
+	var round = req.body.round;
+	var numPhases = 4;
+
+	var choiceMap = {
+		A: "H",
+		B: "T",
+		C: "H-C", // computer guess
+		D: "T-C", // computer guess
+	}
+
+	var stream = fs.createWriteStream("log/coin-matching/results." + filenameFormat(now) + ".txt");
+	stream.once('open', function(fd) {
+		function output (str) {
+			console.log(str);
+			stream.write(str + "\n");
+		}
+		output("Coin Matching Results (v" + version + ")");
+		output(now.toString());
+
+		if (config.message) {
+			output(config.message);
+		}
+
+		output(numPhases + " phases, " + config.roundsPerPhase + " rounds per phase, " + config.pointsPerRound + " points per round");
+
+		output("PxRy = Phase x Round y");
+		output("");
+
+		var p;
+		var r, header = "Team,Alias,PartnerAlias";
+		for (p = 1; p <= numPhases; p++) {
+			for (r = 1; r <= config.roundsPerPhase; r++) {
+				header += ",P" + p + "R" + r + "Choice,P" + p + "R" + r + "Score";
+			}
+			header += ",P" + p + "Total";
+		}
+		header += ",Total";
+	  output(header);
+
+	  outputGroup(1);
+	  outputGroup(2);
+
+	  // for each participant, output choices and scores from each round in each phase
+	  function outputGroup(groupNum) {
+	  	_.each(req.body.phase1[0]["group" + groupNum], function (participant, i) {
+		  	var data = config["group" + groupNum + "Name"] + "," + participant.alias + "," + participant.partner;
+		  	var choice;
+		  	var total = 0;
+		  	// for each phase
+		  	for (p = 1; p <= numPhases; p++) {
+		  		var phaseData = req.body["phase" + p];
+		  		var phaseTotal = 0;
+		  		// for each round
+			  	for (r = 0; r < config.roundsPerPhase; r++) {
+			  		roundData = phaseData[r]["group" + groupNum][i];
+			  		choice = choiceMap[roundData.choice] || "#";
+			  		score = roundData.score;
+			  		data += "," + choice + "," + score;
+			  		phaseTotal += parseInt(score);
+		  		}
+
+		  		data += "," + phaseTotal;
+		  		total += phaseTotal;
+		  	}
+		  	data += "," + total;
+
+	  		output(data);
+
+  		});
+	  }
+
+
+
 	  stream.end();
 	});
 
