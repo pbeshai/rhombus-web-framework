@@ -42,7 +42,7 @@ function Manager(id) {
   this.viewers = [];      // collection of ViewerWSH
   this.controller = null; // ControllerWSH
   // turn off reconnect currently while testing
-  this.participantServerHandler = new ManagerParticipantServerHandler(this, participantServers.clicker, { reconnect: false });
+  this.participantServerHandler = new ManagerParticipantServerHandler(this, participantServers.clicker, { reconnect: true });
 };
 _.extend(Manager.prototype, {
   addViewer: function (viewer) {
