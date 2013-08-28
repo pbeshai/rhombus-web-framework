@@ -307,8 +307,10 @@ function coinMatchingResults(req, res) {
 		header += ",Total";
 	  output(header);
 
-	  outputGroup(1);
-	  outputGroup(2);
+	  if (req.body.phase1) {
+		  outputGroup(1);
+		  outputGroup(2);
+		}
 
 	  // for each participant, output choices and scores from each round in each phase
 	  function outputGroup(groupNum) {

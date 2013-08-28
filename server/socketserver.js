@@ -164,8 +164,6 @@ module.exports = function(grunt) {
       return memo;
     }, {}));
 
-    console.log("MAP IS", options.map);
-
     // enable stack traces
     grunt.option("stack", options.stack);
 
