@@ -7,4 +7,4 @@ npm install -g grunt-cli
 
 Start by running:
 
-grunt socketserver
+grunt

@@ -7,10 +7,8 @@
     "socket.io": "0.9.14",
     "requirejs": "2.1.6",
     "gzip-js": "0.3.2",
-    "http-proxy": "0.10.2",
     "grunt": "0.4.1",
     "grunt-lib-stylus": "*",
-    "grunt-lib-less": "*",
     "sqlite3": "2.1.7",
     "async": "0.2.9"
   },
