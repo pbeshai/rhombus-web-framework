@@ -13,7 +13,6 @@ var runningManagers = {};
 
 function initialize(io) {
 	console.log("initialized web sockets");
-	io.set('log level', 1); // reduces logging.. probably shouldn't be set here.
 	io.sockets.on('connection', webSocketConnection);
 }
 

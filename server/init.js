@@ -10,6 +10,7 @@ function webInit(site, options) {
 }
 
 // function to do extra initialization after listening with websocket
-function webSocketInit(site, options) {
-	require("./socket/websockets").initialize(site, options);
+function webSocketInit(io, options) {
+	io.set('log level', 1); // reduces logging.
+	require("./socket/websockets").initialize(io, options);
 }
