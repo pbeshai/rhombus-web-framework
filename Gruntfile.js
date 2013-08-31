@@ -208,7 +208,7 @@ module.exports = function(grunt) {
     clean: ["dist/"],
   });
 
-  grunt.loadTasks("server"); // load the socketserver task
+  grunt.loadTasks("socket_server"); // load the socketserver task
 
   grunt.loadNpmTasks('grunt-contrib');
   grunt.loadNpmTasks('grunt-bbb-styles');
