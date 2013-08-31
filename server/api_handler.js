@@ -1,8 +1,7 @@
 /** Module for handling API requests */
 
 module.exports = {
-	initialize: initialize,
-	handle: handle
+	initialize: initialize
 };
 
 var fs = require('fs')
@@ -12,8 +11,7 @@ var fs = require('fs')
 
 var dbFilename = "server/app.db";
 
-function initialize(site) {
-
+function initialize(site, options) {
 	site.post("/api/participants", registerParticipants);
 	site.get("/api/participants", listParticipants);
 	site.delete("/api/participants", deleteParticipants);

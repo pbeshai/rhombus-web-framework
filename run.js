@@ -1,3 +1,3 @@
 var grunt = require('grunt');
 
-grunt.tasks("socketserver:debug");
+grunt.tasks("socket-server:dev");

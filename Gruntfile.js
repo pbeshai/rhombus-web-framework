@@ -76,7 +76,10 @@ module.exports = function(grunt) {
           name: "config",
 
           // Do not wrap everything in an IIFE.
-          wrap: false
+          wrap: false,
+
+          // do not do any uglification yet
+          optimize: "none"
         }
       }
 
@@ -112,6 +115,12 @@ module.exports = function(grunt) {
 
     // Takes the built require.js file and minifies it for filesize benefits.
     uglify: {
+      options: {
+        beautify: true,
+        ascii_only: true,
+        max_line_length: 1000,
+      },
+
       "dist/release/require.js": [
         "dist/debug/require.js"
       ]
@@ -122,57 +131,59 @@ module.exports = function(grunt) {
     // defaults, simply add in the properties `port` and `host` respectively.
     // Alternatively you can omit the port and host properties and the server
     // task will instead default to process.env.PORT or process.env.HOST.
-    //
-    // Changing the defaults might look something like this:
-    //
-    // server: {
-    //   host: "127.0.0.1", port: 9001
-    //   debug: { ... can set host and port here too ...
-    //  }
-    //
-    //  To learn more about using the server task, please refer to the code
-    //  until documentation has been written.
-    // pbeshai: changed from server: to socketserver:
-    socketserver: {
+    "socket-server": {
       options: {
-        port: 8000,
+        // function to do extra initialization before starting web server
+        webInit: require("./server/api_handler").initialize,
 
-        // crash on warnings
-        force: false,
-
-        // show stack trace on errors/warnings
-        stack: true,
-        // Ensure the favicon is mapped correctly.
-        files: { "favicon.ico": "favicon.ico" },
-
-        // For styles.
-        prefix: "app/styles/",
+        // function to do extra initialization after listening with websocket
+        webSocketInit: require("./server/socket/websockets").initialize
       },
 
-      debug: {
-        // Ensure the favicon is mapped correctly.
-        files: "<config:server.files>",
+      dev: {
+        options: {
+          port: 8000,
 
-        // Map `server:debug` to `debug` folders.
-        folders: {
-          "app": "dist/debug",
-          "vendor/js/libs": "dist/debug",
-          "app/styles": "dist/debug"
+          // crash on warnings
+          force: false,
+
+          // show stack trace on errors/warnings
+          stack: true,
         }
       },
 
+      debug: {
+        options: {
+          port: 8000,
+
+          // crash on warnings
+          force: false,
+
+          // show stack trace on errors/warnings
+          stack: true,
+
+          map: {
+            "app": "dist/debug",
+            "vendor": "dist/debug",
+            "app/styles": "dist/debug"
+          },
+
+          index: "dist/debug/index.html"
+        },
+      },
+
       release: {
-        // This makes it easier for deploying, by defaulting to any IP.
-        host: "0.0.0.0",
+        options: {
+          // This makes it easier for deploying, by defaulting to any IP.
+          host: "0.0.0.0",
 
-        // Ensure the favicon is mapped correctly.
-        files: "<config:server.files>",
+          map: {
+            "app": "dist/release",
+            "vendor": "dist/release",
+            "app/styles": "dist/release"
+          },
 
-        // Map `server:release` to `release` folders.
-        folders: {
-          "app": "dist/release",
-          "vendor/js/libs": "dist/release",
-          "app/styles": "dist/release"
+          index: "dist/release/index.html"
         }
       }
     },
@@ -181,12 +192,6 @@ module.exports = function(grunt) {
     // Simply point the configuration to your test directory.
     qunit: {
       all: ["test/qunit/*.html"]
-    },
-
-    // The headless Jasmine testing is provided by grunt-jasmine-task. Simply
-    // point the configuration to your test directory.
-    jasmine: {
-      all: ["test/jasmine/*.html"]
     },
 
     // The watch task can be used to monitor the filesystem and execute
@@ -201,41 +206,6 @@ module.exports = function(grunt) {
     // The clean task ensures all files are removed from the dist/ directory so
     // that no files linger from previous builds.
     clean: ["dist/"],
-
-    // If you want to generate targeted `index.html` builds into the `dist/`
-    // folders, uncomment the following configuration block and use the
-    // conditionals inside `index.html`.
-    targethtml: {
-     debug: {
-       src: "index.html",
-       dest: "dist/debug/index.html"
-     },
-
-     release: {
-       src: "index.html",
-       dest: "dist/release/index.html"
-     }
-    },
-
-    // This task will copy assets into your build directory,
-    // automatically.  This makes an entirely encapsulated build into
-    // each directory.
-    copy: {
-     debug: {
-       files: {
-         "dist/debug/app/": "app/**",
-         "dist/debug/vendor/": "vendor/**"
-       }
-     },
-
-     release: {
-       files: {
-         "dist/release/app/": "app/**",
-         "dist/release/vendor/": "vendor/**"
-       }
-     }
-    }
-
   });
 
   grunt.loadTasks("server"); // load the socketserver task
@@ -244,15 +214,19 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-bbb-styles');
   grunt.loadNpmTasks('grunt-targethtml');
 
+  grunt.registerTask("default", ["jshint", "socket-server:dev"]);
+
+  grunt.registerTask("dev", "socket-server:dev");
+
   // The debug task will remove all contents inside the dist/ folder, lint
   // all your code, precompile all the underscore templates into
   // dist/debug/templates.js, compile all the application code into
   // dist/debug/require.js, and then concatenate the require/define shim
   // almond.js and dist/debug/templates.js into the require.js file.
-  grunt.registerTask("debug", "clean lint jst requirejs concat styles");
+  grunt.registerTask("debug", ["clean", "jshint", "jst", "requirejs", "concat", "styles"]);
 
   // The release task will run the debug tasks and then minify the
   // dist/debug/require.js file and CSS files.
-  grunt.registerTask("release", "debug min mincss");
+  grunt.registerTask("release", ["debug", "cssmin", "uglify"]);
 
 };

@@ -3,7 +3,7 @@
 // ##################
 
 module.exports = {
-	init: init
+	initialize: initialize
 };
 
 // Module Dependencies
@@ -11,7 +11,7 @@ var Manager = require("./manager");
 
 var runningManagers = {};
 
-function init(io) {
+function initialize(io) {
 	console.log("initialized web sockets");
 	io.set('log level', 1); // reduces logging.. probably shouldn't be set here.
 	io.sockets.on('connection', webSocketConnection);
