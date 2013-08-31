@@ -1,11 +1,9 @@
 {
   "name": "ClickerApp",
   "version": "0.1.0",
-
   "jam": {
     "packageDir": "./vendor/jam",
     "baseUrl": "./app",
-
     "dependencies": {
       "backbone": "~0.9",
       "jquery": "*",
@@ -25,5 +23,9 @@
     "grunt-lib-less": "*",
     "sqlite3": "2.1.7",
     "async": "0.2.9"
+  },
+  "devDependencies": {
+    "grunt-contrib": "~0.7.0",
+    "grunt-bbb-styles": "0.1.0-alpha.5"
   }
 }

@@ -49,11 +49,11 @@ function pdResults(req, res) {
 			output("DC," + config.scoringMatrix.DC + ",DD," + config.scoringMatrix.DD);
 		}
 
-	  output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
-	  _.each(results, function (result) {
+		output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
+		_.each(results, function (result) {
 			output(result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score);
 		});
-	  stream.end();
+		stream.end();
 	});
 	res.send(200);
 }
@@ -86,21 +86,21 @@ function pdmResults(req, res) {
 		for (r = 1; r <= config.numRounds; r++) {
 			header += ",Round" + r + "Choice,Round" + r + "Payoff";
 		}
-	  output(header);
+		output(header);
 
-	  // for each participant, output choices and scores from each round
-	  _.each(req.body.round1, function (participant, i) {
-	  	var roundData, data = participant.alias + "," + participant.partner.alias;
+		// for each participant, output choices and scores from each round
+		_.each(req.body.round1, function (participant, i) {
+			var roundData, data = participant.alias + "," + participant.partner.alias;
 
-	  	for (r = 1; r <= config.numRounds; r++) {
-	  		roundData = req.body["round" + r][i];
-	  		data += "," + roundData.choice + "," + roundData.score;
-  		}
+			for (r = 1; r <= config.numRounds; r++) {
+				roundData = req.body["round" + r][i];
+				data += "," + roundData.choice + "," + roundData.score;
+			}
 
-  		output(data);
-	  });
+			output(data);
+		});
 
-	  stream.end();
+		stream.end();
 	});
 
 	res.send(200);
@@ -112,7 +112,7 @@ function npdResults(req, res) {
 	var config = req.body.config;
 	var version = req.body.version;
 	var payoff = req.body.payoff;
-	var N = (payoff !== undefined) ? (parseInt(payoff.numCooperators) + parseInt(payoff.numDefectors)) : 0;
+	var N = (payoff !== undefined) ? (parseInt(payoff.numCooperators, 10) + parseInt(payoff.numDefectors, 10)) : 0;
 
 	var stream = fs.createWriteStream("log/npd/results." + filenameFormat(now) + ".txt");
 	stream.once('open', function(fd) {
@@ -132,19 +132,19 @@ function npdResults(req, res) {
 			output("H," + config.H);
 		}
 
-    if (payoff) {
-    	output("N," + N);
-    	output("Cooperator Payoff," + payoff.cooperatorPayoff + ",# Cooperators," + payoff.numCooperators);
-    	output("Defector Payoff," + payoff.defectorPayoff + ",# Defectors," + payoff.numDefectors);
-    	output("Total Payoff," + payoff.totalPayoff);
-    	output("Max Possible Total Payoff," + payoff.maxPayoff);
-    }
+		if (payoff) {
+			output("N," + N);
+			output("Cooperator Payoff," + payoff.cooperatorPayoff + ",# Cooperators," + payoff.numCooperators);
+			output("Defector Payoff," + payoff.defectorPayoff + ",# Defectors," + payoff.numDefectors);
+			output("Total Payoff," + payoff.totalPayoff);
+			output("Max Possible Total Payoff," + payoff.maxPayoff);
+		}
 
-	  output("Alias,Choice,Payoff");
-	  _.each(results, function (result) {
+		output("Alias,Choice,Payoff");
+		_.each(results, function (result) {
 			output(result.alias + "," + result.choice + "," + result.score);
 		});
-	  stream.end();
+		stream.end();
 	});
 
 	res.send(200);
@@ -176,18 +176,18 @@ function teampdResults(req, res) {
 		output("");
 
 		output("Team 1 (" + config.group1Name + ") Results");
-	  output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
-	  _.each(results.team1, function (result) {
+		output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
+		_.each(results.team1, function (result) {
 			output(result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score);
 		});
 
-	  output("");
+		output("");
 		output("Team 2 (" + config.group2Name + ") Results");
-	  output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
-	  _.each(results.team2, function (result) {
+		output("Alias,Choice,Payoff,PartnerAlias,PartnerChoice,PartnerPayoff");
+		_.each(results.team2, function (result) {
 			output(result.alias + "," + result.choice + "," + result.score + "," + result.partner.alias + "," + result.partner.choice + "," + result.partner.score);
 		});
-	  stream.end();
+		stream.end();
 	});
 
 	res.send(200);
@@ -212,14 +212,14 @@ function ultimatumResults(req, res) {
 		}
 		output("Total Amount," + config.amount);
 		output("Offer Map," + _.map(_.keys(config.offerMap), function (key) { return key + ":" + config.offerMap[key]; }).join(","));
-		output("")
+		output("");
 
-	  output("Alias,GiverOffer,GiverScore,GiverPartner,ReceiverOffer,ReceiverScore,ReceiverPartner");
-	  _.each(results, function (result) {
-			output(result.alias + "," + result.giverOffer + "," + result.giverScore + "," + result.giverPartner
-				+ "," + result.receiverOffer + "," + result.receiverScore + "," + result.receiverPartner);
+		output("Alias,GiverOffer,GiverScore,GiverPartner,ReceiverOffer,ReceiverScore,ReceiverPartner");
+		_.each(results, function (result) {
+			output(result.alias + "," + result.giverOffer + "," + result.giverScore + "," + result.giverPartner +
+				"," + result.receiverOffer + "," + result.receiverScore + "," + result.receiverPartner);
 		});
-	  stream.end();
+		stream.end();
 	});
 
 	res.send(200);
@@ -247,18 +247,18 @@ function ultimatumPartitionedResults(req, res) {
 		output("");
 
 		output("Givers");
-	  output("Alias,AmountToKeep,Score,Partner");
-	  _.each(results.givers, function (result) {
+		output("Alias,AmountToKeep,Score,Partner");
+		_.each(results.givers, function (result) {
 			output(result.alias + "," + result.keep + "," + result.score + "," + result.partner);
 		});
 
-	  output("");
+		output("");
 		output("Receivers");
-	  output("Alias,Offer,Score,Partner");
-	  _.each(results.receivers, function (result) {
+		output("Alias,Offer,Score,Partner");
+		_.each(results.receivers, function (result) {
 			output(result.alias + "," + result.offer + "," + result.score + "," + result.partner);
 		});
-	  stream.end();
+		stream.end();
 	});
 
 	res.send(200);
@@ -276,7 +276,7 @@ function coinMatchingResults(req, res) {
 		B: "T",
 		C: "H-C", // computer guess
 		D: "T-C", // computer guess
-	}
+	};
 
 	var stream = fs.createWriteStream("log/coin-matching/results." + filenameFormat(now) + ".txt");
 	stream.once('open', function(fd) {
@@ -305,45 +305,45 @@ function coinMatchingResults(req, res) {
 			header += ",P" + p + "Total";
 		}
 		header += ",Total";
-	  output(header);
+		output(header);
 
-	  if (req.body.phase1) {
-		  outputGroup(1);
-		  outputGroup(2);
+		if (req.body.phase1) {
+			outputGroup(1);
+			outputGroup(2);
 		}
 
-	  // for each participant, output choices and scores from each round in each phase
-	  function outputGroup(groupNum) {
-	  	_.each(req.body.phase1[0]["group" + groupNum], function (participant, i) {
-		  	var data = config["group" + groupNum + "Name"] + "," + participant.alias + "," + participant.partner;
-		  	var choice;
-		  	var total = 0;
-		  	// for each phase
-		  	for (p = 1; p <= numPhases; p++) {
-		  		var phaseData = req.body["phase" + p];
-		  		var phaseTotal = 0;
-		  		// for each round
-			  	for (r = 0; r < config.roundsPerPhase; r++) {
-			  		roundData = phaseData[r]["group" + groupNum][i];
-			  		choice = choiceMap[roundData.choice] || "#";
-			  		score = roundData.score;
-			  		data += "," + choice + "," + score;
-			  		phaseTotal += parseInt(score);
-		  		}
+		// for each participant, output choices and scores from each round in each phase
+		function outputGroup(groupNum) {
+			_.each(req.body.phase1[0]["group" + groupNum], function (participant, i) {
+				var data = config["group" + groupNum + "Name"] + "," + participant.alias + "," + participant.partner;
+				var choice;
+				var total = 0;
+				// for each phase
+				for (p = 1; p <= numPhases; p++) {
+					var phaseData = req.body["phase" + p];
+					var phaseTotal = 0;
+					// for each round
+					for (r = 0; r < config.roundsPerPhase; r++) {
+						roundData = phaseData[r]["group" + groupNum][i];
+						choice = choiceMap[roundData.choice] || "#";
+						score = roundData.score;
+						data += "," + choice + "," + score;
+						phaseTotal += parseInt(score, 10);
+					}
 
-		  		data += "," + phaseTotal;
-		  		total += phaseTotal;
-		  	}
-		  	data += "," + total;
+					data += "," + phaseTotal;
+					total += phaseTotal;
+				}
+				data += "," + total;
 
-	  		output(data);
+				output(data);
 
-  		});
-	  }
+			});
+		}
 
 
 
-	  stream.end();
+		stream.end();
 	});
 
 	res.send(200);

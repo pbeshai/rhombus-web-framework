@@ -4,23 +4,26 @@
 module.exports = function(grunt) {
 
   grunt.initConfig({
-    // The lint task will run the build configuration and the application
-    // JavaScript through JSHint and report any errors.  You can change the
-    // options for this task, by reading this:
-    // https://github.com/cowboy/grunt/blob/master/docs/task_lint.md
-    lint: {
-      files: [
-        "build/config.js", "app/**/*.js"
-      ]
-    },
-
     // The jshint option for scripturl is set to lax, because the anchor
     // override inside main.js needs to test for them so as to not accidentally
     // route.
     jshint: {
       options: {
-        scripturl: true
-      }
+        scripturl: true,
+        eqnull: true
+      },
+
+      app: [ 'app/**/*.js' ],
+
+      server: {
+        options: {
+          node: true,
+          laxcomma: true
+        },
+        files: { src: [ 'server/**/*.js' ] }
+      },
+
+      other: [ 'Gruntfile.js' ]
     },
 
     // The jst task compiles all application templates into JavaScript
@@ -61,20 +64,22 @@ module.exports = function(grunt) {
     // This task uses James Burke's excellent r.js AMD build tool.  In the
     // future other builders may be contributed as drop-in alternatives.
     requirejs: {
-      // Include the main configuration file.
-      mainConfigFile: "app/config.js",
+      compile: {
+        options: {
+          // Include the main configuration file.
+          mainConfigFile: "app/config.js",
 
-      // Also include the JamJS configuration file.
-      jamConfig: "/vendor/jam/require.config.js",
+          // Output file.
+          out: "dist/debug/require.js",
 
-      // Output file.
-      out: "dist/debug/require.js",
+          // Root application module.
+          name: "config",
 
-      // Root application module.
-      name: "config",
+          // Do not wrap everything in an IIFE.
+          wrap: false
+        }
+      }
 
-      // Do not wrap everything in an IIFE.
-      wrap: false
     },
 
     // The concatenate task is used here to merge the almond require/define
@@ -189,7 +194,7 @@ module.exports = function(grunt) {
     // available to compile CSS if you are unable to use the runtime compiler
     // (use if you have a custom server, PhoneGap, Adobe Air, etc.)
     watch: {
-      files: ["grunt.js", "vendor/**/*", "app/**/*"],
+      files: ["Gruntfile.js", "vendor/**/*", "app/**/*"],
       tasks: "styles"
     },
 
@@ -234,6 +239,9 @@ module.exports = function(grunt) {
   });
 
   grunt.loadTasks("server"); // load the socketserver task
+
+  grunt.loadNpmTasks('grunt-contrib');
+  grunt.loadNpmTasks('grunt-bbb-styles');
 
   // The debug task will remove all contents inside the dist/ folder, lint
   // all your code, precompile all the underscore templates into

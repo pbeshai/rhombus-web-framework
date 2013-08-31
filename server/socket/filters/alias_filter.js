@@ -12,7 +12,7 @@ var AliasFilter = function () {
 	this.db = new sqlite3.Database(this.dbFilename);
 	setInterval(_.bind(this.updateCache, this), this.cacheTime);
 	this.updateCache();
-}
+};
 _.extend(AliasFilter.prototype, {
 	dbFilename: "server/app.db",
 	db: null,

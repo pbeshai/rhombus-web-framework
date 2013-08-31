@@ -2,7 +2,7 @@
 
 module.exports = {
 	initialize: initialize,
-  handle: handle
+	handle: handle
 };
 
 var fs = require('fs')
@@ -15,7 +15,7 @@ var dbFilename = "server/app.db";
 function initialize(site) {
 
 	site.post("/api/participants", registerParticipants);
-	site.get("/api/participants", listParticipants)
+	site.get("/api/participants", listParticipants);
 	site.delete("/api/participants", deleteParticipants);
 
 	AppResults.initialize(site);
@@ -93,7 +93,7 @@ function listParticipants(req, res) {
 	dbCall(function (db) {
 		db.all("SELECT * FROM participants", function (err, rows) {
 			res.send(rows);
-		})
+		});
 	});
 }
 
