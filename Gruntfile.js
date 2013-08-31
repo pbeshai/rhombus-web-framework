@@ -2,6 +2,7 @@
 // configuration file, which you can learn more about here:
 // https://github.com/cowboy/grunt/blob/master/docs/configuring.md
 module.exports = function(grunt) {
+	var serverInit = require("./server/init");
 
 	grunt.initConfig({
 		// The jshint option for scripturl is set to lax, because the anchor
@@ -137,12 +138,11 @@ module.exports = function(grunt) {
 		// task will instead default to process.env.PORT or process.env.HOST.
 		"socket-server": {
 			options: {
-				baseDir: "./web/",
 				// function to do extra initialization before starting web server
-				webInit: require("./server/api/api_handler").initialize,
+				webInit: serverInit.webInit,
 
 				// function to do extra initialization after listening with websocket
-				webSocketInit: require("./server/socket/websockets").initialize
+				webSocketInit: serverInit.webSocketInit
 			},
 
 			dev: {
@@ -225,7 +225,8 @@ module.exports = function(grunt) {
 
 			release: {
 				files: [
-					{ expand: true, flatten: true, src: ['web/*'], dest: 'dist/release/', filter: 'isFile' }
+					{ expand: true, flatten: true, src: ['web/*'], dest: 'dist/release/', filter: 'isFile' },
+					{ expand: true, flatten: true, src: ['web/vendor/bootstrap/img/*'], dest: 'dist/debug/img/', filter: 'isFile' },
 				],
 			}
 		}

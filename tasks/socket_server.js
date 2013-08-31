@@ -84,7 +84,6 @@ module.exports = function(grunt) {
 			memo[current] = baseDir + current;
 			return memo;
 		}, {}), options.map);
-		console.log(options.map);
 
 		// enable stack traces
 		grunt.option("stack", options.stack);

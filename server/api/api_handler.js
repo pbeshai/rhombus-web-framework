@@ -6,8 +6,7 @@ module.exports = {
 
 var fs = require('fs')
 	, sqlite3 = require('sqlite3').verbose()
-	, _ = require('lodash')
-	, AppResults = require("./app_results");
+	, _ = require('lodash');
 
 var dbFilename = "server/app.db";
 
@@ -15,9 +14,6 @@ function initialize(site, options) {
 	site.post("/api/participants", registerParticipants);
 	site.get("/api/participants", listParticipants);
 	site.delete("/api/participants", deleteParticipants);
-
-	AppResults.initialize(site);
-
 	site.all("/api/*", handle);
 }
 
@@ -44,7 +40,7 @@ function deleteParticipants(req, res) {
 
 // supports either an array of participants or an object (single participant)
 function registerParticipants(req, res) {
-	console.log("saving participants!", req.body);
+	console.log("saving participants", req.body);
 
 	if (req.body == null) return;
 
@@ -86,7 +82,6 @@ function registerParticipants(req, res) {
 }
 
 function listParticipants(req, res) {
-	console.log("participant list!");
 	// list all participants
 	dbCall(function (db) {
 		db.all("SELECT * FROM participants", function (err, rows) {
