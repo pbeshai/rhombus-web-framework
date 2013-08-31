@@ -1,0 +1,5 @@
+<i class="clickable zoom-out icon-zoom-out"></i>
+<div class="zoom-line">
+<% _.each(classes, function (cssClass, i) { %><div data-level="<%=i%>" class="zoom-box <%= cssClass %><% if (i === level) { %> active<%}%>"></div><%		}); %>
+</div>
+<i class="clickable zoom-in icon-zoom-in"></i>

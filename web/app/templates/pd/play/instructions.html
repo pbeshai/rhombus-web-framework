@@ -1,0 +1,22 @@
+<div class="row">
+<div class="span4">
+	<p>The Pay-off Matrix</p>
+	<table class="table table-bordered">
+		<tr>
+			<td>(row, col)</td>
+			<th>Cooperate</th>
+			<th>Defect</th>
+		</tr>
+		<tr>
+			<th>Cooperate</th>
+			<td>(<%= scoringMatrix.CC %>, <%= scoringMatrix.CC %>)</td>
+			<td>(<%= scoringMatrix.CD %>, <%= scoringMatrix.DC %>)</td>
+		</tr>
+		<tr>
+			<th>Defect</th>
+			<td>(<%= scoringMatrix.DC %>, <%= scoringMatrix.CD %>)</td>
+			<td>(<%= scoringMatrix.DD %>, <%= scoringMatrix.DD %>)</td>
+		</tr>
+	</table>
+</div>
+</div>

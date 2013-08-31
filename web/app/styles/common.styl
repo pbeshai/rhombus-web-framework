@@ -1,0 +1,95 @@
+/* group based style */
+.groups {
+  margin-bottom: 40px;
+}
+
+.group {
+  padding: 10px
+  border-radius: 4px
+  border: 10px solid #ccc;
+}
+
+.group.inactive {
+	opacity: .5;
+}
+
+.group .participant-grid {
+  margin-bottom: 0
+}
+
+.group > h2 {
+  margin: -10px -10px 10px;
+  padding: 10px 20px;
+  background: #ddd;
+}
+
+.group-grid {
+  margin-bottom: 2em;
+}
+
+.group-stats {
+  font-size: 1.4em;
+}
+
+/* instruction clicker */
+clicker-width = 80px
+clicker-button-width = 40px
+clicker-button-height = 40px
+.instruction-clicker {
+  background: #fcfcfc;
+  width: clicker-width;
+  border: 1px solid #888;
+  border-radius: 4px;
+  padding: 30px 0;
+  margin-top: 10px;
+  box-shadow 2px 2px 1px rgba(0,0,0,.3);
+}
+
+.instruction-clicker .clicker-button-group {
+  margin-bottom: 10px;
+  position: relative;
+  min-height: clicker-button-height;
+}
+
+.instruction-clicker .clicker-button {
+  width: 40px;
+  height: 40px;
+  background: #ccc;
+  border: 1px solid #aaa;
+  border-right-width: 0;
+  position: absolute;
+  right: 0;
+  line-height: 40px;
+  text-align: center;
+  font-size: 2em;
+}
+
+.instruction-clicker .primary .clicker-button {
+  background-color: #006dcc;
+  color: #fff
+}
+
+.instruction-clicker .danger .clicker-button {
+  background-color: #BE302A;
+  color: #fff
+}
+
+.instruction-clicker .disabled .clicker-button {
+  background: #eee;
+  color: #aaa;
+  border-color: #ccc;
+}
+
+.instruction-clicker .clicker-button-description {
+  margin-left: clicker-width + 8px;
+  width: 300px;
+  font-size: 1.3em;
+  padding-top: .55em;
+}
+
+h1 .round-header, h1 .round-label {
+  font-weight: 400;
+  color: #666;
+  margin-left: .5em;
+}
+

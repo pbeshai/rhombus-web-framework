@@ -1,0 +1,40 @@
+<h4>Automatic Registration</h4>
+<p>
+	When started, choices sent from the Participation Server will populate the server ID field,
+	while the alias is generated from the prefix and an internal counter. The first choice
+	received will populate the field, a second consecutive choice submits the registration (i.e.,
+	it does the same as clicking the Register button.)
+</p>
+
+<form>
+	<div class="control-group">
+		<div class="controls">
+			<button class="btn auto-start-btn btn-success" type="button">Start</button><br>
+		</div>
+	</div>
+	<div class="alert-container"></div>
+	<div class="control-group">
+		<label for="auto-reg-prefix">Prefix</label>
+		<div class="controls">
+			<input type="text" id="auto-reg-prefix" class="input-small prefix" value="<%= prefix %>" />
+		</div>
+	</div>
+	<div class="control-group">
+		<label for="auto-reg-server-id">Server ID</label>
+		<div class="controls">
+			<input type="text" id="auto-reg-server-id" class="input-small server-id" value="<%= model.get("serverId") %>" />
+		</div>
+	</div>
+	<div class="control-group">
+		<label for="auto-reg-alias">Alias</label>
+		<div class="controls">
+			<input type="text" id="auto-reg-alias" class="input-small alias" value="<%= model.get("id") %>" />
+		</div>
+	</div>
+
+	<div class="control-group">
+		<div class="controls">
+			<button type="submit" class="btn auto-register-submit">Register</button>
+		</div>
+	</div>
+</form>

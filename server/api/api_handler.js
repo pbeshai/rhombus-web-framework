@@ -7,7 +7,7 @@ module.exports = {
 var fs = require('fs')
 	, sqlite3 = require('sqlite3').verbose()
 	, _ = require('lodash')
-	, AppResults = require("./api/app_results");
+	, AppResults = require("./app_results");
 
 var dbFilename = "server/app.db";
 

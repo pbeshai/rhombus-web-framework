@@ -1,0 +1,20 @@
+<div class="control-panel-group">
+	<header class="clearfix">
+		<h4 class="pull-left">States</h4>
+		<div class="pull-left states-toggle">
+			<label class="checkbox inline"><input type="checkbox" class="show-view-states-only" <% if (viewsOnly) { print("checked") } %>> Only show states with views</label>
+		</div>
+	</header>
+	<div class="states <% if (viewsOnly) { print("view-states-only") } %>">
+		<ul class="inline">
+		<% _.each(states, function (s) { %>
+			<li class="<%= s.type %> <% if (s.id === currentState.id) { %>active<% } %>"><span class="state-inner"><%= s.toHtml() %></span></li>
+		<% }) %>
+		</ul>
+	</div>
+
+	<div>
+		<button class="btn prev-state <% if (!currentState.hasPrev()) print('disabled'); %>"<% if (!currentState.hasPrev()) print(' disabled'); %>><i class="icon-arrow-left"></i> Previous State</button>
+		<button class="btn next-state <% if (!currentState.hasNext()) print('disabled'); %>"<% if (!currentState.hasNext()) print(' disabled'); %>>Next State <i class="icon-arrow-right"></i></button>
+	</div>
+</div>

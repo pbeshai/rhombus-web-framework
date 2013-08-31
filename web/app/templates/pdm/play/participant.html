@@ -1,0 +1,7 @@
+<% if (model.get("roundsLeft") === 0) { %>
+<div class="medium-text score"><%= model.get("score") %></div>
+<% } else { %>
+<div class="medium-text"><%= model.get("played") ? "Played" : ""%></div>
+<% } %>
+
+<div class="id-text"><%= model.get("alias") %></div>

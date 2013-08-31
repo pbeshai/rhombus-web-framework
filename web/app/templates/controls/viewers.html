@@ -1,0 +1,6 @@
+<p>There <%= (viewers.length !== 1) ? "are" : "is" %> <%= viewers.length %> viewer<%= (viewers.length !== 1) ? "s" : "" %> connected.</p>
+<ul>
+<% _.each(viewers, function (v) { %>
+	<li><%= v.name %> <span class="reload-view clickable" data-viewer="<%= v.name %>"><i class="icon-refresh"></i></span></li>
+<% }) %>
+</ul>

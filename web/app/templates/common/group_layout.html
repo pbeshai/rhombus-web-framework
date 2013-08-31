@@ -1,0 +1,21 @@
+<div class="pre-header"></div><h1 class="layout-header"><%= header %></h1>
+<% if (!hasPlayers) { %>
+No players checked in.
+<%} else { %>
+<div class="pre-groups"></div>
+<div class="groups row-fluid">
+	<div class="group group1 span6">
+		<h2><%= group1Name %><% if (group1NameSuffix) { print(" - " + group1NameSuffix); } %></h2>
+		<div class="pre-participants"></div>
+		<div class="group-participants"></div>
+		<div class="post-participants"></div>
+	</div>
+	<div class="group group2 span6">
+		<h2><%= group2Name %><% if (group2NameSuffix) { print(" - " + group2NameSuffix); } %></h2>
+		<div class="pre-participants"></div>
+		<div class="group-participants"></div>
+		<div class="post-participants"></div>
+	</div>
+</div>
+<div class="post-groups"></div>
+<% } %>

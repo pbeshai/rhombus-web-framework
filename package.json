@@ -15,6 +15,7 @@
   "devDependencies": {
     "grunt-contrib": "~0.7.0",
     "grunt-bbb-styles": "0.1.0-alpha.5",
-    "grunt-targethtml": "~0.2.4"
+    "grunt-targethtml": "~0.2.4",
+    "grunt-lib-less": "*"
   }
 }

@@ -13,6 +13,7 @@
 module.exports = function(grunt) {
 	var ENV = process.env;
 	var CWD = process.cwd();
+	var baseDir = CWD + "/web/";
 
 	var path = require("path");
 	var fs = require("fs");
@@ -33,7 +34,7 @@ module.exports = function(grunt) {
 		var options = this.options({
 			// Fundamentals.
 			favicon: "favicon.ico",
-			index: "index.html",
+			index: "web/index.html",
 
 			// Should this router automatically handle pushState requests.
 			pushState: true,
@@ -77,12 +78,13 @@ module.exports = function(grunt) {
 		});
 
 		// Merge maps together. (maps urls to folders)
-		options.map = _.extend({}, fs.readdirSync(CWD).filter(function(file) {
-			return file[0] !== "." && fs.statSync(file).isDirectory();
+		options.map = _.extend({}, fs.readdirSync(baseDir).filter(function(file) {
+			return file[0] !== "." && fs.statSync(baseDir + file).isDirectory();
 		}).reduce(function(memo, current) {
-			memo[current] = current;
+			memo[current] = baseDir + current;
 			return memo;
 		}, {}), options.map);
+		console.log(options.map);
 
 		// enable stack traces
 		grunt.option("stack", options.stack);
@@ -138,7 +140,7 @@ module.exports = function(grunt) {
 				url = url.split("?")[0];
 
 				// Determine the correct asset path.
-				var path = options.map[url.slice(1)] || "." + url;
+				var path = options.map[url.slice(1)] || baseDir + url;
 
 				// Read in the file contents.
 				fs.readFile(path, function(err, buffer) {
@@ -156,13 +158,14 @@ module.exports = function(grunt) {
 
 		// Map static folders to take precedence over redirection.
 		Object.keys(options.map).sort().reverse().forEach(function(name) {
+
 			var dirMatch = grunt.file.isDir(options.map[name]) ? "/*" : "";
 			site.get(options.root + name + dirMatch, function(req, res, next) {
 				// Find filename.
+
 				var filename = req.url.slice((options.root + name).length);
 				// If there are query parameters, remove them.
 				filename = filename.split("?")[0];
-
 				res.sendfile(path.join(options.map[name] + filename));
 			});
 		});

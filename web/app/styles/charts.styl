@@ -1,0 +1,225 @@
+@import "nib"
+
+/****** Rickshaw Timeseries chart */
+.chart-container {
+  position: relative;
+}
+
+.chart-container .chart {
+  position: relative;
+  left: 40px;
+}
+
+.chart-container .x-axis {
+  position: relative;
+  left: 40px;
+}
+
+.chart-container .y-axis {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+}
+.chart-container .detail.inactive {
+  opacity: 1;
+}
+
+
+.chart-container .detail .swatch {
+  display: inline-block;
+  margin-right: 3px;
+  border-radius: 2px;
+  width: .7em;
+  height: .7em;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.chart-container .detail .name {
+  display: inline-block;
+  font-weight: 200;
+}
+
+.chart-container .detail .y-value {
+  display: inline-block;
+}
+.chart-container .detail .item.multi {
+  margin-top: 0;
+  margin-left: 12px;
+  font-size: 2em;
+  line-height: 1.3em;
+  border-radius: 4px;
+}
+
+.chart-container .detail.inactive .item {
+  opacity: 0;
+}
+
+.chart-container .detail .item {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.8);
+  transition: .2s opacity;
+}
+
+.chart-container .detail .dot {
+  display: block;
+}
+
+.chart-container .detail.inactive .dot {
+  display: none;
+}
+
+.chart-container .detail .item.multi:before {
+  content: "";
+  display: none;
+}
+
+.chart-container .detail .item.multi .x-value {
+  padding-bottom: .1em;
+  margin-bottom: .3em;
+  border-bottom: 1px solid #555;
+}
+
+.chart-container .detail .item.multi .line {
+  margin-bottom: .3em;
+  clear: both;
+}
+
+.chart-container .detail .item.multi .y-value {
+  float: right;
+  margin-left: .5em;
+}
+
+.chart-container .detail .aux-value {
+  color: #999;
+  font-weight: 200;
+  margin-left: .2em;
+}
+
+.rickshaw_graph .y_ticks text, .rickshaw_graph .x_ticks_d3 text {
+  font-size: 16px;
+  opacity: 1;
+}
+
+.rickshaw_graph .y_ticks .tick, .rickshaw_graph .x_ticks_d3 .tick,
+.rickshaw_graph .y_ticks path, .rickshaw_graph .x_ticks_d3 path {
+  stroke: #333;
+  stroke-width: 1px;
+}
+
+
+/**** Custom D3 Bar chart *****/
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #333;
+  shape-rendering: crispEdges;
+}
+.x.axis text {
+  font-size: 1.5em;
+}
+
+.y.axis text {
+  font-size: 1.2em;
+}
+
+.axis path {
+  display: none;
+}
+
+line {
+  shape-rendering: crispEdges;
+  stroke: #333;
+}
+
+text {
+  fill: #333;
+}
+
+rect {
+  opacity: .75;
+  -webkit-transition: .5s opacity;
+}
+
+rect:hover {
+  opacity: 1;
+}
+
+/* value label in bar */
+.bar-value {
+	font-weight normal
+	font-size 3em
+}
+
+.bar-value.inside-bar {
+	fill #fff
+
+}
+
+.bar-value.inside-bar.outline {
+	stroke: #000
+	stroke-width: 4px
+	stroke-opacity: .8
+}
+
+.bar-value.outside-bar {
+	fill #333
+}
+
+g.x-line text {
+  font-size: 1.4em;
+  text-anchor: end;
+}
+
+g.x-line line {
+  stroke: rgba(0,0,0,.3);
+  stroke-width: 5px;
+}
+
+/** Tooltip */
+.chart-tooltip {
+  position: absolute;
+  text-align: center;
+  min-width: 150px;
+  min-height: 30px;
+  padding: 10px;
+  background: rgba(255,255,255,.95);
+  box-shadow 4px 4px 1px rgba(0,0,0,.3);
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.chart-tooltip div.value {
+  font-size: 1.4em;
+  margin-bottom: 6px;
+}
+
+.chart-tooltip div.value span.value {
+  font-weight: bold;
+}
+
+.chart-tooltip .total-value span.above {
+  color: #0a0;
+}
+
+.chart-tooltip .total-value span.above:before {
+  content: "+";
+}
+
+.chart-tooltip .total-value span.below {
+  color: #c00;
+}
+
+.chart-tooltip .count {
+  font-size: 1.2em;
+}
+
+.chart-tooltip h3 {
+  line-height: 1em;
+  margin: 0 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}

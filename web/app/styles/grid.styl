@@ -1,0 +1,210 @@
+/*-- Style for the Participant Grid app -----------------------------------------------*/
+@import "nib"
+
+.participant-grid
+	position relative
+	margin-bottom: 40px
+
+.participant
+	width 5.5em
+	height 5.5em
+	border 1px solid #ddd
+	background-color #888
+	margin 1px
+	font-family 'helvetica neue', sans-serif
+	color #fff
+	position relative
+	display inline-block
+	transition 1s background-color
+	border-radius .5em
+	background-size 5.5em
+
+.participant.choice-a
+	background-color #03588C
+
+.participant.choice-b
+	background-color #1763A6
+
+.participant.choice-c
+	background-color #419CA6
+
+.participant.choice-d
+	background-color #54BF83
+
+.participant.choice-e
+	background-color #8DBF41
+
+.participant.participant-here
+	background-color rgb(51, 141, 23)
+
+.participant .id-text
+	font-size 1.3em
+	text-align center
+	margin-top: .2em
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+
+.participant .choice-text
+	font-size 3.5em
+	position absolute
+	top 60%
+	line-height 1em
+	margin-top -.5em
+	left 0
+	right 0
+	text-align center
+
+.participant .medium-text.score
+	font-size 1.8em
+	top 50%
+
+.participant .medium-text
+	font-size 1.5em
+	position absolute
+	top 57%
+	line-height 1em
+	margin-top -.5em
+	left 0
+	right 0
+	text-align center
+
+.participant.player .choice-text
+	font-size 2.3em
+	top: 55%
+
+.participant .full-below-alias
+	font-size 1.5em
+	position absolute
+	top 24px
+	line-height 1em
+	left 0
+	right 0
+	text-align center
+
+.participant .message-text
+	font-size 1.7em
+	position absolute
+	top 58%
+	line-height 1em
+	margin-top -.5em
+	left 0
+	right 0
+	text-align center
+
+.participant.has-bottom .message-text
+	top: 53%
+
+.participant .bottom-text,.participant.player .played-text
+	position absolute
+	line-height 1em
+	left 0
+	right 0
+	text-align center
+	font-size: 1.1em;
+	bottom: 0;
+	background: rgba(255,255,255,.15);
+	border-radius: 0 0 4px 4px;
+	padding-bottom: 2px;
+
+
+.participant.played
+	background-color #333
+
+.participant.results .partner-result
+	position absolute
+	bottom 0
+	left 0
+	right 0
+	text-align center
+	background rgba(0,0,0,.2)
+	border-radius 4px
+
+.participant.results .partner-id
+	line-height 1.4em
+	font-size .9em
+	display inline
+	margin: 0 2px
+
+.participant.results .partner-score
+	font-size .9em
+	line-height: 1.4em
+	display inline
+
+
+bucket-color = rgb(18, 60, 88)
+
+.participant.bucket-0
+	background-color: bucket-color;
+
+.participant.bucket-1
+	background-color: lighten(bucket-color, 5%);
+
+.participant.bucket-2
+	background-color: lighten(bucket-color, 10%);
+
+.participant.bucket-3
+	background-color: lighten(bucket-color, 15%);
+
+.participant.bucket-4
+	background-color: lighten(bucket-color, 20%);
+
+.participant.bucket-5
+	background-color: lighten(bucket-color, 25%);
+
+.participant.bucket-6
+	background-color: lighten(bucket-color, 30%);
+
+.participant.image-display
+	text-shadow: 2px 2px 0 #222, -1px -1px 0 #222, 1px -1px 0 #222, -1px 1px 0 #222, 1px 1px 0 #222;
+	zoom: 1.5;
+
+
+.overlay {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	transition: 1s background-color;
+	border-radius: 4px;
+}
+
+.overlay:hover {
+	background: none;
+}
+
+.overlay.choice-a
+	background-color rgba(48, 241, 0, 0.5)
+
+.overlay.choice-b
+	background-color rgba(0, 112, 255, 0.5)
+
+.overlay.choice-c
+	background-color rgba(161, 0, 224, 0.5)
+
+.overlay.choice-d
+	background-color rgba(224, 215, 0, 0.5)
+
+.overlay.choice-e
+	background-color rgba(224, 54, 0, 0.5)
+
+.overlay.highlight
+	background-color: rgba(192, 215, 255, 0.7);
+	transition: none;
+
+.overlay.cancel
+	background-color: rgba(255, 124, 124, 0.7);
+	transition: none;
+
+	&:before {
+		content: "\00d7";
+		display: block;
+		font-size: 7em;
+		margin-top: .22em;
+		text-align: center;
+		text-shadow: none;
+		color: rgba(150,50,50,.4);
+		font-weight: bold;
+	}

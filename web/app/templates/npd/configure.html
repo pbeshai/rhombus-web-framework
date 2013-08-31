@@ -1,0 +1,18 @@
+<div class="control-panel-group">
+	<h4>Payoff Variables</h4>
+	<div class="form-horizontal narrow">
+		<div class="control-group">
+			<label for="r-ratio-input" class="control-label">R<sub>ratio</sub></label>
+			<div class="controls">
+				<input id="r-ratio-input" type="text" class="input-mini" value="<%= Rratio %>">
+				<span class="help-inline">R<sub>ratio</sub> &isin; (0,1). 0 &lt; R = R<sub>ratio</sub>*(n-1) &lt; n-1. Small R gives more incentive for cooperation.</span>
+			</div>
+		</div>
+		<div class="control-group">
+			<label for="h-input" class="control-label">H</label>
+			<div class="controls">
+				<input id="h-input" type="text" class="input-mini" value="<%= H %>">
+				<span class="help-inline">The increment payoff is increased for each person that cooperates.</span>
+			</div>
+		</div>
+</div>
