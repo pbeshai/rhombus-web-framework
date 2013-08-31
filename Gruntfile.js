@@ -89,7 +89,7 @@ module.exports = function(grunt) {
     concat: {
       dist: {
         src: [
-          "vendor/js/libs/almond.js",
+          "vendor/almond.js",
           "dist/debug/templates.js",
           "dist/debug/require.js"
         ],
@@ -104,14 +104,14 @@ module.exports = function(grunt) {
     // order and concatenate them into a single CSS file named index.css.  It
     // also minifies all the CSS as well.  This is named index.css, because we
     // only want to load one stylesheet in index.html.
-    mincss: {
+    cssmin: {
       "dist/release/index.css": [
         "dist/debug/index.css"
       ]
     },
 
     // Takes the built require.js file and minifies it for filesize benefits.
-    min: {
+    uglify: {
       "dist/release/require.js": [
         "dist/debug/require.js"
       ]
@@ -205,36 +205,36 @@ module.exports = function(grunt) {
     // If you want to generate targeted `index.html` builds into the `dist/`
     // folders, uncomment the following configuration block and use the
     // conditionals inside `index.html`.
-    //targethtml: {
-    //  debug: {
-    //    src: "index.html",
-    //    dest: "dist/debug/index.html"
-    //  },
-    //
-    //  release: {
-    //    src: "index.html",
-    //    dest: "dist/release/index.html"
-    //  }
-    //},
+    targethtml: {
+     debug: {
+       src: "index.html",
+       dest: "dist/debug/index.html"
+     },
+
+     release: {
+       src: "index.html",
+       dest: "dist/release/index.html"
+     }
+    },
 
     // This task will copy assets into your build directory,
     // automatically.  This makes an entirely encapsulated build into
     // each directory.
-    //copy: {
-    //  debug: {
-    //    files: {
-    //      "dist/debug/app/": "app/**",
-    //      "dist/debug/vendor/": "vendor/**"
-    //    }
-    //  },
+    copy: {
+     debug: {
+       files: {
+         "dist/debug/app/": "app/**",
+         "dist/debug/vendor/": "vendor/**"
+       }
+     },
 
-    //  release: {
-    //    files: {
-    //      "dist/release/app/": "app/**",
-    //      "dist/release/vendor/": "vendor/**"
-    //    }
-    //  }
-    //}
+     release: {
+       files: {
+         "dist/release/app/": "app/**",
+         "dist/release/vendor/": "vendor/**"
+       }
+     }
+    }
 
   });
 
@@ -242,6 +242,7 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib');
   grunt.loadNpmTasks('grunt-bbb-styles');
+  grunt.loadNpmTasks('grunt-targethtml');
 
   // The debug task will remove all contents inside the dist/ folder, lint
   // all your code, precompile all the underscore templates into
