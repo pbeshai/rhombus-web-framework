@@ -7,15 +7,15 @@ Attendance -> Team Prisoner's Dilemma Play -> Team Prisoner's Dilemam Results
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"modules/common/CommonStateApps",
+	"framework/modules/common/CommonStateApps",
 	"modules/TeamPrisonersDilemma"
 ],
 
-function(app, StateApp, CommonStateApps, TeamPrisonersDilemma) {
+function (App, StateApp, CommonStateApps, TeamPrisonersDilemma) {
 
 	var TeamPrisonersDilemmaApp = CommonStateApps.BasicGame.extend({
 		id: "teampd",

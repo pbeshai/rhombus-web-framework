@@ -1,15 +1,15 @@
 
 define([
 	// Application.
-	"app",
+	"App",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"modules/common/CommonStateApps",
+	"framework/modules/common/CommonStateApps",
 	"modules/SequenceAliaser"
 ],
 
-function(app, StateApp, CommonStateApps, SequenceAliaser) {
+function (App, StateApp, CommonStateApps, SequenceAliaser) {
 
 	var SequenceAliaserApp = CommonStateApps.BasicApp.extend({
 		id: "seq-alias",

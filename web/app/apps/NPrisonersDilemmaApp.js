@@ -7,15 +7,15 @@ Attendance -> N-Person Prisoner's Dilemma Play -> N-Person Prisoner's Dilemam Re
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"modules/common/CommonStateApps",
+	"framework/modules/common/CommonStateApps",
 	"modules/NPrisonersDilemma"
 ],
 
-function(app, StateApp, CommonStateApps, NPrisonersDilemma) {
+function (App, StateApp, CommonStateApps, NPrisonersDilemma) {
 
 	var NPrisonersDilemmaApp = CommonStateApps.BasicGame.extend({
 		id: "npd",

@@ -5,18 +5,18 @@
 */
 define([
 	// Application.
-	"app",
-	"modules/common/Common",
+	"App",
+	"framework/modules/common/Common",
 
-	"modules/Participant",
+	"framework/modules/Participant",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"util/d3/rickshaw/graphs"
+	"framework/util/d3/rickshaw/graphs"
 ],
-function(app, Common, Participant, StateApp, Graphs) {
+function (App, Common, Participant, StateApp, Graphs) {
 
-	var CoinMatching = app.module();
+	var CoinMatching = App.module();
 
 	CoinMatching.config = {
 		pointsPerRound: 1,
@@ -56,7 +56,7 @@ function(app, Common, Participant, StateApp, Graphs) {
 
 	CoinMatching.Views.Play.Participant = Common.Views.ParticipantHiddenPlay;
 
-	CoinMatching.Views.Play.Layout = app.registerView("coin-matching::play", Common.Mixins.rounds(Common.Views.GroupLayout.extend({
+	CoinMatching.Views.Play.Layout = App.registerView("coin-matching::play", Common.Mixins.rounds(Common.Views.GroupLayout.extend({
 		header: "Play",
 		ParticipantView: CoinMatching.Views.Play.Participant,
 		InstructionsModel: CoinMatching.Instructions
@@ -86,7 +86,7 @@ function(app, Common, Participant, StateApp, Graphs) {
 		}
 	}));
 
-	CoinMatching.Views.Results.Layout = app.registerView("coin-matching::results", Common.Mixins.rounds(Common.Views.GroupLayout.extend({
+	CoinMatching.Views.Results.Layout = App.registerView("coin-matching::results", Common.Mixins.rounds(Common.Views.GroupLayout.extend({
 		header: "Results",
 		className: "coin-matching-results",
 		ParticipantView: CoinMatching.Views.Results.Score,
@@ -103,7 +103,7 @@ function(app, Common, Participant, StateApp, Graphs) {
 		},
 	}));
 
-	CoinMatching.Views.PhaseResults.Layout = app.registerView("coin-matching::phase-results", Common.Views.GroupLayout.extend({
+	CoinMatching.Views.PhaseResults.Layout = App.registerView("coin-matching::phase-results", Common.Views.GroupLayout.extend({
 		header: "Results for Phase ",
 		className: "coin-matching-results",
 		ParticipantView: CoinMatching.Views.PhaseResults.Score,
@@ -120,7 +120,7 @@ function(app, Common, Participant, StateApp, Graphs) {
 		},
 	}));
 
-	CoinMatching.Views.TotalResults.Layout = app.registerView("coin-matching::total-results", Common.Views.GroupLayout.extend({
+	CoinMatching.Views.TotalResults.Layout = App.registerView("coin-matching::total-results", Common.Views.GroupLayout.extend({
 		header: "Total Results",
 		className: "coin-matching-results",
 		ParticipantView: CoinMatching.Views.TotalResults.Score,

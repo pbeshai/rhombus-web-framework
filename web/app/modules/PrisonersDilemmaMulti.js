@@ -5,19 +5,19 @@
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"modules/common/Common",
+	"framework/modules/common/Common",
 	"modules/PrisonersDilemma",
-	"modules/Participant",
+	"framework/modules/Participant",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"util/d3/rickshaw/graphs"
+	"framework/util/d3/rickshaw/graphs"
 ],
-function(app, Common, PrisonersDilemma, Participant, StateApp, Graphs) {
+function (App, Common, PrisonersDilemma, Participant, StateApp, Graphs) {
 
-	var PrisonersDilemmaMulti = app.module();
+	var PrisonersDilemmaMulti = App.module();
 	PrisonersDilemmaMulti.config = {
 		scoringMatrix: {
 			CC: 3,
@@ -39,8 +39,8 @@ function(app, Common, PrisonersDilemma, Participant, StateApp, Graphs) {
 
 	PrisonersDilemmaMulti.Views.Results = {};
 
-	PrisonersDilemmaMulti.Views.Results.TimeSeries = app.BaseView.extend({
-		template: "common/chart",
+	PrisonersDilemmaMulti.Views.Results.TimeSeries = App.BaseView.extend({
+		template: "framework/templates/common/chart",
 
 		serialize: function () {
 			return this.options.stats;
@@ -83,7 +83,7 @@ function(app, Common, PrisonersDilemma, Participant, StateApp, Graphs) {
 				},
 				xAxis: {
 					ticks: numRounds,
-					tickFormat: function(n) {
+					tickFormat: function (n) {
 						if (Math.floor(n) === n) {
 							return "Round " + n;
 						}
@@ -101,7 +101,7 @@ function(app, Common, PrisonersDilemma, Participant, StateApp, Graphs) {
 	});
 
 	// choose between bar chart or time series depending on data available
-	PrisonersDilemmaMulti.Views.Results.Chart = app.BaseView.extend({
+	PrisonersDilemmaMulti.Views.Results.Chart = App.BaseView.extend({
 		beforeRender: function () {
 			if (this.options.stats) {
 				if (this.options.stats.length > 1) {
@@ -114,7 +114,7 @@ function(app, Common, PrisonersDilemma, Participant, StateApp, Graphs) {
 	});
 
 
-	PrisonersDilemmaMulti.Views.Results.Layout =  app.registerView("pdm::results", Common.Mixins.mixin(["gameOver", "rounds"],
+	PrisonersDilemmaMulti.Views.Results.Layout =  App.registerView("pdm::results", Common.Mixins.mixin(["gameOver", "rounds"],
 		PrisonersDilemma.Views.Results.Layout.extend({
 			PostParticipantsView: PrisonersDilemmaMulti.Views.Results.Chart
 		})
@@ -122,7 +122,7 @@ function(app, Common, PrisonersDilemma, Participant, StateApp, Graphs) {
 
 	PrisonersDilemmaMulti.Views.Play = {};
 
-	PrisonersDilemmaMulti.Views.Play.Layout = app.registerView("pdm::play", Common.Mixins.rounds(PrisonersDilemma.Views.Play.Layout.extend({
+	PrisonersDilemmaMulti.Views.Play.Layout = App.registerView("pdm::play", Common.Mixins.rounds(PrisonersDilemma.Views.Play.Layout.extend({
 		PostParticipantsView: PrisonersDilemmaMulti.Views.Results.Chart
 	})));
 

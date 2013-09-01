@@ -5,18 +5,18 @@
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"modules/common/Common",
+	"framework/modules/common/Common",
 
-	"modules/Participant",
+	"framework/modules/Participant",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 ],
 
-function (app, Common, Participant, StateApp) {
+function (App, Common, Participant, StateApp) {
 
-	var SequenceAliaser = app.module();
+	var SequenceAliaser = App.module();
 
 	SequenceAliaser.config = {
 		sequenceLength: 4,
@@ -92,7 +92,7 @@ function (app, Common, Participant, StateApp) {
 		},
 	});
 
-	SequenceAliaser.Views.Layout = app.registerView("seq-alias::layout", Common.Views.SimpleLayout.extend({
+	SequenceAliaser.Views.Layout = App.registerView("seq-alias::layout", Common.Views.SimpleLayout.extend({
 		header: "Sequence Aliaser",
 		// ParticipantView: SequenceAliaser.Views.Participant,
 		InstructionsModel: SequenceAliaser.Instructions,
@@ -170,7 +170,7 @@ function (app, Common, Participant, StateApp) {
 	});
 
 	SequenceAliaser.Views.AppControls = Common.Views.AppControls.extend({
-		template: "sequence_aliaser/controls",
+		template: "app/templates/sequence_aliaser/controls",
 		events: {
 			"click .register-aliases" : "registerAliases"
 		},

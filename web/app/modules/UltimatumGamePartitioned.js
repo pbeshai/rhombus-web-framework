@@ -4,19 +4,19 @@
 */
 define([
 	// Application.
-	"app",
-	"modules/common/Common",
+	"App",
+	"framework/modules/common/Common",
 
-	"modules/Participant",
+	"framework/modules/Participant",
 	"modules/UltimatumGame",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"util/d3/rickshaw/graphs"
+	"framework/util/d3/rickshaw/graphs"
 ],
-function(app, Common, Participant, UltimatumGame, StateApp, Graphs) {
+function (App, Common, Participant, UltimatumGame, StateApp, Graphs) {
 
-	var UltimatumGamePartitioned = app.module();
+	var UltimatumGamePartitioned = App.module();
 
 	UltimatumGamePartitioned.config = {
 		amount: 10,
@@ -47,13 +47,13 @@ function(app, Common, Participant, UltimatumGame, StateApp, Graphs) {
 	UltimatumGamePartitioned.Views.GiverPlay.Receiver = Common.Views.ParticipantHiddenPlay;
 
 	UltimatumGamePartitioned.Views.PreGroups = Backbone.View.extend({
-		template: "ultimatum/pre_participants",
+		template: "app/templates/ultimatum/pre_participants",
 		serialize: function () {
 			return { total: this.options.config.amount };
 		},
 	});
 
-	UltimatumGamePartitioned.Views.GiverPlay.Layout = app.registerView("ugp::giver-play", Common.Views.GroupLayout.extend({
+	UltimatumGamePartitioned.Views.GiverPlay.Layout = App.registerView("ugp::giver-play", Common.Views.GroupLayout.extend({
 		header: "Givers Play",
 		inactive: {
 			group2: true
@@ -76,7 +76,7 @@ function(app, Common, Participant, UltimatumGame, StateApp, Graphs) {
 		messageAttribute: "offer"
 	});
 
-	UltimatumGamePartitioned.Views.ReceiverPlay.Layout = app.registerView("ugp::receiver-play", Common.Views.GroupLayout.extend({
+	UltimatumGamePartitioned.Views.ReceiverPlay.Layout = App.registerView("ugp::receiver-play", Common.Views.GroupLayout.extend({
 		header: "Receivers Play",
 		inactive: {
 			group1: true
@@ -119,7 +119,7 @@ function(app, Common, Participant, UltimatumGame, StateApp, Graphs) {
 		}
 	});
 
-	UltimatumGamePartitioned.Views.Results.Layout = app.registerView("ugp::results", Common.Views.GroupLayout.extend({
+	UltimatumGamePartitioned.Views.Results.Layout = App.registerView("ugp::results", Common.Views.GroupLayout.extend({
 		header: "Results",
 		PreGroupsView: UltimatumGamePartitioned.Views.PreGroups,
 		ParticipantView: UltimatumGamePartitioned.Views.Results.Score

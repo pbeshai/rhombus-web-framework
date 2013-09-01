@@ -7,15 +7,15 @@ Attendance -> Ultimatum Game Giver Play -> Receiver Play -> Ultimatum Game Resul
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"modules/common/CommonStateApps",
+	"framework/modules/common/CommonStateApps",
 	"modules/UltimatumGamePartitioned"
 ],
 
-function(app, StateApp, CommonStateApps, UltimatumGamePartitioned) {
+function (App, StateApp, CommonStateApps, UltimatumGamePartitioned) {
 
 	/**
 	 *  Team Prisoner's Dilemma App

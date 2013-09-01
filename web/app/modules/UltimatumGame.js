@@ -3,18 +3,18 @@ The ultimatum game
 */
 define([
 	// Application.
-	"app",
-	"modules/common/Common",
+	"App",
+	"framework/modules/common/Common",
 
-	"modules/Participant",
+	"framework/modules/Participant",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"util/d3/rickshaw/graphs"
+	"framework/util/d3/rickshaw/graphs"
 ],
-function(app, Common, Participant, StateApp, Graphs) {
+function (App, Common, Participant, StateApp, Graphs) {
 
-	var UltimatumGame = app.module();
+	var UltimatumGame = App.module();
 
 	UltimatumGame.config = {
 		amount: 10,
@@ -62,13 +62,13 @@ function(app, Common, Participant, StateApp, Graphs) {
 	UltimatumGame.Views.GiverPlay.Giver = Common.Views.ParticipantHiddenPlay;
 
 	UltimatumGame.Views.PreParticipants = Backbone.View.extend({
-		template: "ultimatum/pre_participants",
+		template: "app/templates/ultimatum/pre_participants",
 		serialize: function () {
 			return { total: this.options.config.amount };
 		},
 	});
 
-	UltimatumGame.Views.GiverPlay.Layout = app.registerView("ug::giver-play", Common.Views.SimpleLayout.extend({
+	UltimatumGame.Views.GiverPlay.Layout = App.registerView("ug::giver-play", Common.Views.SimpleLayout.extend({
 		header: "Givers Play",
 		PreParticipantsView: UltimatumGame.Views.PreParticipants,
 		ParticipantView: UltimatumGame.Views.GiverPlay.Giver,
@@ -81,7 +81,7 @@ function(app, Common, Participant, StateApp, Graphs) {
 		messageAttribute: "offer"
 	});
 
-	UltimatumGame.Views.ReceiverPlay.Layout = app.registerView("ug::receiver-play", Common.Views.SimpleLayout.extend({
+	UltimatumGame.Views.ReceiverPlay.Layout = App.registerView("ug::receiver-play", Common.Views.SimpleLayout.extend({
 		header: "Receivers Play",
 		PreParticipantsView: UltimatumGame.Views.PreParticipants,
 		ParticipantView: UltimatumGame.Views.ReceiverPlay.Receiver,
@@ -91,7 +91,7 @@ function(app, Common, Participant, StateApp, Graphs) {
 	UltimatumGame.Views.Results = {};
 
 	UltimatumGame.Views.Results.Score = Common.Views.ParticipantDisplay.extend({
-		template: "ultimatum/score",
+		template: "app/templates/ultimatum/score",
 		serialize: function () {
 			return {
 				alias: this.model.get("alias"),
@@ -105,7 +105,7 @@ function(app, Common, Participant, StateApp, Graphs) {
 		}
 	});
 
-	UltimatumGame.Views.Results.Layout = app.registerView("ug::results", Common.Views.SimpleLayout.extend({
+	UltimatumGame.Views.Results.Layout = App.registerView("ug::results", Common.Views.SimpleLayout.extend({
 		header: "Results",
 		className: "ultimatum-results",
 		PreParticipantsView: UltimatumGame.Views.PreParticipants,

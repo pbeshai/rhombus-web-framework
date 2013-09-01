@@ -7,15 +7,15 @@ Attendance -> Prisoner's Dilemma Play -> Prisoner's Dilemam Results
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"modules/common/CommonStateApps",
+	"framework/modules/common/CommonStateApps",
 	"modules/PrisonersDilemma"
 ],
 
-function(app, StateApp, CommonStateApps, PrisonersDilemma) {
+function (App, StateApp, CommonStateApps, PrisonersDilemma) {
 
 	var PrisonersDilemmaApp = CommonStateApps.BasicGame.extend({
 		id: "pd",

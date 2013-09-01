@@ -5,16 +5,16 @@
 */
 define([
 	// Application.
-	"app",
-	"modules/common/Common",
+	"App",
+	"framework/modules/common/Common",
 	"modules/PrisonersDilemma",
-	"modules/Participant",
+	"framework/modules/Participant",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 ],
-function(app, Common, PrisonersDilemma, Participant, StateApp) {
+function (App, Common, PrisonersDilemma, Participant, StateApp) {
 
-	var NPrisonersDilemma = app.module();
+	var NPrisonersDilemma = App.module();
 	NPrisonersDilemma.config = {
 		// See Goehring and Kahan (1976) The Uniform N-Person Prisoner's Dilemma Game : Construction and Test of an Index of Cooperation
 		Rratio: 0.10, // Rratio = R*(n-1). 0 < R < n-1, closer to 1 means more incentive for cooperation
@@ -29,7 +29,7 @@ function(app, Common, PrisonersDilemma, Participant, StateApp) {
 	});
 
 	// can't pass the instructions model over the socket, so override it instead of using a view option
-	NPrisonersDilemma.Views.Play = app.registerView("npd::play", PrisonersDilemma.Views.Play.Layout.extend({
+	NPrisonersDilemma.Views.Play = App.registerView("npd::play", PrisonersDilemma.Views.Play.Layout.extend({
 		InstructionsModel: NPrisonersDilemma.Instructions
 	}));
 
@@ -41,8 +41,8 @@ function(app, Common, PrisonersDilemma, Participant, StateApp) {
 		}
 	});
 
-	NPrisonersDilemma.Views.Results.Stats = app.BaseView.extend({
-		template: "npd/results/stats",
+	NPrisonersDilemma.Views.Results.Stats = App.BaseView.extend({
+		template: "app/templates/npd/results/stats",
 
 		serialize: function () {
 			return {
@@ -57,14 +57,14 @@ function(app, Common, PrisonersDilemma, Participant, StateApp) {
 		},
 	});
 
-	NPrisonersDilemma.Views.Results.Layout = app.registerView("npd::results", Common.Views.SimpleLayout.extend({
+	NPrisonersDilemma.Views.Results.Layout = App.registerView("npd::results", Common.Views.SimpleLayout.extend({
 		PreHeaderView: PrisonersDilemma.Views.Results.Legend,
 		ParticipantView: NPrisonersDilemma.Views.Results.Participant,
 		PostParticipantsView: NPrisonersDilemma.Views.Results.Stats
 	}));
 
 	NPrisonersDilemma.Views.Configure = Backbone.View.extend({
-		template: "npd/configure",
+		template: "app/templates/npd/configure",
 		modelOptions: _.clone(NPrisonersDilemma.config),
 
 		events: {
@@ -76,7 +76,7 @@ function(app, Common, PrisonersDilemma, Participant, StateApp) {
 			this.model.set("Rratio", $(evt.target).val());
 		},
 
-		updateH: function(evt) {
+		updateH: function (evt) {
 			this.model.set("H", $(evt.target).val());
 		},
 

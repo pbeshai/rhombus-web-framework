@@ -5,15 +5,15 @@
 */
 define([
 	// Application.
-	"app",
-	"modules/common/Common",
-	"vendor/d3/rickshaw",
-	"util/d3/rickshaw/graphs"
+	"App",
+	"framework/modules/common/Common",
+	"framework/vendor/d3/rickshaw",
+	"framework/util/d3/rickshaw/graphs"
 ],
 
-function (app, Common, Rickshaw, Graphs) {
+function (App, Common, Rickshaw, Graphs) {
 
-	var Sandbox = app.module();
+	var Sandbox = App.module();
 
 	Sandbox.Instructions = Common.Models.Instructions.extend({
 		configInit: function (config) {
@@ -25,7 +25,7 @@ function (app, Common, Rickshaw, Graphs) {
 	});
 
 	Sandbox.Views.Sandbox = Backbone.View.extend({
-		template: "sandbox/sandbox",
+		template: "app/templates/sandbox/sandbox",
 
 		beforeRender: function () {
 			var conf ={

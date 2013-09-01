@@ -1,0 +1,8 @@
+<h5 class="clicker-id"><%= id %></h5>
+<% _.each(buttons, function (button) {
+	if (labels !== undefined && labels[button] !== undefined) { %>
+	<button class='btn btn-block clicker-btn clicker-btn-<%= button %> labeled'><b><%= button %></b> <%= labels[button] %></button>
+<% } else { %>
+	<button class='btn btn-block clicker-btn clicker-btn-<%= button %>'><%= button %></button>
+<% } %>
+<% }); %>

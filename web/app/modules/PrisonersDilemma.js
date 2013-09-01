@@ -5,22 +5,22 @@
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"modules/common/Common",
+	"framework/modules/common/Common",
 
-	"modules/Participant",
+	"framework/modules/Participant",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"util/d3/variableWidthBarChart",
-	"util/d3/xLine",
+	"framework/util/d3/variableWidthBarChart",
+	"framework/util/d3/xLine",
 
-	"util/d3/rickshaw/graphs"
+	"framework/util/d3/rickshaw/graphs"
 ],
-function(app, Common, Participant, StateApp, variableWidthBarChart, xLine, Graphs) {
+function (App, Common, Participant, StateApp, variableWidthBarChart, xLine, Graphs) {
 
-	var PrisonersDilemma = app.module();
+	var PrisonersDilemma = App.module();
 	PrisonersDilemma.config = {
 		scoringMatrix: {
 			CC: 3,
@@ -34,7 +34,7 @@ function(app, Common, Participant, StateApp, variableWidthBarChart, xLine, Graph
 	PrisonersDilemma.Views.Results = {};
 
 	PrisonersDilemma.Instructions = Common.Models.Instructions.extend({
-		description: { template: "pd/play/instructions" },
+		description: { template: "app/templates/pd/play/instructions" },
 		buttonConfig: {
 			"C": { description: "Cooperate" },
 			"D": { description: "Defect" },
@@ -43,21 +43,21 @@ function(app, Common, Participant, StateApp, variableWidthBarChart, xLine, Graph
 
 	PrisonersDilemma.Views.Play.Participant = Common.Views.ParticipantHiddenPlay;
 
-	PrisonersDilemma.Views.Play.Layout = app.registerView("pd::play", Common.Views.SimpleLayout.extend({
+	PrisonersDilemma.Views.Play.Layout = App.registerView("pd::play", Common.Views.SimpleLayout.extend({
 		header: "Play",
 		ParticipantView: PrisonersDilemma.Views.Play.Participant,
 		InstructionsModel: PrisonersDilemma.Instructions
 	}));
 
 	PrisonersDilemma.Views.Results.Participant = Common.Views.ParticipantDisplay.extend({
-		template: "pd/results/participant",
+		template: "app/templates/pd/results/participant",
 		cssClass: function () {
 			return "results choices-" + this.model.get("pairChoices");
 		}
 	});
 
-	PrisonersDilemma.Views.Results.BarChart = app.BaseView.extend({
-		template: "common/chart",
+	PrisonersDilemma.Views.Results.BarChart = App.BaseView.extend({
+		template: "framework/templates/common/chart",
 
 		tooltipTemplate: '<h3><%= label %></h3>' +
 			'<div class="value"><span class="value"><%= value.toFixed(1) %></span> ' +
@@ -103,10 +103,10 @@ function(app, Common, Participant, StateApp, variableWidthBarChart, xLine, Graph
 	});
 
 	PrisonersDilemma.Views.Results.Legend = Backbone.View.extend({
-		template: "pd/results/legend"
+		template: "app/templates/pd/results/legend"
 	});
 
-	PrisonersDilemma.Views.Results.Layout = app.registerView("pd::results", Common.Views.SimpleLayout.extend({
+	PrisonersDilemma.Views.Results.Layout = App.registerView("pd::results", Common.Views.SimpleLayout.extend({
 		header: "Results",
 		PreHeaderView: PrisonersDilemma.Views.Results.Legend,
 		ParticipantView: PrisonersDilemma.Views.Results.Participant,
@@ -114,7 +114,7 @@ function(app, Common, Participant, StateApp, variableWidthBarChart, xLine, Graph
 	}));
 
 	PrisonersDilemma.Views.Configure = Backbone.View.extend({
-		template: "pd/configure",
+		template: "app/templates/pd/configure",
 		modelOptions: _.clone(PrisonersDilemma.config),
 
 		events: {

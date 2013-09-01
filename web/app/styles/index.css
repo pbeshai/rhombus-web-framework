@@ -1,26 +1,5 @@
-/*-- HTML5 Boilerplate. -----------------------------------------------------*/
-
-@import "../../vendor/h5bp/css/normalize.css";
-@import "../../vendor/h5bp/css/main.css";
-
-/*-- Bootstrap. -------------------------------------------------------------*/
-
-@import "../../vendor/bootstrap/css/bootstrap.css";
-
-/*-- Rickshaw charts. -------------------------------------------------------------*/
-
-@import "../../vendor/d3/rickshaw.css";
-
-/*-- Fancy animations. -------------------------------------------------------------*/
-
-@import "../../vendor/animate/animate.css"; /* http://daneden.me/animate/ */
-
-/*-- Application stylesheets. -----------------------------------------------*/
-
-@import "app.styl";
-@import "grid.styl";
-@import "charts.styl";
-@import "common.styl";
+/*-- Framework CSS ---*/
+@import "../../framework/styles/index.css";
 
 /*-- Prisoner's Dilemma ---*/
 @import "pd.styl";

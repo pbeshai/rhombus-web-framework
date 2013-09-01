@@ -7,15 +7,15 @@ Attendance -> Play -> Results
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"modules/common/CommonStateApps",
+	"framework/modules/common/CommonStateApps",
 	"modules/CoinMatching"
 ],
 
-function(app, StateApp, CommonStateApps, CoinMatching) {
+function (App, StateApp, CommonStateApps, CoinMatching) {
 
 	// Attendance -> Phase 1 (Play) -> Phase 1 (Results) -> Phase 2 Play -> Phase 2 Results -> Total Results -> ...
 	var CoinMatchingApp = CommonStateApps.PhaseGame.extend({

@@ -5,17 +5,17 @@
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"modules/common/Common",
+	"framework/modules/common/Common",
 	"modules/PrisonersDilemma",
-	"modules/Participant",
+	"framework/modules/Participant",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 ],
-function(app, Common, PrisonersDilemma, Participant, StateApp) {
+function (App, Common, PrisonersDilemma, Participant, StateApp) {
 
-	var TeamPrisonersDilemma = app.module();
+	var TeamPrisonersDilemma = App.module();
 	TeamPrisonersDilemma.config = {
 		group1Name: "Team 1",
 		group2Name: "Team 2",
@@ -32,20 +32,20 @@ function(app, Common, PrisonersDilemma, Participant, StateApp) {
 
 	TeamPrisonersDilemma.TeamsModel = Common.Models.GroupModel;
 
-	TeamPrisonersDilemma.Views.Play.Layout = app.registerView("teampd::play", Common.Views.GroupLayout.extend({
+	TeamPrisonersDilemma.Views.Play.Layout = App.registerView("teampd::play", Common.Views.GroupLayout.extend({
 		header: "Play",
 		ParticipantView: PrisonersDilemma.Views.Play.Participant,
 		InstructionsModel: PrisonersDilemma.Instructions
 	}));
 
-	TeamPrisonersDilemma.Views.Results.TeamStats = app.BaseView.extend({
-		template: "teampd/results/team_stats",
+	TeamPrisonersDilemma.Views.Results.TeamStats = App.BaseView.extend({
+		template: "app/templates/teampd/results/team_stats",
 		serialize: function () {
 			return this.options.groupStats;
 		}
 	});
 
-	TeamPrisonersDilemma.Views.Results.Layout = app.registerView("teampd::results", Common.Views.GroupLayout.extend({
+	TeamPrisonersDilemma.Views.Results.Layout = App.registerView("teampd::results", Common.Views.GroupLayout.extend({
 		header: "Results",
 		PreHeaderView: PrisonersDilemma.Views.Results.Legend,
 		ParticipantView: PrisonersDilemma.Views.Results.Participant,
@@ -54,7 +54,7 @@ function(app, Common, PrisonersDilemma, Participant, StateApp) {
 	}));
 
 	TeamPrisonersDilemma.Views.Configure = Backbone.View.extend({
-		template: "teampd/configure",
+		template: "app/templates/teampd/configure",
 		modelOptions: _.clone(TeamPrisonersDilemma.config),
 
 		beforeRender: function () {

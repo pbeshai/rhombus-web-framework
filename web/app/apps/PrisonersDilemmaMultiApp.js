@@ -9,15 +9,15 @@ play many rounds
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"modules/common/CommonStateApps",
+	"framework/modules/common/CommonStateApps",
 	"modules/PrisonersDilemmaMulti"
 ],
 
-function(app, StateApp, CommonStateApps, PrisonersDilemmaMulti) {
+function (App, StateApp, CommonStateApps, PrisonersDilemmaMulti) {
 	var PrisonersDilemmaMultiApp = CommonStateApps.BasicGame.extend({
 		id: "pdm",
 		version: "1.0",

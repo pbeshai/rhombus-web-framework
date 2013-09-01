@@ -5,16 +5,16 @@
 */
 define([
 	// Application.
-	"app",
+	"App",
 
-	"apps/StateApp",
+	"framework/apps/StateApp",
 
-	"modules/Participant",
-	"modules/Attendance",
-	"modules/Grid"
+	"framework/modules/Participant",
+	"framework/modules/Attendance",
+	"framework/modules/Grid"
 ],
 
-function(app, StateApp, Participant, Attendance, Grid) {
+function (App, StateApp, Participant, Attendance, Grid) {
 
 	/**
 	 *  Grid App
