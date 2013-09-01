@@ -6,7 +6,6 @@ var fs = require('fs')
 	, _ = require('lodash');
 
 function initialize(site) {
-	console.log("initializing app results");
 	site.post("/api/apps/pd/log", pdResults);
 	site.post("/api/apps/pdm/log", pdmResults);
 	site.post("/api/apps/npd/log", npdResults);

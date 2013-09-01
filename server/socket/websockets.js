@@ -12,7 +12,6 @@ var Manager = require("./manager");
 var runningManagers = {};
 
 function initialize(io) {
-	console.log("initialized web sockets");
 	io.sockets.on('connection', webSocketConnection);
 }
 
