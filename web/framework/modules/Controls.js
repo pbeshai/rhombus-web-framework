@@ -77,8 +77,13 @@ function (App, Common, Clicker, Apps) {
 			this.listenTo(App.controller, "change:viewers", this.render);
 		},
 
-		reloadView: function () {
+		reloadView: function (evt) {
 			App.controller.reloadView(); // TODO: should probably include viewer
+
+			var $el = $(evt.currentTarget);
+			$el.removeClass("rotate360");
+			this.restartCssAnimationFix($el[0]);
+			$el.addClass("rotate360");
 		}
 	});
 
