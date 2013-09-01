@@ -12,7 +12,7 @@ function webInit(site, options) {
 	if (fs.existsSync(userInitPath)) {
 		fs.readdirSync(userInitPath).forEach(function(file) {
 			console.log("initializing " + userInitDir + file);
-		  require("./" + userInitDir + file).initialize(site, options);
+			require("./" + userInitDir + file).initialize(site, options);
 		});
 	}
 
@@ -23,6 +23,6 @@ function webInit(site, options) {
 // function to do extra initialization after listening with websocket
 function webSocketInit(io, options) {
 	io.set('log level', 1); // reduces logging.
-	console.log("initializing websockets")
+	console.log("initializing websockets");
 	require("./socket/websockets").initialize(io, options);
 }
