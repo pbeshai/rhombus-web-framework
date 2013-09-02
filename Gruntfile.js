@@ -2,7 +2,7 @@
 // configuration file, which you can learn more about here:
 // https://github.com/cowboy/grunt/blob/master/docs/configuring.md
 module.exports = function(grunt) {
-	var serverInit = require("./server/init");
+	var serverInit = require("./app/server/init");
 
 	grunt.initConfig({
 		// The jshint option for scripturl is set to lax, because the anchor
@@ -154,6 +154,14 @@ module.exports = function(grunt) {
 
 					// show stack trace on errors/warnings
 					stack: true,
+
+					index: "app/web/index.html",
+
+					map: {
+						"app" : "app/web/app",
+						"framework" : "framework/web/framework",
+						"vendor": "framework/web/vendor"
+					}
 				}
 			},
 

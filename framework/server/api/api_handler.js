@@ -8,7 +8,7 @@ var fs = require('fs')
 	, sqlite3 = require('sqlite3').verbose()
 	, _ = require('lodash');
 
-var dbFilename = "server/app.db";
+var dbFilename = "app.db";
 
 function initialize(site, options) {
 	site.post("/api/participants", registerParticipants);
@@ -96,7 +96,7 @@ function dbCall(callback) {
 
 		if (!exists) {
 			console.log("this database does not exist");
-			fs.readFile("server/sql/create.sql", "utf8", function (err, data) {
+			fs.readFile(__dirname + "/../sql/create.sql", "utf8", function (err, data) {
 				if (err) throw err;
 
 				db.exec(data, function (err) {
