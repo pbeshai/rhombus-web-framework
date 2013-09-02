@@ -233,7 +233,8 @@ module.exports = function(grunt) {
 
 	});
 
-	grunt.loadTasks("tasks"); // load the socketserver task
+	// grunt.loadTasks("tasks"); // load the socketserver task
+	grunt.loadNpmTasks("grunt-socket-server");
 
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-jst');
