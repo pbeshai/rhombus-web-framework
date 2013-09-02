@@ -83,4 +83,3 @@ require.config({
     }
   },
 });
-console.log("framework config.js");
