@@ -3,7 +3,7 @@ A module that lets you select what mode of browser window this is - a controller
 */
 define([
 	// Application.
-	"App",
+	"framework/App",
 
 	"framework/modules/ParticipantServer",
 	"framework/modules/AppController",

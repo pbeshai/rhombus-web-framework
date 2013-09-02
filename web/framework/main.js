@@ -1,6 +1,6 @@
 define([
   // Application.
-  "App",
+  "framework/App",
 
   // Main Router.
   "framework/Router",

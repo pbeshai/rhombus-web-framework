@@ -1,7 +1,7 @@
 /** Module for interfacing with the participant server over websocket
  */
 define([
-	"App",
+	"framework/App",
 
 	"framework/util/SocketUtils"
 	],

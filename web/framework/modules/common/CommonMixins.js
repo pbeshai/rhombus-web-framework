@@ -1,5 +1,5 @@
 define([
-  "App"
+  "framework/App"
 ],
 function (App) {
   var CommonMixins = {

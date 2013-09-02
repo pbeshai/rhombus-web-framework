@@ -2,7 +2,7 @@
 	Module for interfacing with the running app via websocket
  */
 define([
-	"App",
+	"framework/App",
 
 	"framework/util/SocketUtils"
 	],

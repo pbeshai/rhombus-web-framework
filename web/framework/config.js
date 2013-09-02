@@ -34,7 +34,6 @@ require.config({
 
     "app": "../app",
 
-    "App": "../framework/App",
     "framework": "../framework"
   },
 

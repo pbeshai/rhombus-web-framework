@@ -1,6 +1,6 @@
 define([
   // Application.
-  "App",
+  "framework/App",
 
   "framework/modules/ParticipantServer",
   "framework/modules/AppController",

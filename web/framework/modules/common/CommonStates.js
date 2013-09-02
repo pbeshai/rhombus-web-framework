@@ -1,5 +1,5 @@
 define([
-  "App",
+  "framework/App",
   "framework/modules/common/CommonModels",
 
   "framework/apps/StateApp",

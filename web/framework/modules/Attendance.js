@@ -5,7 +5,7 @@ A simple module for showing active participants and allowing registration of new
 */
 define([
 	// Application.
-	"App",
+	"framework/App",
 
 	"framework/modules/common/Common",
 	"framework/modules/Participant",

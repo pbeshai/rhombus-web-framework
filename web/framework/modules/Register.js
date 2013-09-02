@@ -5,7 +5,7 @@
 */
 define([
 	// Application.
-	"App",
+	"framework/App",
 
 	"framework/modules/Participant",
 

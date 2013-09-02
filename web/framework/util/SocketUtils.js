@@ -1,6 +1,6 @@
 /** Module for interfacing with the participant server over websocket
  */
-define(["App"],
+define(["framework/App"],
 	function (app) {
 	"use strict";
 
