@@ -8,13 +8,21 @@ var fs = require('fs')
 	, sqlite3 = require('sqlite3').verbose()
 	, _ = require('lodash');
 
-var dbFilename = "app.db";
+var dbConfig = {
+		filename: "app.db",
+		create: __dirname + "/../sql/create.sql"
+};
 
-function initialize(site, options) {
+function initialize(site, initConfig) {
 	site.post("/api/participants", registerParticipants);
 	site.get("/api/participants", listParticipants);
 	site.delete("/api/participants", deleteParticipants);
 	site.all("/api/*", handle);
+
+	initConfig = initConfig || {};
+	_.extend(dbConfig, initConfig.database);
+
+	console.log("api initialized, using dbConfig", dbConfig);
 }
 
 // if we make it here, 404.
@@ -91,17 +99,18 @@ function listParticipants(req, res) {
 }
 
 function dbCall(callback) {
-	fs.exists(dbFilename, function (exists) {
-		var db = new sqlite3.Database(dbFilename);
+	fs.exists(dbConfig.filename, function (exists) {
+		var db = new sqlite3.Database(dbConfig.filename);
 
 		if (!exists) {
 			console.log("this database does not exist");
-			fs.readFile(__dirname + "/../sql/create.sql", "utf8", function (err, data) {
+
+			fs.readFile(dbConfig.create, "utf8", function (err, data) {
 				if (err) throw err;
 
 				db.exec(data, function (err) {
 					if (err) throw err;
-					console.log("finished running sql/create.sql");
+					console.log("finished running db create script", dbConfig.create);
 				});
 
 				// db setup

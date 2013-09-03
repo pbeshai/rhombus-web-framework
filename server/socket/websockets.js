@@ -7,13 +7,28 @@ module.exports = {
 };
 
 // Module Dependencies
-var Manager = require("./manager");
+var Manager = require("./manager"),
+		ClickerServer = require("./participant_servers").ClickerServer;
+
 
 var runningManagers = {};
+var participantServers; // map of configured Participant Servers
 
-function initialize(io) {
+function initialize(io, config) {
+	console.log("config is ", config);
+	initializeParticipantServers(config);
 	io.sockets.on('connection', webSocketConnection);
 }
+
+function initializeParticipantServers(config) {
+	config = config || {};
+
+	participantServers = {
+		"clicker": new ClickerServer(config.participantServer)
+	};
+}
+
+
 
 // event handler for connection made to web socket
 function webSocketConnection(webSocket) {
@@ -44,7 +59,7 @@ function getManager(id) {
 	var manager = runningManagers[id];
 	if (manager === undefined) {
 		console.log("creating new manager with id ", id);
-		manager = runningManagers[id] = new Manager.Manager(id);
+		manager = runningManagers[id] = new Manager.Manager(id, participantServers.clicker);
 	}
 	return manager;
 }

@@ -10,14 +10,7 @@ var debug = false;
 var net = require('net'),
 	_ = require('lodash'),
 	util = require('util'),
-	EventEmitter = require('events').EventEmitter,
-	ClickerServer = require("./participant_servers").ClickerServer;
-
-
-// map of configured Participant Servers
-var participantServers = {
-	"clicker": new ClickerServer()
-};
+	EventEmitter = require('events').EventEmitter;
 
 // custom web socket events
 var webSocketEvents = {
@@ -37,12 +30,12 @@ var webSocketEvents = {
 	updateView: "update-view"
 };
 
-function Manager(id) {
+function Manager(id, participantServer) {
 	this.id = id;
 	this.viewers = [];      // collection of ViewerWSH
 	this.controller = null; // ControllerWSH
 	// turn off reconnect currently while testing
-	this.participantServerHandler = new ManagerParticipantServerHandler(this, participantServers.clicker, { reconnect: true });
+	this.participantServerHandler = new ManagerParticipantServerHandler(this, participantServer, { reconnect: true });
 }
 _.extend(Manager.prototype, {
 	addViewer: function (viewer) {

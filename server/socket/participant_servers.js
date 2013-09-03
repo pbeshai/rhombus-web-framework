@@ -5,7 +5,9 @@ var _ = require('lodash')
 
 //var aliasFilter = new AliasFilter();
 
-var ParticipantServer = function () { };
+var ParticipantServer = function (options) {
+	this.initialize(options);
+};
 _.extend(ParticipantServer.prototype, {
 	dataFilters: [],
 	encoding: "utf8",
@@ -23,6 +25,10 @@ _.extend(ParticipantServer.prototype, {
 		ping: "",
 		submitChoice: function (data) { return ""; }
 	*/
+	},
+
+	initialize: function (options) {
+		_.extend(this, options); // integrate the options
 	},
 
 	// converts a command string to an event (only works for string commands currently)
@@ -114,7 +120,8 @@ _.extend(ParticipantServer.prototype, {
 	},
 });
 
-var ClickerServer = function () {
+var ClickerServer = function (options) {
+	this.initialize(options);
 	// setup regular checking of connection
 	setInterval(_.bind(this.checkConnection, this), this.pingInterval);
 };
