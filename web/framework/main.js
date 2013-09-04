@@ -6,8 +6,11 @@ define([
   "framework/Router",
 ],
 
-function (App, Router) {
-  return function () {
+function (fwApp, fwRouter) {
+  return function (App, Router) {
+    App = App || fwApp; // allows overriding which App is used
+    Router = Router || fwRouter; // allows overriding which router is used
+
     // Define your master router on the application namespace and trigger all
     // navigation from this instance.
     App.router = new Router();

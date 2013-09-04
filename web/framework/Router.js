@@ -54,6 +54,11 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
         return;
       }
 
+      var standalone = (mode === "standalone");
+      if (standalone) {
+        mode = "controller";
+      }
+
       // need to force new connection in case we have connected and disconnected before
       // (e.g., back button took us back to index and now we choose again)
       var socket = window.io.connect(App.socketUrl, { "force new connection": true });
@@ -66,10 +71,15 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       var router = this;
 
       // set the screen name
-      var screenName = managerId + "." + mode;
-      if (name) screenName += "." + name;
+      var screenName = managerId;
+      if (!standalone) {
+        screenName += "." + mode;
+      }
+      if (name) {
+        screenName += "." + name;
+      }
       App.model.set("screenName", screenName);
-
+      var dfd = $.Deferred();
       // get the viewer/controller id
       socket.on("registered", function (data) {
         App.model.set("browserId", data.id);
@@ -77,12 +87,16 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
         if (mode === "controller") {
           App.controller = new Modes.Controller({ id: data.id, socket: socket });
-          router.loadControllerView();
+          if (!standalone) { // standalone will handle their own view
+            router.loadControllerView();
+          }
         } else {
           App.viewer = new Modes.Viewer({ id: data.id, socket: socket, name: name });
           router.loadViewerView();
         }
+        dfd.resolve();
       });
+      return dfd;
     },
 
     reset: function () {
@@ -111,10 +125,17 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       this.selectMode("controller", managerId);
     },
 
-    loadControllerView: function () {
+    loadControllerView: function (view) {
       App.setTitle("Controls");
       App.layout.setViews({
         "#main-content": new Controls.Views.Controls({ participants: this.participants }),
+        ".server-status": new ParticipantServer.Views.Status({ model: App.controller.participantServer})
+      }).render();
+    },
+
+    loadStandaloneView: function (view) {
+      App.layout.setViews({
+        "#main-content": view,
         ".server-status": new ParticipantServer.Views.Status({ model: App.controller.participantServer})
       }).render();
     },

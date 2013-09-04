@@ -9,7 +9,7 @@ var fs = require('fs')
 	, _ = require('lodash');
 
 var dbConfig = {
-		filename: "app.db",
+		file: "app.db",
 		create: __dirname + "/../sql/create.sql"
 };
 
@@ -99,8 +99,8 @@ function listParticipants(req, res) {
 }
 
 function dbCall(callback) {
-	fs.exists(dbConfig.filename, function (exists) {
-		var db = new sqlite3.Database(dbConfig.filename);
+	fs.exists(dbConfig.file, function (exists) {
+		var db = new sqlite3.Database(dbConfig.file);
 
 		if (!exists) {
 			console.log("this database does not exist");
