@@ -193,10 +193,11 @@ CommonViews.ParticipantImageDisplay = CommonViews.ParticipantDisplay.extend({
   beforeRender: function () {
     CommonViews.ParticipantDisplay.prototype.beforeRender.call(this);
     var img = this.image(this.model);
+    var bgImage = this.$el.css("background-image");
 
-    if (img && this.$el.css("background-image") === "none") {
+    if (img && (!bgImage || bgImage === "none")) {
       this.$el.css("background-image", "url(" + img + ")");
-    } else if (!img && this.$el.css("background-image") !== "none") {
+    } else if (!img && bgImage !== "none") {
       this.$el.css("background-image", "none");
     }
   },
