@@ -48,16 +48,16 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
     },
 
     // selects the mode and connects the websocket
-    selectMode: function (mode, managerId, name) {
+    selectMode: function (options) {
       if (App.controller || App.viewer) {
         console.log("already connected and registered. aborting", arguments);
         return;
       }
+      var mode = options.mode,
+        managerId = options.managerId || "m1",
+        name = options.name,
+        hasView = options.hasView;
 
-      var standalone = (mode === "standalone");
-      if (standalone) {
-        mode = "controller";
-      }
 
       // need to force new connection in case we have connected and disconnected before
       // (e.g., back button took us back to index and now we choose again)
@@ -71,15 +71,14 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       var router = this;
 
       // set the screen name
-      var screenName = managerId;
-      if (!standalone) {
-        screenName += "." + mode;
-      }
+      var screenName = managerId + "." + mode;
       if (name) {
         screenName += "." + name;
       }
       App.model.set("screenName", screenName);
+
       var dfd = $.Deferred();
+
       // get the viewer/controller id
       socket.on("registered", function (data) {
         App.model.set("browserId", data.id);
@@ -87,7 +86,7 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
         if (mode === "controller") {
           App.controller = new Modes.Controller({ id: data.id, socket: socket });
-          if (!standalone) { // standalone will handle their own view
+          if (!hasView) { // standalone will handle their own view
             router.loadControllerView();
           }
         } else {
@@ -122,18 +121,12 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
     controller: function (managerId) {
       console.log("[router: controls]", managerId);
-      this.selectMode("controller", managerId);
+      App.setTitle("Controls");
+      this.selectMode({ mode: "controller", managerId: managerId });
     },
 
     loadControllerView: function (view) {
-      App.setTitle("Controls");
-      App.layout.setViews({
-        "#main-content": new Controls.Views.Controls({ participants: this.participants }),
-        ".server-status": new ParticipantServer.Views.Status({ model: App.controller.participantServer})
-      }).render();
-    },
-
-    loadStandaloneView: function (view) {
+      view = view || new Controls.Views.Controls({ participants: this.participants });
       App.layout.setViews({
         "#main-content": view,
         ".server-status": new ParticipantServer.Views.Status({ model: App.controller.participantServer})
@@ -142,7 +135,7 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
     viewer: function (managerId, viewerName) {
       console.log("[router: viewer]", managerId, viewerName);
-      this.selectMode("viewer", managerId, viewerName);
+      this.selectMode({ mode: "viewer", managerId: managerId, name: viewerName });
     },
 
     loadViewerView: function () {
