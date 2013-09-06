@@ -16,13 +16,13 @@ function (App, StateApp, Attendance, Common) {
       saveNew: false
     },
 
-    initialize: function () {
+    initialize: function (attrs, options) {
       this.prependStates = [];
       this.States = this.States ? this.States : [];
       this.stateOptions = this.stateOptions ? this.stateOptions : [];
       this.initStateOptions();
       this.initialInput = new StateApp.StateMessage({ participants: this.get("participants") });
-      StateApp.App.prototype.initialize.call(this);
+      StateApp.App.prototype.initialize.apply(this, arguments);
     },
 
     initStateOptions: function () { },
