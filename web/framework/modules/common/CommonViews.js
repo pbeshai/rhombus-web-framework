@@ -239,7 +239,7 @@ CommonViews.ParticipantImageDisplay = CommonViews.ParticipantDisplay.extend({
     template: "framework/templates/common/simple_layout",
     // properties that can be overridden via options
     optionProperties: [ "header", "ParticipantView", "ParticipantsView", "PreParticipantsView",
-      "PostParticipantsView", "InstructionsModel", "acceptNew"],
+      "PostParticipantsView", "InstructionsModel", "acceptNew", "noParticipantsMessage"],
     header: "Participants",
     ParticipantView: null,
     ParticipantsView: CommonViews.ParticipantsGrid,
@@ -248,11 +248,13 @@ CommonViews.ParticipantImageDisplay = CommonViews.ParticipantDisplay.extend({
     PreHeaderView: null,
     InstructionsModel: null,
     acceptNew: false,
+    noParticipantsMessage: "No participants.",
 
     serialize: function () {
       return {
         header: this.header,
-        hasPlayers: (this.participants && this.participants.length > 0),
+        hasParticipants: (this.participants && this.participants.length > 0),
+        noParticipantsMessage: this.noParticipantsMessage
       };
     },
 
@@ -335,15 +337,17 @@ CommonViews.ParticipantImageDisplay = CommonViews.ParticipantDisplay.extend({
     PreGroupsView: null,
     PostGroupsView: null,
     InstructionsModel: null,
+    noParticipantsMessage: "No participants.",
     inactive: {},
     optionProperties: [ "header", "group1Name", "group2Name", "group1NameSuffix", "group2NameSuffix",
                         "ParticipantView", "ParticipantsView", "PreParticipantsView", "PostParticipantsView",
-                        "PreGroupsView", "PostGroupsView", "InstructionsModel", "inactive" ],
+                        "PreGroupsView", "PostGroupsView", "InstructionsModel", "inactive", "noParticipantsMessage" ],
 
     serialize: function () {
       return {
         header: this.header,
-        hasPlayers: (this.model.get("participants").length > 0),
+        hasParticipants: (this.model.get("participants").length > 0),
+        noParticipantsMessage: this.noParticipantsMessage,
         group1Name: this.group1Name,
         group2Name: this.group2Name,
         group1NameSuffix: this.group1NameSuffix,

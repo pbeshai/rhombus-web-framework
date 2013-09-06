@@ -118,6 +118,7 @@ function (App) {
 			this.on("reset", this.initAliasMap);
 			this.initAliasMap(models);
 			this.on("add", this.addCallback);
+			this.on("remove", this.removeCallback);
 		},
 
 		// update choices from ParticipantServer
@@ -191,6 +192,9 @@ function (App) {
 			this.aliasMap[model.get("alias")] = model;
 		},
 
+		removeCallback: function (model) {
+			delete this.aliasMap[model.get("alias")];
+		},
 
 		initAliasMap: function (models) {
 			this.aliasMap = {};
