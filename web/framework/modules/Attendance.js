@@ -31,7 +31,7 @@ function (App, Common, Participant, StateApp) {
 	Attendance.Views.Participant = App.BaseView.extend({
 		template: "framework/templates/attendance/participant",
 		tagName: "div",
-		className: "participant",
+		className: "participant big-message",
 		hereClass: "participant-here",
 
 		serialize: function () {

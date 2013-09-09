@@ -1,9 +1,8 @@
 define([
   "framework/App",
-  "framework/modules/Grid",
   "framework/modules/common/CommonModels"
 ],
-function (App, Grid, CommonModels) {
+function (App, CommonModels) {
   var CommonViews = {};
 
   // sets 'this.options' and overrides properties with options if specified
@@ -117,7 +116,7 @@ function (App, Grid, CommonModels) {
     overlay: function (model) { },
     cssClass: function (model) { },
     bottomText: function (model) { },
-    mainText: function (model) { },
+    mainText: function (model) { return model.get("choice"); },
     idText: function (model) { return model.get("alias"); },
 
     serialize: function () {
@@ -183,36 +182,37 @@ function (App, Grid, CommonModels) {
     }
   });
 
-CommonViews.ParticipantImageDisplay = CommonViews.ParticipantDisplay.extend({
-  className: "participant image-display",
-  optionProperties: ["image"].concat(CommonViews.ParticipantDisplay.prototype.optionProperties.slice()),
-  image: function (model) {
-    return "/img/junhao.jpg";
-  },
+  CommonViews.ParticipantImageDisplay = CommonViews.ParticipantDisplay.extend({
+    className: "participant image-display",
+    optionProperties: ["image"].concat(CommonViews.ParticipantDisplay.prototype.optionProperties.slice()),
+    image: function (model) {
+      return "/img/junhao.jpg";
+    },
 
-  beforeRender: function () {
-    CommonViews.ParticipantDisplay.prototype.beforeRender.call(this);
-    var img = this.image(this.model);
-    var bgImage = this.$el.css("background-image");
+    beforeRender: function () {
+      CommonViews.ParticipantDisplay.prototype.beforeRender.call(this);
+      var img = this.image(this.model);
+      var bgImage = this.$el.css("background-image");
 
-    if (img && (!bgImage || bgImage === "none")) {
-      this.$el.css("background-image", "url(" + img + ")");
-    } else if (!img && bgImage !== "none") {
-      this.$el.css("background-image", "none");
+      if (img && (!bgImage || bgImage === "none")) {
+        this.$el.css("background-image", "url(" + img + ")");
+      } else if (!img && bgImage !== "none") {
+        this.$el.css("background-image", "none");
+      }
+    },
+
+    serialize: function () {
+      return _.extend(CommonViews.ParticipantDisplay.prototype.serialize.call(this), {
+        image: this.image(this.model)
+      });
     }
-  },
+  });
 
-  serialize: function () {
-    return _.extend(CommonViews.ParticipantDisplay.prototype.serialize.call(this), {
-      image: this.image(this.model)
-    });
-  }
-});
 
 
   CommonViews.ParticipantsGrid = App.BaseView.extend({
     className: "participant-grid",
-    ParticipantView: Grid.Views.Participant,
+    ParticipantView: CommonViews.ParticipantDisplay,
     optionProperties: [ "ParticipantView" ],
 
     beforeRender: function () {

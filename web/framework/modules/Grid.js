@@ -7,70 +7,79 @@ define([
 	// Application.
 	"framework/App",
 
+	"framework/modules/common/Common",
 	"framework/modules/Participant",
 
 	"framework/apps/StateApp"
 ],
 
-function (App, Participant, StateApp) {
+function (App, Common, Participant, StateApp) {
 
 	var Grid = App.module();
 
-	Grid.Views.Participant = App.BaseView.extend({
-		template: "framework/templates/grid/participant",
-		tagName: "div",
-		className: "participant",
-
-		choiceClass: {
-			A: "choice-a",
-			B: "choice-b",
-			C: "choice-c",
-			D: "choice-d",
-			E: "choice-e"
+	Grid.Views.Participant = Common.Views.ParticipantDisplay.extend({
+		actionAnimations: {
+			"A": "pulse",
+			"B": "bounce",
+			"C": "shake",
+			"D": "swing",
+			"E": "wobble"
 		},
 
-		serialize: function () {
-			return { model: this.model };
+		cssClass: function (model) {
+			var css = "big-message animated ";
+			if (model.get("choice")) {
+				return css + this.actionAnimations[model.get("choice")];
+			}
+			return css;
 		},
 
-		beforeRender: function () {
-			console.log("rendering participant", this.cid);
-			var choice = this.model.get("choice");
-			// remove old choice classes and set new one
-			this.$el
-				.removeClass(_.values(this.choiceClass).join(" "))
-				.addClass(this.choiceClass[choice]);
-		},
-
-		initialize: function () {
-			this.listenTo(this.model, "change", this.render);
+		overlay: function (model) {
+			if (model.get("choice")) {
+				return "choice-" + model.get("choice").toLowerCase();
+			}
 		}
 	});
 
-	Grid.Views.Participants = App.registerView("grid", App.BaseView.extend({
-		tagName: "div",
-		className: "participant-grid",
-
-		beforeRender: function () {
-			this.participants.each(function (participant) {
-				this.insertView(new Grid.Views.Participant({ model: participant }));
-			}, this);
-		},
-
-
-		initialize: function () {
-			App.BaseView.prototype.initialize.apply(this, arguments);
-		}
+	Grid.Views.Participants = App.registerView("grid", Common.Views.SimpleLayout.extend({
+		ParticipantView: Grid.Views.Participant,
+		acceptNew: true
 	}));
 
 	// To be used in StateApps
 	Grid.State = StateApp.ViewState.extend({
-		// view: Grid.Views.Participants,
+		name: "grid",
 		view: "grid",
+		defaults: {
+			acceptNew: true,
+			fetchParticipants: true
+		},
 
 		viewOptions: function () {
 			return { participants: this.input.participants || this.options.participants };
 		},
+
+		onEntry: function (input) {
+			var participants = input.participants;
+
+			if (this.options.fetchParticipants) {
+				var deferRun = this.deferRun;
+				participants.fetch({ success: function () {
+					deferRun.resolve();
+					App.controller.participantUpdater.ignoreChangesOnce(); // do not send sync callback over the wire (since it is included in loadView)
+				}});
+			} else {
+				this.deferRun.resolve();
+			}
+
+			this.prevAcceptNew = participants.options.acceptNew;
+			participants.options.acceptNew = this.options.acceptNew;
+		},
+
+		cleanup: function () {
+			StateApp.ViewState.prototype.cleanup.call(this);
+			this.input.participants.options.acceptNew = this.prevAcceptNew;
+		}
 	});
 
 	return Grid;
