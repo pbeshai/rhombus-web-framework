@@ -168,6 +168,7 @@ function (App) {
 					}
 				}
 			}, this);
+			this.trigger("update", this, data);
 		},
 
 		// saves models without ids to database

@@ -35,6 +35,10 @@
 clicker-width = 80px
 clicker-button-width = 40px
 clicker-button-height = 40px
+clicker-desc-width = 300px
+.instructions {
+  width: clicker-width + clicker-desc-width;
+}
 .instruction-clicker {
   background: #fcfcfc;
   width: clicker-width;
@@ -81,10 +85,10 @@ clicker-button-height = 40px
 }
 
 .instruction-clicker .clicker-button-description {
-  margin-left: clicker-width + 8px;
-  width: 300px;
-  font-size: 1.3em;
-  padding-top: .55em;
+  margin-left: clicker-width + 10px;
+  width: clicker-desc-width;
+  font-size: 1.9em;
+  padding-top: .4em;
 }
 
 h1 .round-header, h1 .round-label {

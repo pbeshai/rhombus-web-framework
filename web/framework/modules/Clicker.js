@@ -160,7 +160,9 @@ function (App, Participant, StateApp) {
 		// adds in four clickers
 		addClickers: function () {
 			for (var i = 0; i < 4; i++) {
-				this.addClicker("Web" + (++extraClickerCount), true);
+				var clickerNum = ++extraClickerCount;
+				if (clickerNum < 10) clickerNum = "0" + clickerNum;
+				this.addClicker("Web" + clickerNum, true);
 			}
 		}
 	});

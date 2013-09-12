@@ -310,6 +310,7 @@ function (App) {
 		roundOutput: function (output) { },
 
 		next: function () {
+			var roundState = this;
 			if (this.isLastState()) {
 				this.endRound();
 
@@ -327,14 +328,17 @@ function (App) {
 					this.trigger("change");
 				}
 			} else { // not final state in round, so go to next
-				this.currentState = this.currentState.next();
-				this.trigger("change");
+				this.currentState.next().done(function (resultState) {
+					roundState.currentState = resultState;
+					roundState.trigger("change");
+				});
 			}
 
-			return this;
+			return $.Deferred(function () { this.resolve(); }).then(function () { return roundState; });
 		},
 
 		prev: function () {
+			var roundState = this;
 			if (this.isFirstState()) {
 				this.undoEndRound();
 
@@ -351,11 +355,13 @@ function (App) {
 					this.trigger("change");
 				}
 			} else {
-				this.currentState = this.currentState.prev();
-				this.trigger("change");
+				this.currentState.prev().done(function (resultState) {
+					roundState.currentState = resultState;
+					roundState.trigger("change");
+				});
 			}
 
-			return this;
+			return $.Deferred(function () { this.resolve(); }).then(function () { return roundState; });
 		},
 
 		// used when prev'ing into an old round

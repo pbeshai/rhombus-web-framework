@@ -17,6 +17,7 @@ function (App, StateApp, Attendance, Common) {
     },
 
     initialize: function (attrs, options) {
+      this.options = options || {};
       this.prependStates = [];
       this.States = this.States ? this.States : [];
       this.stateOptions = this.stateOptions ? this.stateOptions : [];
