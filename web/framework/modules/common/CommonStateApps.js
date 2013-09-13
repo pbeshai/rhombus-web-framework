@@ -11,10 +11,7 @@ function (App, StateApp, Attendance, Common) {
     stateOptions: undefined,
     States: null,
     prepend: { attendance: true },
-    attendanceOptions: {
-      acceptNew: true,
-      saveNew: false
-    },
+    attendanceOptions: {},
 
     initialize: function (attrs, options) {
       this.options = options || {};

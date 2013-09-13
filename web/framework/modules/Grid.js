@@ -42,8 +42,7 @@ function (App, Common, Participant, StateApp) {
 	});
 
 	Grid.Views.Participants = App.registerView("grid", Common.Views.SimpleLayout.extend({
-		ParticipantView: Grid.Views.Participant,
-		acceptNew: true
+		ParticipantView: Grid.Views.Participant
 	}));
 
 	// To be used in StateApps
@@ -51,12 +50,17 @@ function (App, Common, Participant, StateApp) {
 		name: "grid",
 		view: "grid",
 		defaults: {
-			acceptNew: true,
 			fetchParticipants: true
 		},
 
 		viewOptions: function () {
 			return { participants: this.input.participants || this.options.participants };
+		},
+
+		beforeRender: function () {
+			this.listenTo(this.input.participants, "new-queued", function (model, collection) {
+				collection.addNewParticipants();
+			});
 		},
 
 		onEntry: function (input) {
@@ -71,14 +75,6 @@ function (App, Common, Participant, StateApp) {
 			} else {
 				this.deferRun.resolve();
 			}
-
-			this.prevAcceptNew = participants.options.acceptNew;
-			participants.options.acceptNew = this.options.acceptNew;
-		},
-
-		cleanup: function () {
-			StateApp.ViewState.prototype.cleanup.call(this);
-			this.input.participants.options.acceptNew = this.prevAcceptNew;
 		}
 	});
 

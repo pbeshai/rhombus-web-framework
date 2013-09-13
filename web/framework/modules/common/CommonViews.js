@@ -48,6 +48,7 @@ function (App, CommonModels) {
     },
 
     beforeRender: function () {
+      this.$el.attr("data-alias", this.model.get("alias"));
       var played = this.model.get("played");
       if (played) {
         this.$el.addClass(this.playedClass);
@@ -225,12 +226,23 @@ function (App, CommonModels) {
     add: function (participant) {
       var newView = new this.ParticipantView({ model: participant });
       this.insertView(newView);
-      newView.render();
+      newView.render(); // note that this adds the view as a child of this.$el
+
+      // place in the sorted location
+      var $beforeElem = this.$el.children().eq(this.participants.indexOf(participant));
+      if ($beforeElem.get(0) !== newView.el) { // make sure they are not the same item, otherwise it doesn't show up
+        $beforeElem.before(newView.$el);
+      }
+
     },
 
     initialize: function (options) {
       App.BaseView.prototype.initialize.apply(this, arguments);
       handleOptions(this, options);
+
+      this.listenTo(this.participants, {
+        "add": this.add
+      });
     }
   });
 
@@ -239,7 +251,7 @@ function (App, CommonModels) {
     template: "framework/templates/common/simple_layout",
     // properties that can be overridden via options
     optionProperties: [ "header", "ParticipantView", "ParticipantsView", "PreParticipantsView",
-      "PostParticipantsView", "InstructionsModel", "acceptNew", "noParticipantsMessage"],
+      "PostParticipantsView", "InstructionsModel", "noParticipantsMessage"],
     header: "Participants",
     ParticipantView: null,
     ParticipantsView: CommonViews.ParticipantsGrid,
@@ -247,7 +259,6 @@ function (App, CommonModels) {
     PostParticipantsView: null,
     PreHeaderView: null,
     InstructionsModel: null,
-    acceptNew: false,
     noParticipantsMessage: "No participants.",
 
     serialize: function () {
@@ -293,29 +304,12 @@ function (App, CommonModels) {
     add: function (participant) {
       if (this.participants.length === 1) {
         this.render();
-      } else {
-        var participantsView = this.getView(".participants");
-        if (participantsView && participantsView.add) {
-          participantsView.add(participant);
-        }
-      }
-    },
-
-
-    cleanup: function () {
-      if (this.acceptNew) {
-        this.participants.options.acceptNew = this.prevAcceptNew;
       }
     },
 
     initialize: function (options) {
       App.BaseView.prototype.initialize.apply(this, arguments);
       handleOptions(this, options);
-
-      if (this.acceptNew) {
-        this.prevAcceptNew = this.participants.options.acceptNew;
-        this.participants.options.acceptNew = true; // allow new users to be added when data comes from server
-      }
 
       this.listenTo(this.participants, {
         "add": this.add

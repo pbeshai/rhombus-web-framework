@@ -68,9 +68,6 @@ function (App, Common, Participant, StateApp) {
 
 	Attendance.Views.Participants = App.registerView("attendance", App.BaseView.extend({
 		template: "framework/templates/attendance/layout",
-		options: {
-			acceptNew: false,
-		},
 
 		serialize: function () {
 			return { collection: this.participants };
@@ -92,22 +89,11 @@ function (App, Common, Participant, StateApp) {
 		initialize: function (options) {
 			App.BaseView.prototype.initialize.apply(this, arguments);
 
-			if (this.options.acceptNew) {
-				this.prevAcceptNew = this.participants.options.acceptNew;
-				this.participants.options.acceptNew = true; // allow new users to be added when data comes from server
-			}
-
 			this.listenTo(this.participants, {
 				"reset": this.render,
 				"add": this.add
 			});
-		},
-
-		cleanup: function () {
-			if (this.options.acceptNew) {
-				this.participants.options.acceptNew = this.prevAcceptNew;
-			}
-		},
+		}
 	}));
 
 	// To be used in StateApps
@@ -117,8 +103,7 @@ function (App, Common, Participant, StateApp) {
 
 		viewOptions: function () {
 			return {
-				participants: this.options.participants,
-				acceptNew: this.options.acceptNew
+				participants: this.options.participants
 			};
 		},
 
@@ -129,8 +114,12 @@ function (App, Common, Participant, StateApp) {
 				deferRun.resolve();
 				App.controller.participantUpdater.ignoreChangesOnce(); // do not send sync callback over the wire (since it is included in loadView)
 			}});
-			this.prevAcceptNew = this.options.participants.options.acceptNew;
-			this.options.participants.options.acceptNew = this.options.acceptNew;
+		},
+
+		beforeRender: function () {
+			this.listenTo(this.options.participants, "new-queued", function (model, collection) {
+				collection.addNewParticipants();
+			});
 		},
 
 		onExit: function () {
@@ -140,16 +129,7 @@ function (App, Common, Participant, StateApp) {
 			});
 			presentParticipants.remove(notHere);
 
-			// register new guys (those without id attr)
-			if (this.options.acceptNew && this.options.saveNew) {
-				presentParticipants.saveNew();
-			}
 			return new StateApp.StateMessage({ participants: presentParticipants });
-		},
-
-		cleanup: function () {
-			StateApp.ViewState.prototype.cleanup.call(this);
-			this.options.participants.options.acceptNew = this.prevAcceptNew;
 		}
 	});
 

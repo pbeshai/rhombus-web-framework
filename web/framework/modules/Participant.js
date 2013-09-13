@@ -106,13 +106,14 @@ function (App) {
 		comparator: "alias",
 		aliasMap: {},
 		defaults: {
-			acceptNew: false, // if true, users when data is received for users not in the collection, they are added
-			validateOnChoice: true,
+			validateOnChoice: true
 		},
 
 		initialize: function (models, options) {
-			_.bind(this.updateFromServer, this);
+			window.p = this; console.log("participants in window as p");
 
+			_.bind(this.updateFromServer, this);
+			this.newParticipants = [];
 			this.options = options = _.extend({}, this.defaults, options);
 			// initialize alias->model map
 			this.on("reset", this.initAliasMap);
@@ -129,19 +130,14 @@ function (App) {
 					model.set({"choice": choiceData.choice}, { validate: this.options.validateOnChoice });
 					this.trigger("update:choice", model, choiceData.choice); // slightly different from change:choice since it is fired even if the choice is unchanged.
 				} else {
-					console.log("new user. accept new? ", this.options.acceptNew, this.options);
-					this.trigger("new-user", choiceData);
-					if (this.options.acceptNew) {
-						console.log("adding new user");
-						model = new Participant.Model({ alias: choiceData.id, choice: choiceData.choice });
-						this.add(model);
-						this.trigger("update:choice", model, choiceData.choice);
-					}
+					console.log("queuing new user");
+					model = new Participant.Model({ alias: choiceData.id, choice: choiceData.choice });
+					this.queueNewParticipant(model);
 				}
 			}, this);
 		},
 
-		// TODO: figure this out (to be used for updating via Manager)
+		// update participants from manager
 		update: function (data) {
 			_.each(data, function (participant, i) {
 				var model = this.aliasMap[participant.alias];
@@ -159,13 +155,9 @@ function (App) {
 					model.set(participant, { validate: this.options.validateOnChoice, silent: true });
 					model.trigger("change", model, participant);
 				} else {
-					console.log("new user. accept new? ", this.options.acceptNew, this.options);
-					this.trigger("new-user", participant);
-					if (this.options.acceptNew) {
-						console.log("adding new user");
-						model = new Participant.Model(participant);
-						this.add(model);
-					}
+					console.log("adding new user");
+					model = new Participant.Model(participant);
+					this.add(model);
 				}
 			}, this);
 			this.trigger("update", this, data);
@@ -187,6 +179,17 @@ function (App) {
 					error: function () { newToSave.reset(); }
 				});
 			}
+		},
+
+		queueNewParticipant: function (model) {
+			this.newParticipants.push(model);
+			this.trigger("new-queued", model, this);
+		},
+
+		addNewParticipants: function () {
+			console.log("New participants", this.newParticipants);
+			this.add(this.newParticipants);
+			this.newParticipants.length = 0; // 'remove' all elements from array without destroying any references to it
 		},
 
 		addCallback: function (model) {
