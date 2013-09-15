@@ -18,6 +18,16 @@ function (App, CommonModels) {
     });
   }
 
+  // returns either the value itself or if it is a function, it gets evaluated
+  // passing in extra args.
+  function functionValue(value) {
+    if (_.isFunction(value)) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return value.apply(this, args);
+    }
+    return value;
+  }
+
   CommonViews.Instructions = App.BaseView.extend({
     template: "framework/templates/common/instructions",
     className: "instructions",
@@ -61,6 +71,9 @@ function (App, CommonModels) {
       // do not know which classes are added by this.cssClass)
       this.$el.attr("class", this.className);
 
+      this.restartCssAnimationFix();
+      this.$el.addClass(this.cssClass(this.model));
+
       // handle the overlay carefully so it can be preserved between renders (for animation)
       if (this.$overlay) {
         this.$overlay.remove();
@@ -76,8 +89,6 @@ function (App, CommonModels) {
       } else {
         this.$el.removeClass("has-bottom");
       }
-      // this.restartCssAnimationFix();
-      this.$el.addClass(this.cssClass(this.model));
 
       // add the overlay back (or for the first time)
       var overlay = this.overlay(this.model);
@@ -87,13 +98,9 @@ function (App, CommonModels) {
         } else {
           this.$overlay = $("<div class='overlay'/>").prependTo(this.$el);
         }
-        // this.restartCssAnimationFix(this.$overlay.get(0));
-        var el =this.$overlay.get(0);
-        el.offsetWidth = el.offsetWidth;
+        this.restartCssAnimationFix(this.$overlay.get(0));
         this.$overlay.attr("class", "overlay " + overlay);
       }
-
-
     },
 
     safeRender: function () {
@@ -102,10 +109,14 @@ function (App, CommonModels) {
       }
     },
 
+    initListen: function () {
+      this.listenTo(this.model, "change", this.safeRender);
+    },
+
     initialize: function (options) {
       App.BaseView.prototype.initialize.apply(this, arguments);
       handleOptions(this, options);
-      this.listenTo(this.model, "change", this.safeRender);
+      this.initListen(); // template method for initializing listening of events
     }
   });
 
@@ -137,7 +148,6 @@ function (App, CommonModels) {
 
 
   CommonViews.ParticipantPlay = CommonViews.ParticipantDisplay.extend({
-    // template: "framework/templates/common/participant_play",
     className: "participant player",
     playedClass: "played",
     playedSelector: ".message-text", // the element that fades in after each play
@@ -152,8 +162,9 @@ function (App, CommonModels) {
       var played = this.model.get("played");
 
       // fade in if at least second render and the participant has played
-      if (!this.initialRender && played) {
-        this.$(this.playedSelector).hide().delay(200).fadeIn(400);
+      if ((!this.initialRender || this.forceFade) && played) {
+        var fullOpacity = parseFloat(this.$(this.playedSelector).css("opacity"));
+        this.$(this.playedSelector).css("opacity", 0).delay(100).animate({ opacity: fullOpacity }, 400);
       }
 
       CommonViews.ParticipantDisplay.prototype.afterRender.call(this);
@@ -183,7 +194,7 @@ function (App, CommonModels) {
       if (this.model.get("played")) {
         return "Played";
       }
-      return " ";
+      return " "; // forces the 'has-bottom' class to always be there
     }
   });
 
@@ -293,6 +304,7 @@ function (App, CommonModels) {
     },
   });
 
+
   // requires model Common.Models.GroupModel or similar
   CommonViews.GroupLayout = App.BaseView.extend({
     template: "framework/templates/common/group_layout",
@@ -309,7 +321,7 @@ function (App, CommonModels) {
     InstructionsModel: null,
     noParticipantsMessage: "No participants.",
     inactive: {},
-    optionProperties: [ "header", "group1Name", "group2Name", "group1NameSuffix", "group2NameSuffix",
+    optionProperties: [ "header", "group1Name", "group2Name", "group1NameSuffix", "group2NameSuffix", "group1HeaderRight", "group2HeaderRight",
                         "ParticipantView", "ParticipantsView", "PreParticipantsView", "PostParticipantsView",
                         "PreGroupsView", "PostGroupsView", "InstructionsModel", "inactive", "noParticipantsMessage" ],
 
@@ -321,7 +333,9 @@ function (App, CommonModels) {
         group1Name: this.group1Name,
         group2Name: this.group2Name,
         group1NameSuffix: this.group1NameSuffix,
-        group2NameSuffix: this.group2NameSuffix
+        group2NameSuffix: this.group2NameSuffix,
+        group1HeaderRight: functionValue.call(this, this.group1HeaderRight),
+        group2HeaderRight: functionValue.call(this, this.group2HeaderRight),
       };
     },
 
@@ -690,6 +704,7 @@ function (App, CommonModels) {
       this.model = new CommonModels.ConfigureModel();
     }
   });
+
 
   return CommonViews;
 });

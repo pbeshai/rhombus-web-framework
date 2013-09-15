@@ -38,6 +38,10 @@ function (App, Common, Participant, StateApp) {
 			if (model.get("choice")) {
 				return "choice-" + model.get("choice").toLowerCase();
 			}
+		},
+
+		sinitListen: function () {
+			this.listenTo(this.model, "update", this.safeRender);
 		}
 	});
 

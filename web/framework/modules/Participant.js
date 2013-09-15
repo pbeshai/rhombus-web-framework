@@ -110,8 +110,6 @@ function (App) {
 		},
 
 		initialize: function (models, options) {
-			window.p = this; console.log("participants in window as p");
-
 			_.bind(this.updateFromServer, this);
 			this.newParticipants = [];
 			this.options = options = _.extend({}, this.defaults, options);

@@ -5,13 +5,19 @@
 <div class="pre-groups"></div>
 <div class="groups row-fluid">
 	<div class="group group1 span6">
-		<h2><%= group1Name %><% if (group1NameSuffix) { print(" - " + group1NameSuffix); } %></h2>
+		<header>
+			<h2><%= group1Name %><% if (group1NameSuffix) { %> <span class="suffix"><%=group1NameSuffix%></span> <% } %></h2>
+			<% if (group1HeaderRight != null) { %><div class="header-right"><%= group1HeaderRight %></div><% } %>
+		</header>
 		<div class="pre-participants"></div>
 		<div class="group-participants"></div>
 		<div class="post-participants"></div>
 	</div>
 	<div class="group group2 span6">
-		<h2><%= group2Name %><% if (group2NameSuffix) { print(" - " + group2NameSuffix); } %></h2>
+		<header>
+			<h2><%= group2Name %><% if (group2NameSuffix) { %> <span class="suffix"><%=group2NameSuffix%></span> <% } %></h2>
+			<% if (group2HeaderRight != null) { %><div class="header-right"><%= group2HeaderRight %></div><% } %>
+		</header>
 		<div class="pre-participants"></div>
 		<div class="group-participants"></div>
 		<div class="post-participants"></div>
