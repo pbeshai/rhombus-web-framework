@@ -14,7 +14,7 @@
 	</div>
 
 	<div>
-		<button class="btn prev-state <% if (!currentState.hasPrev()) print('disabled'); %>"<% if (!currentState.hasPrev()) print(' disabled'); %>><i class="icon-arrow-left"></i> Previous State</button>
-		<button class="btn next-state <% if (!currentState.hasNext()) print('disabled'); %>"<% if (!currentState.hasNext()) print(' disabled'); %>>Next State <i class="icon-arrow-right"></i></button>
+		<button class="btn prev-state <% if (!currentState || !currentState.hasPrev()) print('disabled'); %>"<% if (!currentState || !currentState.hasPrev()) print(' disabled'); %>><i class="icon-arrow-left"></i> Previous State</button>
+		<button class="btn next-state <% if (!currentState || !currentState.hasNext()) print('disabled'); %>"<% if (!currentState || !currentState.hasNext()) print(' disabled'); %>>Next State <i class="icon-arrow-right"></i></button>
 	</div>
 </div>

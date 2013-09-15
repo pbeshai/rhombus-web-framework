@@ -155,7 +155,6 @@ function (App, Common, Clicker, Apps) {
 
 
 			// reset the participants if there was another app running previously
-			// this.options.participants.fetch({ reset: true }); TODO
 			this.options.participants.reset();
 
 			// clean up the old app

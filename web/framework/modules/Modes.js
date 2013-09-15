@@ -188,7 +188,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			var activeApp = this.get("activeApp");
 			if (activeApp) {
 				var currState = activeApp.get("currentState");
-				if (currState.rerender) {
+				if (currState && currState.rerender) {
 					currState.rerender();
 				}
 			}
@@ -205,6 +205,11 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 
 		loadView: function (data) {
 			console.log("viewer got load view", data);
+
+			if (data.view == null) {
+				App.router.loadViewerView();
+				return;
+			}
 
 			// handle participants/collection as a special case since it is so common.
 			// (reconstruct the array into a Participant.Collection object)

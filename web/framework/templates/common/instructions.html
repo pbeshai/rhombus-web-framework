@@ -5,14 +5,14 @@
 <div class="instruction-clicker">
 	<% _.each(buttons, function (button) { %>
 	<div class="clicker-button-group <%
-	if (buttonConfig[button] === undefined) {
+	if (buttonConfig[button] == null) {
 		print("disabled");
 	} else if (buttonConfig[button].className !== undefined) {
 		print(buttonConfig[button].className);
 	}
 	%>">
 		<div class="clicker-button"><%= button %></div>
-		<div class="clicker-button-description"><% if (buttonConfig[button] !== undefined) { print(buttonConfig[button].description); } %></div>
+		<div class="clicker-button-description"><% if (buttonConfig[button] != null) { print(buttonConfig[button].description); } %></div>
 	</div>
 	<% }); %>
 </div>

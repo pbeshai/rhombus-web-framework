@@ -40,6 +40,7 @@ function (App) {
 			this.flow = { next: undefined, prev: undefined };
 			this.view = this.view || this.options.view;
 			this.config = this.options.config;
+			this.name = this.options.name || this.name;
 		},
 
 		setNext: function (nextState, mutual) {
@@ -507,6 +508,7 @@ function (App) {
 				writeLogAtEnd: true // default to writing a log when the final state is reached
 			});
 
+
 			this.logData = null;
 			this.logApiCall = "apps/" + this.id + "/log";
 
@@ -529,7 +531,14 @@ function (App) {
 				this.initialState = this.states[stateKeys[0]];
 				this.setCurrentState(this.states[stateKeys[0]]);
 				this.loadState(this.initialState.id, this.initialInput);
+			} else {
+				this.clearView();
 			}
+			this.trigger("initialize", this);
+		},
+
+		clearView: function () {
+			App.controller.appController.clearView("Viewer1");
 		},
 
 		setCurrentState: function (state) {

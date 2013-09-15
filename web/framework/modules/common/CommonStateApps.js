@@ -56,7 +56,7 @@ function (App, StateApp, Attendance, Common) {
       }, this);
     },
 
-    // helper for those that override defineMainStates
+    // helper
     addAttendance: function () {
       var attendanceState = new Attendance.State(this.attendanceOptions, this);
       this.states.attendance = attendanceState;

@@ -61,6 +61,11 @@ define([
 			this.sendAppMessage("load-view", { view: view, options: options }); // TODO add viewer , viewer: viewer });
 		},
 
+		clearView: function (viewer) {
+			console.log("clearing view", viewer);
+			this.sendAppMessage("load-view", { view: null });
+		},
+
 		updateView: function (data) {
 			console.log("update view", data);
 			// make JSON friendly
