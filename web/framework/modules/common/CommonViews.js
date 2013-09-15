@@ -35,80 +35,6 @@ function (App, CommonModels) {
       this.listenTo(this.model, "change", this.render); // ensures the view is up to date
     }
   });
-
-  CommonViews.ParticipantPlay = App.BaseView.extend({
-    template: "framework/templates/common/participant_play",
-    className: "participant player",
-    playedClass: "played",
-    locked: false,
-    optionProperties: [ "locked" ],
-
-    serialize: function () {
-      return { model: this.model };
-    },
-
-    beforeRender: function () {
-      this.$el.attr("data-alias", this.model.get("alias"));
-      var played = this.model.get("played");
-      if (played) {
-        this.$el.addClass(this.playedClass);
-      }
-    },
-
-    afterRender: function () {
-      var played = this.model.get("played");
-
-      // fade in if at least second render and the participant has played
-      if (!this.initialRender && played) {
-        this.$(".played-text").hide().delay(200).fadeIn(400);
-      }
-
-      App.BaseView.prototype.afterRender.call(this);
-    },
-
-    safeRender: function () {
-      if (!this.locked) {
-        this.render();
-      }
-    },
-
-    initialize: function (options) {
-      App.BaseView.prototype.initialize.apply(this, arguments);
-      handleOptions(this, options);
-      this.listenTo(this.model, "change", this.safeRender);
-    }
-  });
-
-  CommonViews.ParticipantHiddenPlay = CommonViews.ParticipantPlay.extend({
-    template: "framework/templates/common/participant_hidden_play",
-
-    afterRender: function () {
-      var played = this.model.get("played");
-
-      // fade in if at least second render and the participant has played
-      if (!this.initialRender && played) {
-        this.$(".medium-text").hide().delay(200).fadeIn(400);
-      }
-
-      App.BaseView.prototype.afterRender.call(this);
-    },
-  });
-
-  // creates a participant with a message inside it (e.g. the offer in the ultimatum game)
-  CommonViews.ParticipantMessagePlay = CommonViews.ParticipantPlay.extend({
-    template: "framework/templates/common/participant_message_play",
-    className: "participant player has-bottom",
-    messageAttribute: "message",
-    optionProperties: [ "messageAttribute" ].concat(CommonViews.ParticipantPlay.prototype.optionProperties),
-
-    serialize: function () {
-      return {
-        model: this.model,
-        message: this.model.get(this.messageAttribute)
-      };
-    },
-  });
-
   CommonViews.ParticipantDisplay = App.BaseView.extend({
     template: "framework/templates/common/participant_display",
     className: "participant",
@@ -210,6 +136,56 @@ function (App, CommonModels) {
   });
 
 
+  CommonViews.ParticipantPlay = CommonViews.ParticipantDisplay.extend({
+    // template: "framework/templates/common/participant_play",
+    className: "participant player",
+    playedClass: "played",
+    playedSelector: ".message-text", // the element that fades in after each play
+
+    cssClass: function (model) {
+      if (model.get("played")) {
+        return this.playedClass;
+      }
+    },
+
+    afterRender: function () {
+      var played = this.model.get("played");
+
+      // fade in if at least second render and the participant has played
+      if (!this.initialRender && played) {
+        this.$(this.playedSelector).hide().delay(200).fadeIn(400);
+      }
+
+      CommonViews.ParticipantDisplay.prototype.afterRender.call(this);
+    }
+  });
+
+  CommonViews.ParticipantHiddenPlay = CommonViews.ParticipantPlay.extend({
+    bottomText: function (model) { },
+    mainText: function (model) {
+      if (model.get("played")) {
+        return "Played";
+      }
+    }
+  });
+
+  // creates a participant with a message inside it (e.g. the offer in the ultimatum game)
+  CommonViews.ParticipantMessagePlay = CommonViews.ParticipantPlay.extend({
+    messageAttribute: "message",
+    optionProperties: [ "messageAttribute" ].concat(CommonViews.ParticipantPlay.prototype.optionProperties),
+    playedSelector: ".bottom-text",
+
+    mainText: function (model) {
+      return this.model.get(this.messageAttribute);
+    },
+
+    bottomText: function (model) {
+      if (this.model.get("played")) {
+        return "Played";
+      }
+      return " ";
+    }
+  });
 
   CommonViews.ParticipantsGrid = App.BaseView.extend({
     className: "participant-grid",

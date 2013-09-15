@@ -7,16 +7,16 @@ function (Rickshaw) {
 		template can use x for the formattedXValue and lines obj which is the args.detail
 	*/
 	var hoverTemplateCode = '<div class="item multi">' +
-			'  <div class="x-value"><%= x %></div>' +
+			'  <div class="x-value"><%= x %></div><table class="lines">' +
 			'  <% _.each(lines, function (line) { %>' +
-			'  <div class="line <%= line.series.className %>">' +
-			'    <div class="y-value"><%= line.formattedYValue %>' +
+			'  <tr class="line <%= line.series.className %>">' +
+			'<td><div class="swatch"></div></td>' +
+			'<td class="name"><%= line.name %></td>' +
+			'<td class="y-value"><%= line.formattedYValue %>' +
 			'<% if (line.value.aux !== undefined) { %> <span class="aux-value">(<%= line.value.aux %>)</span><% } %>' +
-			'</div>' +
-			'    <div class="swatch"></div>' +
-			'    <div class="name"><%= line.name %></div>' +
-			'  </div>' +
-			'  <% }); %>' +
+			'</td>' +
+			'</tr>' +
+			'  <% }); %></table>' +
 			'</div>';
 
 	// customize hover behavior
