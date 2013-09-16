@@ -1,0 +1,25 @@
+<h1>Participants</h1>
+<div class="row-fluid">
+	<div class="span8">
+		<h4>Active Participants <span class="subtle">(<%= participants.length %>)</span></h4>
+		<% if (participants.length === 0) { %>
+		<p>No active participants.</p>
+		<% } else { %>
+		<ul class="inline">
+			<% participants.each(function (p) { %><li><%= p.get("alias") %></li><% }); %>
+		</ul>
+		<% } %>
+	</div>
+	<div class="span4">
+
+		<h4>Queued New Participants <span class="subtle">(<%= participants.newParticipants.length %>)</span></h4>
+		<% if (participants.newParticipants.length) { %>
+		<ul class="inline v-spacing">
+			<% _.each(participants.newParticipants, function (p) { %><li><%= p.get("alias") %></li><% }); %>
+		</ul>
+		<button class="btn add-new-participants"><i class="icon-plus"></i> Add New Participants</button>
+		<% } else { %>
+		No queued participants.
+		<% } %>
+	</div>
+</div>

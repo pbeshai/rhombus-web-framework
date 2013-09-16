@@ -66,7 +66,8 @@ function (App, Common, Clicker, Apps) {
 	Controls.Views.Viewers = App.BaseView.extend({
 		template: "framework/templates/controls/viewers",
 		events: {
-			"click .reload-view" : "reloadView"
+			"click .reload-view" : "reloadView",
+			"click .open-new-viewer" : "newViewer",
 		},
 
 		serialize: function () {
@@ -77,6 +78,23 @@ function (App, Common, Clicker, Apps) {
 			this.listenTo(App.controller, "change:viewers", this.render);
 		},
 
+		newViewer: function () {
+			// from http://stackoverflow.com/questions/57652/how-do-i-get-javascript-to-open-a-popup-window-on-the-current-monitor
+			function popup_params(width, height) {
+				var x = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
+				var y = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
+				var w = typeof window.outerWidth!='undefined' ? window.outerWidth : document.documentElement.clientWidth;
+				var h = typeof window.outerHeight != 'undefined' ? window.outerHeight: (document.documentElement.clientHeight - 22);
+				var X = (x < 0) ? window.screen.width + x : x;
+
+				var left = parseInt(X + ((w - width) / 2), 10);
+				var top = parseInt(y + ((h - height) / 2.5), 10);
+				var output = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',scrollbars=1';
+				return output;
+			}
+			var newWindow = window.open("/m1/viewer/main", "_blank", "status=0,location=0,toolbar=0," + popup_params(1024, 768));
+		},
+
 		reloadView: function (evt) {
 			App.controller.reloadView(); // TODO: should probably include viewer
 
@@ -84,6 +102,34 @@ function (App, Common, Clicker, Apps) {
 			$el.removeClass("rotate360");
 			this.restartCssAnimationFix($el[0]);
 			$el.addClass("rotate360");
+		}
+	});
+
+	Controls.Views.Participants = App.BaseView.extend({
+		template: "framework/templates/controls/participants",
+		events: {
+			"click .add-new-participants" : "addNewParticipants"
+		},
+
+		serialize: function () {
+			return {
+				participants: this.participants
+			};
+		},
+
+		addNewParticipants: function () {
+			var activeApp = this.options.activeApp;
+			// allow the active app to handle adding new participants
+			if (activeApp && activeApp.addNewParticipants) {
+				activeApp.addNewParticipants();
+			} else {
+				this.participants.addNewParticipants();
+			}
+		},
+
+		initialize: function () {
+			App.BaseView.prototype.initialize.apply(this, arguments);
+			this.listenTo(this.participants, "add remove reset new-queued new-added", this.render);
 		}
 	});
 
@@ -141,8 +187,7 @@ function (App, Common, Clicker, Apps) {
 			// when an application has been selected
 			appSelector.on("app-selected", _.bind(this.appSelected, this));
 
-			this.insertView(".clicker-panel", new Clicker.Views.Clickers({ collection: this.options.participants}));
-
+			this.setView(".clicker-panel", new Clicker.Views.Clickers({ collection: this.options.participants}));
 			this.setView(".viewers", new Controls.Views.Viewers());
 		},
 
@@ -178,6 +223,13 @@ function (App, Common, Clicker, Apps) {
 				$appControls.css("min-height", "").animate({opacity: 1});
 			});
 			appControls.render();
+
+			var participantControls = new Controls.Views.Participants({
+				participants: this.options.participants,
+				activeApp: App.controller.get("activeApp")
+			});
+			this.setView(".participant-controls", participantControls);
+			participantControls.render();
 		},
 
 		afterRender: function () {

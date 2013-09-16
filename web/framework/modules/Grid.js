@@ -38,10 +38,6 @@ function (App, Common, Participant, StateApp) {
 			if (model.get("choice")) {
 				return "choice-" + model.get("choice").toLowerCase();
 			}
-		},
-
-		sinitListen: function () {
-			this.listenTo(this.model, "update", this.safeRender);
 		}
 	});
 
@@ -59,12 +55,6 @@ function (App, Common, Participant, StateApp) {
 
 		viewOptions: function () {
 			return { participants: this.input.participants || this.options.participants };
-		},
-
-		beforeRender: function () {
-			this.listenTo(this.input.participants, "new-queued", function (model, collection) {
-				collection.addNewParticipants();
-			});
 		},
 
 		onEntry: function (input) {

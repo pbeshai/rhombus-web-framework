@@ -113,9 +113,11 @@ function (App) {
 			_.bind(this.updateFromServer, this);
 			this.newParticipants = [];
 			this.options = options = _.extend({}, this.defaults, options);
+
 			// initialize alias->model map
-			this.on("reset", this.initAliasMap);
 			this.initAliasMap(models);
+
+			this.on("reset", this.onReset);
 			this.on("add", this.addCallback);
 			this.on("remove", this.removeCallback);
 		},
@@ -124,10 +126,10 @@ function (App) {
 		updateFromServer: function (data) {
 			_.each(data.choices, function (choiceData, i) {
 				var model = this.aliasMap[choiceData.id];
-				if (model) {
-					model.set({"choice": choiceData.choice}, { validate: this.options.validateOnChoice });
+				if (model && model !== "queued") {
+					model.set({ "choice": choiceData.choice }, { validate: this.options.validateOnChoice });
 					this.trigger("update:choice", model, choiceData.choice); // slightly different from change:choice since it is fired even if the choice is unchanged.
-				} else {
+				} else if (model !== "queued") {
 					console.log("queuing new user");
 					model = new Participant.Model({ alias: choiceData.id, choice: choiceData.choice });
 					this.queueNewParticipant(model);
@@ -180,6 +182,8 @@ function (App) {
 		},
 
 		queueNewParticipant: function (model) {
+			// if we do not add something to the alias map, the new participant will be added repeatedly
+			this.aliasMap[model.get("alias")] = "queued";
 			this.newParticipants.push(model);
 			this.trigger("new-queued", model, this);
 		},
@@ -187,7 +191,10 @@ function (App) {
 		addNewParticipants: function () {
 			console.log("New participants", this.newParticipants);
 			this.add(this.newParticipants);
+			var newParticipants = this.newParticipants.slice(0); // copy
 			this.newParticipants.length = 0; // 'remove' all elements from array without destroying any references to it
+			this.trigger("new-added", newParticipants, this); // TODO: see if anyone is using this
+			return newParticipants;
 		},
 
 		addCallback: function (model) {
@@ -196,6 +203,11 @@ function (App) {
 
 		removeCallback: function (model) {
 			delete this.aliasMap[model.get("alias")];
+		},
+
+		onReset: function (models) {
+			this.newParticipants.length = 0;
+			this.initAliasMap(models);
 		},
 
 		initAliasMap: function (models) {

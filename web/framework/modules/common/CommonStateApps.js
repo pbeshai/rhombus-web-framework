@@ -19,8 +19,24 @@ function (App, StateApp, Attendance, Common) {
       this.States = this.States ? this.States : [];
       this.stateOptions = this.stateOptions ? this.stateOptions : [];
       this.initStateOptions();
+      this.initListen();
       this.initialInput = new StateApp.StateMessage({ participants: this.get("participants") });
       StateApp.App.prototype.initialize.apply(this, arguments);
+    },
+
+    initListen: function () {
+      var participants = this.get("participants");
+      if (this.options.autoAddNew) {
+        this.listenTo(participants, "new-queued", function (model, collection) {
+          this.addNewParticipants();
+        });
+      }
+    },
+
+    addNewParticipants: function () {
+      var participants = this.get("participants");
+      console.log("requested to add new participants", participants.newParticipants);
+      participants.addNewParticipants();
     },
 
     initStateOptions: function () { },
@@ -84,7 +100,7 @@ function (App, StateApp, Attendance, Common) {
       if (this.prepend.group) {
         this.prependStates.push({ state: Common.States.Group, options: this.groupOptions });
       }
-    },
+    }
   });
 
 

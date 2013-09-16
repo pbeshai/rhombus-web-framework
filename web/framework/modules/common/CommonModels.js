@@ -18,10 +18,10 @@ function (App, Participant) {
 
       var participants;
 
-      if (options.fromJSON) {
+      if (this.options.fromJSON) {
         // special initialization when deserializing from JSON obj
 
-        var jsonModel = options.jsonModel;
+        var jsonModel = this.options.jsonModel;
         participants = Participant.Util.collectionFromJSON(jsonModel.participants);
 
         // convert from JSON object to actual models in the participants collection

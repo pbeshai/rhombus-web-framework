@@ -28,7 +28,7 @@ function (App, StateApp, CommonStateApps, Grid) {
 	// description for use in router
 	GridApp.app = {
 		instantiate: function (attrs) {
-			return new GridApp(attrs, { writeLogAtEnd: false });
+			return new GridApp(attrs, { autoAddNew: true, writeLogAtEnd: false });
 		},
 		AppControlsView: undefined,
 		title: "Grid"

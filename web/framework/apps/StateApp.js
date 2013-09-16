@@ -508,7 +508,6 @@ function (App) {
 				writeLogAtEnd: true // default to writing a log when the final state is reached
 			});
 
-
 			this.logData = null;
 			this.logApiCall = "apps/" + this.id + "/log";
 
@@ -624,6 +623,7 @@ function (App) {
 		},
 
 		cleanup: function () {
+			this.stopListening();
 			if (this.get("currentState")) {
 				this.get("currentState").cleanup();
 			}
