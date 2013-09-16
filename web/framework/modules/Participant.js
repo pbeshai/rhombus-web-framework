@@ -188,6 +188,10 @@ function (App) {
 			this.trigger("new-queued", model, this);
 		},
 
+		hasNewParticipants: function () {
+			return this.newParticipants.length > 0;
+		},
+
 		addNewParticipants: function () {
 			console.log("New participants", this.newParticipants);
 			this.add(this.newParticipants);

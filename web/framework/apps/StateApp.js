@@ -84,6 +84,10 @@ function (App) {
 			return this.deferRun.then(function () {
 				App.controller.participantUpdater.stopIgnoringChanges();
 
+				if (state.addNewParticipants) {
+					state.addNewParticipants();
+				}
+
 				var autoFlow = state.run();
 				if (autoFlow !== false) {
 					if (prevState === state.flow.next) {

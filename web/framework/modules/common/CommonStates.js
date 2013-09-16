@@ -250,7 +250,7 @@ function (App, CommonModels, StateApp) {
 
       // listen for setting play
       this.stopListening();
-      this.listenTo(participants, "change:choice add", function (participant, choice) {
+      this.listenTo(participants, "change:choice update:choice add", function (participant, choice) {
         participant.set("played", choice != null);
       });
 

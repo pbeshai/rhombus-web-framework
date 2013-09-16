@@ -67,6 +67,9 @@ function (App, Participant) {
       };
     },
 
+    hasNewParticipants: function () {
+      return this.get("participants") && this.get("participants").hasNewParticipants();
+    },
 
     // can be overridden by subclasses to change type of bot added
     addBot: function (collection) {

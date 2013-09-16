@@ -147,6 +147,8 @@ function (App, Common, Clicker, Apps) {
 			this.listenTo(this.options.participants, "update:choice", App.controller.changedParticipant);
 			this.listenTo(this.options.participants, "sync", App.controller.syncParticipants);
 			this.listenTo(this.options.participants, "add", App.controller.newParticipant);
+			// reset viewers
+			App.controller.appController.clearView();
 
 			// TODO: temporary keyboard shortcuts for faster debugging
 			var testApp = "seq-alias";
