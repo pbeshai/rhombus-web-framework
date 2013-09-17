@@ -204,9 +204,7 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 				participantServer.socket.on("error", function (error) {
 					console.log("Error with participant server: "+error.code+ " when trying to "+error.syscall);
 					if (participantServer.isConnected()) { // only let websocket know if we had and lost connection to the server
-						_.each(runningManagers, function (manager) {
-							manager.serverConnected(false);
-						});
+						that.manager.serverConnected(false);
 					}
 					participantServer.disconnect();
 					that.participantServer.connecting = false;
