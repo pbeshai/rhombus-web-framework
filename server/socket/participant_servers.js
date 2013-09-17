@@ -10,6 +10,7 @@ var ParticipantServer = function (options) {
 	this.initialize(options);
 };
 _.extend(ParticipantServer.prototype, {
+	name: "ParticipantServer",
 	dataFilters: [],
 	encoding: "utf8",
 	socket: null,
@@ -103,8 +104,6 @@ _.extend(ParticipantServer.prototype, {
 
 	// generic server command function
 	command: function (command, args) {
-		logger.info("[" + command + "] "+ (this.socket != null));
-
 		if (this.socket != null) {
 			var serverCommand = this.commands[command]; // can be string or function
 			if (_.isFunction(serverCommand)) { // if function, evaluate to string
@@ -115,7 +114,7 @@ _.extend(ParticipantServer.prototype, {
 			}
 
 			// output across socket
-			logger.info("Writing to ParticipantServer: ", { serverCommand: serverCommand });
+			logger.info(this.name + ": sending", { serverCommand: serverCommand });
 			this.socket.write(JSON.stringify(serverCommand) + "\n");
 		}
 	},
@@ -129,6 +128,7 @@ var ClickerServer = function (options) {
 
 ClickerServer.prototype = new ParticipantServer();
 _.extend(ClickerServer.prototype, {
+	name: "ClickerServer",
 //  dataFilters: [ aliasFilter ],
 	commands: {
 		enableChoices: "enable choices",

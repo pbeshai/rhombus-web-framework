@@ -15,10 +15,11 @@ function (App) {
 	Participant.Model = Backbone.Model.extend({
 		urlRoot: "/api/participants",
 
+
 		defaults: {
 			"choice": null,
-			"played": false,
-			"validChoices": null // if null, all choices are accepted
+			// "played": false, // TODO: Commented out until tested (moved into reset)
+			// "validChoices": null // if null, all choices are accepted
 		},
 
 		toJSON: function () {
@@ -40,7 +41,12 @@ function (App) {
 
 		// resets choice related attributes (retains alias)
 		reset: function () {
-			this.set(this.defaults, { silent: true });
+			// TODO: look into possibly unsetting these instead so we don't send excess data over the socket
+			this.set({
+				"choice": null,
+				"played": false,
+				"validChoices": null // if null, all choices are accepted
+			}, { silent: true });
 		},
 
 		validate: function (attrs, options) {

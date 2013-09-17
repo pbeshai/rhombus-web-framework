@@ -79,19 +79,19 @@ _.extend(Manager.prototype, {
 
 	// viewers send to controller
 	appMessageFromViewer: function (message, viewer) {
-		logger.info("Manager got message from viewer ", { msg: message });
+		logger.info(this.id + ": msg from " + viewer.toString(), { msg: message });
 		if (!this.controller) return;
-		logger.info("sending message to " + this.controller);
+		logger.info(this.id + ":       to " + this.controller.toString());
 		this.controller.sendAppMessage(message);
 	},
 
 	// controller sends to viewers
 	appMessageFromController: function (message) {
-		logger.info("Manager got message from controller", { msg: message });
-
+		logger.info(this.id + ": msg from " + this.controller.toString(), { msg: message });
+		var mId = this.id;
 		_.each(this.viewers, function (viewer) {
 			if (!message.viewer || viewer.id === message.viewer) {
-				logger.info("sending message to " + viewer);
+				logger.info(mId + ":       to " + viewer.toString());
 				viewer.sendAppMessage(message);
 			}
 		});
@@ -136,11 +136,13 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 
 	// initialize the handler (typically when a websocket connects)
 	initialize: function (manager, participantServer, options) {
+		this.manager = manager;
+		this.id = this.manager.id + "PSH";
+		logger.info(this.id +": initializing");
+
 		this.options = (options || (options = {}));
-		logger.info("initializing manager participant server handler");
 		_.bindAll(this, "reconnect", "serverConnect", "serverDisconnect", "handleParsedData");
 
-		this.manager = manager;
 
 		this.participantServer = participantServer;
 		this.participantServer.clients += 1;
@@ -167,16 +169,16 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 	// connect to participant server
 	serverConnect: function (autoreconnect) {
 		if (!this.participantServer.isConnected()) {
-			logger.info(this.id +" attempting connection (connecting="+this.participantServer.connecting+")");
+			logger.info(this.id +": attempting connection (connecting="+this.participantServer.connecting+")");
 			if (!this.participantServer.connecting) { //only let one person try and connect
-				logger.info("connecting to socket "+this.id);
+				logger.info(this.id +": connecting to socket");
 				this.participantServer.connecting = true;
 				var that = this;
 
 				// connect via socket to participant server and get status on connection
 				this.participantServer.socket = net.createConnection(this.participantServer.port, this.participantServer.host,
 					function () {
-						logger.info("successfully connected to participant server ("+that.id+")");
+						logger.info(that.id +": successfully connected to participant server");
 						that.manager.serverConnected(true);
 						that.runCommand("status");
 						that.participantServer.connecting = false;
@@ -186,7 +188,7 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 
 				// error handler
 				participantServer.socket.on("error", function (error) {
-					logger.info("Error with participant server: "+error.code+ " when trying to "+error.syscall);
+					logger.warn("Error with participant server: "+error.code+ " when trying to "+error.syscall);
 					if (participantServer.isConnected()) { // only let websocket know if we had and lost connection to the server
 						that.manager.serverConnected(false);
 					}
@@ -196,21 +198,21 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 
 				// attach handler for when data is sent across socket
 				participantServer.socket.on("data", _.bind(participantServer.dataReceived, participantServer));
-				logger.info("adding data listener "+this.id);
+				logger.info(this.id +": adding data listener");
 				participantServer.addListener(this.id, this.handleParsedData);
 			}
 		} else if (!this.participantServer.isConnecting()) {
 			if (!this.participantServer.isListening(this.id)) {
 				// socket connected, but this websocket handler is not listening for data events
 				// attach handler for when data is sent across socket
-				logger.info("adding data listener "+this.id);
+				logger.info(this.id +": adding data listener");
 				this.runCommand("status"); // this could spam statuses on reconnects... but it's a simple fix
 				//this.participantServer.socket.on("data", this.dataReceived);
 				this.participantServer.addListener(this.id, this.handleParsedData);
 				this.manager.serverConnected(true);
 			} else if (!autoreconnect) {
 
-				logger.info("already connected on "+this.id);
+				logger.info(this.id +": already connected on ");
 				// already connected and listening
 				this.manager.serverConnected(true);
 			}
@@ -263,11 +265,16 @@ _.extend(WebSocketHandler.prototype, {
 	],
 
 	toString: function () {
+		var str = this.id;
+
+		if (this.manager) {
+			str = this.manager.id + "." + str;
+		}
 		if (this.name) {
-			return this.id + ":" + this.name;
+			str += ":" + this.name;
 		}
 
-		return this.id;
+		return str;
 	},
 
 	toJSON: function () {
@@ -284,10 +291,12 @@ _.extend(WebSocketHandler.prototype, {
 		_.bindAll.apply(this, [this].concat(boundFunctions));
 
 		this.id = this.generateId();
-		logger.info("initializing new handler " + this);
-
 		this.manager = manager;
 		this.name = name;
+
+		logger.info(this.toString() + ": initializing");
+
+
 
 		// attach websocket event handlers
 		this.webSocket = webSocket; // the websocket
@@ -316,7 +325,7 @@ _.extend(WebSocketHandler.prototype, {
 
 	// event handler when websocket disconnects (basically a destructor)
 	webSocketDisconnect: function () {
-		logger.info("[websocket disconnected] " + this);
+		logger.info(this.toString() + ": websocket disconnected");
 		this.webSocket = null;
 		this.emit("disconnect");
 	},
@@ -332,7 +341,7 @@ util.inherits(ViewerWSH, WebSocketHandler);
 _.extend(ViewerWSH.prototype, {
 	generateId: function () {
 		if (viewerIdCount > idLimit) viewerIdCount = 1;
-		return "Viewer"+(viewerIdCount++);
+		return "viewer"+(viewerIdCount++);
 	},
 
 	appMessageReceived: function (message) {
@@ -359,7 +368,7 @@ _.extend(ControllerWSH.prototype, {
 
 	generateId: function () {
 		if (controllerIdCount > idLimit) controllerIdCount = 1;
-		return "Controller"+(controllerIdCount++);
+		return "controller"+(controllerIdCount++);
 	},
 
 	// message came in over websocket

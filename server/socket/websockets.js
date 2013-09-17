@@ -16,7 +16,7 @@ var runningManagers = {};
 var participantServers; // map of configured Participant Servers
 
 function initialize(io, config) {
-	logger.info("config is ", { config: config });
+	logger.info("websockets: initializing", { config: config });
 	initializeParticipantServers(config);
 	io.sockets.on('connection', webSocketConnection);
 }
@@ -33,24 +33,24 @@ function initializeParticipantServers(config) {
 
 // event handler for connection made to web socket
 function webSocketConnection(webSocket) {
-	logger.info("[websocket connected]");
+	logger.info("websockets: websocket connected");
 
 	webSocket.on("register", function (data) {
 		var manager = getManager(data.manager);
-		logger.info("websocket register", {data: data});
+		logger.info("websockets: register", {data: data});
 		var handler;
 		var type = data.type;
 		if (type === "controller") {
-			logger.info("registering new controller");
+			logger.info("websockets: registering new controller");
 			handler = new Manager.ControllerWSH(webSocket, manager, data.name);
 			manager.setController(handler);
 		} else if (type === "viewer") {
 			type = "viewer";
-			logger.info("registering new viewer");
+			logger.info("websockets: registering new viewer");
 			handler = new Manager.ViewerWSH(webSocket, manager, data.name);
 			manager.addViewer(handler);
 		} else {
-			logger.info("invalid type to register: " + data.type);
+			logger.info("websockets: invalid type to register: " + data.type);
 		}
 	});
 }
@@ -59,7 +59,7 @@ function webSocketConnection(webSocket) {
 function getManager(id) {
 	var manager = runningManagers[id];
 	if (manager === undefined) {
-		logger.info("creating new manager with id " + id);
+		logger.info("websockets: creating new manager with id " + id);
 		manager = runningManagers[id] = new Manager.Manager(id, participantServers.clicker);
 	}
 	return manager;
