@@ -14,6 +14,7 @@ define([
 		defaults: {
 			connected: false,
 			ignoreChoices: false,
+			instructorControl: true,  // can make instructors act like normal clickers if this is set false
 			acceptingChoices: false // whether submitting choices is enabled
 		},
 
@@ -62,13 +63,21 @@ define([
 
 		// separate the instructor
 		choiceDataCallback: function (data) {
-			var groupedData = _.groupBy(data.choices, function (elem) { return elem.instructor === true ? "instructor" : "choices"; });
+			var choices;
 
-			if (groupedData.instructor) {
-				this.trigger(this.clientEvents.instructor, groupedData.instructor);
+			if (!this.get("instructorControl")) { // can make instructors act like normal clickers if this is set false
+				choices = data.choices;
+			} else {
+				var groupedData = _.groupBy(data.choices, function (elem) { return elem.instructor === true ? "instructor" : "choices"; });
+				choices = groupedData.choices;
+
+				if (groupedData.instructor) {
+					this.trigger(this.clientEvents.instructor, groupedData.instructor);
+				}
 			}
-			if (groupedData.choices && !this.get("ignoreChoices") && !this._ignoring) {
-				this.trigger(this.clientEvents.choiceData, { choices: groupedData.choices });
+
+			if (choices && !this.get("ignoreChoices") && !this._ignoring) {
+				this.trigger(this.clientEvents.choiceData, { choices: choices });
 			}
 
 			// we handle the trigger here, so abort

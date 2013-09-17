@@ -236,6 +236,19 @@ function (App, Common, Clicker, Apps) {
 
 		afterRender: function () {
 			enableChoicesButton(this.$(".enable-choices-button"), App.controller.participantServer);
+			this.$(".instructor-controller").toggleButton({
+				textState1: "Disable Instructor Controller",
+				textState2: "Enable Instructor Controller",
+				clickState1: this.toggleInstructorControl,
+				clickState2: this.toggleInstructorControl,
+				classState1: "btn-danger",
+				classState2: "btn-success"
+			});
+		},
+
+		toggleInstructorControl: function () {
+			var instructorControl = App.controller.participantServer.get("instructorControl");
+			App.controller.participantServer.set("instructorControl", !instructorControl);
 		},
 
 		clearDatabase: function () {
