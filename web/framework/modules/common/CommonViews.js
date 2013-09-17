@@ -201,7 +201,8 @@ function (App, CommonModels) {
   CommonViews.ParticipantsGrid = App.BaseView.extend({
     className: "participant-grid",
     ParticipantView: CommonViews.ParticipantDisplay,
-    optionProperties: [ "ParticipantView" ],
+    insertSorted: true,
+    optionProperties: [ "ParticipantView", "insertSorted" ],
 
     beforeRender: function () {
       if (!this.participants) return;
@@ -216,9 +217,11 @@ function (App, CommonModels) {
       newView.render(); // note that this adds the view as a child of this.$el
 
       // place in the sorted location
-      var $beforeElem = this.$el.children().eq(this.participants.indexOf(participant));
-      if ($beforeElem.get(0) !== newView.el) { // make sure they are not the same item, otherwise it doesn't show up
-        $beforeElem.before(newView.$el);
+      if (this.insertSorted) {
+        var $beforeElem = this.$el.children().eq(this.participants.indexOf(participant));
+        if ($beforeElem.get(0) !== newView.el) { // make sure they are not the same item, otherwise it doesn't show up
+          $beforeElem.before(newView.$el);
+        }
       }
 
     },

@@ -10,7 +10,8 @@ var debug = false;
 var net = require('net'),
 	_ = require('lodash'),
 	util = require('util'),
-	EventEmitter = require('events').EventEmitter;
+	EventEmitter = require('events').EventEmitter,
+	logger = require("../../../log/logger");
 
 // custom web socket events
 var webSocketEvents = {
@@ -78,36 +79,19 @@ _.extend(Manager.prototype, {
 
 	// viewers send to controller
 	appMessageFromViewer: function (message, viewer) {
-		console.log("Manager got message from viewer ", message);
+		logger.info("Manager got message from viewer ", { msg: message });
 		if (!this.controller) return;
-		console.log("sending message to " + this.controller);
+		logger.info("sending message to " + this.controller);
 		this.controller.sendAppMessage(message);
 	},
 
 	// controller sends to viewers
 	appMessageFromController: function (message) {
-		console.log("Manager got message from controller ", message);
-
-		// TODO: Debugging
-		if (debug) {
-			if (message.type === "load-view") {
-				if (message.message.options.participants) {
-					_.each(message.message.options.participants, function (p) {
-						console.log(p);
-					});
-				}
-			} else if (message.type === "update-view") {
-				if (message.message.participants) {
-					_.each(message.message.participants, function (p) {
-						console.log(p);
-					});
-				}
-			}
-		}
+		logger.info("Manager got message from controller", { msg: message });
 
 		_.each(this.viewers, function (viewer) {
 			if (!message.viewer || viewer.id === message.viewer) {
-				console.log("sending message to " + viewer);
+				logger.info("sending message to " + viewer);
 				viewer.sendAppMessage(message);
 			}
 		});
@@ -153,7 +137,7 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 	// initialize the handler (typically when a websocket connects)
 	initialize: function (manager, participantServer, options) {
 		this.options = (options || (options = {}));
-		console.log("initializing manager participant server handler");
+		logger.info("initializing manager participant server handler");
 		_.bindAll(this, "reconnect", "serverConnect", "serverDisconnect", "handleParsedData");
 
 		this.manager = manager;
@@ -183,16 +167,16 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 	// connect to participant server
 	serverConnect: function (autoreconnect) {
 		if (!this.participantServer.isConnected()) {
-			console.log(this.id +" attempting connection (connecting="+this.participantServer.connecting+")");
+			logger.info(this.id +" attempting connection (connecting="+this.participantServer.connecting+")");
 			if (!this.participantServer.connecting) { //only let one person try and connect
-				console.log("connecting to socket "+this.id);
+				logger.info("connecting to socket "+this.id);
 				this.participantServer.connecting = true;
 				var that = this;
 
 				// connect via socket to participant server and get status on connection
 				this.participantServer.socket = net.createConnection(this.participantServer.port, this.participantServer.host,
 					function () {
-						console.log("successfully connected to participant server ("+that.id+")");
+						logger.info("successfully connected to participant server ("+that.id+")");
 						that.manager.serverConnected(true);
 						that.runCommand("status");
 						that.participantServer.connecting = false;
@@ -202,7 +186,7 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 
 				// error handler
 				participantServer.socket.on("error", function (error) {
-					console.log("Error with participant server: "+error.code+ " when trying to "+error.syscall);
+					logger.info("Error with participant server: "+error.code+ " when trying to "+error.syscall);
 					if (participantServer.isConnected()) { // only let websocket know if we had and lost connection to the server
 						that.manager.serverConnected(false);
 					}
@@ -212,21 +196,21 @@ _.extend(ManagerParticipantServerHandler.prototype, {
 
 				// attach handler for when data is sent across socket
 				participantServer.socket.on("data", _.bind(participantServer.dataReceived, participantServer));
-				console.log("adding data listener "+this.id);
+				logger.info("adding data listener "+this.id);
 				participantServer.addListener(this.id, this.handleParsedData);
 			}
 		} else if (!this.participantServer.isConnecting()) {
 			if (!this.participantServer.isListening(this.id)) {
 				// socket connected, but this websocket handler is not listening for data events
 				// attach handler for when data is sent across socket
-				console.log("adding data listener "+this.id);
+				logger.info("adding data listener "+this.id);
 				this.runCommand("status"); // this could spam statuses on reconnects... but it's a simple fix
 				//this.participantServer.socket.on("data", this.dataReceived);
 				this.participantServer.addListener(this.id, this.handleParsedData);
 				this.manager.serverConnected(true);
 			} else if (!autoreconnect) {
 
-				console.log("already connected on "+this.id);
+				logger.info("already connected on "+this.id);
 				// already connected and listening
 				this.manager.serverConnected(true);
 			}
@@ -300,7 +284,7 @@ _.extend(WebSocketHandler.prototype, {
 		_.bindAll.apply(this, [this].concat(boundFunctions));
 
 		this.id = this.generateId();
-		console.log("initializing new handler " + this);
+		logger.info("initializing new handler " + this);
 
 		this.manager = manager;
 		this.name = name;
@@ -332,7 +316,7 @@ _.extend(WebSocketHandler.prototype, {
 
 	// event handler when websocket disconnects (basically a destructor)
 	webSocketDisconnect: function () {
-		console.log("[websocket disconnected] " + this);
+		logger.info("[websocket disconnected] " + this);
 		this.webSocket = null;
 		this.emit("disconnect");
 	},

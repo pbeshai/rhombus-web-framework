@@ -3,17 +3,18 @@ module.exports = {
 	webSocketInit: webSocketInit
 };
 
-var fs = require("fs");
+var fs = require("fs"),
+	logger = require("../../log/logger");
 
 
 // function to do extra initialization before starting web server
 function webInit(site, serverOptions, config) {
-	console.log("initializing api_handler");
+	logger.info("initializing api_handler");
 	require("./api/api_handler").initialize(site, config);
 }
 
 // function to do extra initialization after listening with websocket
 function webSocketInit(io, serverOptions, config) {
-	console.log("initializing websockets");
+	logger.info("initializing websockets");
 	require("./socket/websockets").initialize(io, config);
 }

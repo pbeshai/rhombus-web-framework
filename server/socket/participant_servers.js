@@ -1,7 +1,8 @@
 
 var _ = require('lodash')
 //  , AliasFilter = require('./filters/alias_filter').AliasFilter
-	, async = require('async');
+	, async = require('async')
+	, logger = require("../../../log/logger");
 
 //var aliasFilter = new AliasFilter();
 
@@ -102,7 +103,7 @@ _.extend(ParticipantServer.prototype, {
 
 	// generic server command function
 	command: function (command, args) {
-		console.log("[" + command + "] ", this.socket != null);
+		logger.info("[" + command + "] "+ (this.socket != null));
 
 		if (this.socket != null) {
 			var serverCommand = this.commands[command]; // can be string or function
@@ -114,7 +115,7 @@ _.extend(ParticipantServer.prototype, {
 			}
 
 			// output across socket
-			console.log("Writing to ParticipantServer: " + JSON.stringify(serverCommand));
+			logger.info("Writing to ParticipantServer: ", { serverCommand: serverCommand });
 			this.socket.write(JSON.stringify(serverCommand) + "\n");
 		}
 	},
@@ -148,7 +149,6 @@ _.extend(ClickerServer.prototype, {
 			// We may end up with multiple entries quickly passed across the socket
 			// e.g., data = {...}
 			//              {...}
-			// TODO: handle this!
 			var combinedRegExp = /\}\n\{/g;
 			if (combinedRegExp.test(data)) {
 				// convert it into an array
@@ -176,7 +176,7 @@ _.extend(ClickerServer.prototype, {
 				this.handleJsonData(jsonData, callback);
 			}
 		} catch (e) {
-			console.log("invalid JSON received: ", e, data);
+			logger.warn("invalid JSON received: ", { error: e, data: data });
 			return;
 		}
 

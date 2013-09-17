@@ -6,7 +6,8 @@ module.exports = {
 
 var fs = require('fs')
 	, sqlite3 = require('sqlite3').verbose()
-	, _ = require('lodash');
+	, _ = require('lodash'),
+	logger = require("../../../log/logger");
 
 var dbConfig = {
 		file: "app.db",
@@ -22,22 +23,22 @@ function initialize(site, initConfig) {
 	initConfig = initConfig || {};
 	_.extend(dbConfig, initConfig.database);
 
-	console.log("api initialized, using dbConfig", dbConfig);
+	logger.info("api initialized, using dbConfig", { dbConfig: dbConfig });
 }
 
 // if we make it here, 404.
 function handle(req, res, next) {
-	console.log("API Handler: ", req.params);
+	logger.info("API Handler: ", {requestParams: req.params});
 	res.send(404);
 }
 
 function deleteParticipants(req, res) {
-	console.log("deleting all participants");
+	logger.info("deleting all participants");
 
 	dbCall(function (db) {
 		db.run("DELETE FROM participants", function (err) {
 			if (err) {
-				console.log(err);
+				logger.info(err);
 				res.send(500);
 			} else {
 				res.send(200, "");
@@ -48,7 +49,7 @@ function deleteParticipants(req, res) {
 
 // supports either an array of participants or an object (single participant)
 function registerParticipants(req, res) {
-	console.log("saving participants", req.body);
+	logger.info("saving participants ", { requestBody: req.body });
 
 	if (req.body == null) return;
 
@@ -75,10 +76,10 @@ function registerParticipants(req, res) {
 		statement.finalize(function (err) {
 			if (err || errors.length) {
 				if (err) {
-					console.log(err);
+					logger.error(err);
 				}
 				if (errors.length) {
-					console.log(errors);
+					logger.error(errors);
 				}
 
 				res.send(500);
@@ -103,14 +104,14 @@ function dbCall(callback) {
 		var db = new sqlite3.Database(dbConfig.file);
 
 		if (!exists) {
-			console.log("this database does not exist");
+			logger.warn("this database does not exist");
 
 			fs.readFile(dbConfig.create, "utf8", function (err, data) {
 				if (err) throw err;
 
 				db.exec(data, function (err) {
 					if (err) throw err;
-					console.log("finished running db create script", dbConfig.create);
+					logger.info("finished running db create script " + dbConfig.create);
 				});
 
 				// db setup
