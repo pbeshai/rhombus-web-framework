@@ -60,6 +60,18 @@ function (App, CommonModels, StateApp) {
     }
   });
 
+  // partner participants in a GroupModel
+  CommonStates.GroupPartner = StateApp.State.extend({
+    name: "partner",
+
+    // assign partners on exit, so it only happens when going to next state, not back to prev
+    onExit: function () {
+      var groupModel = this.input.groupModel;
+
+      groupModel.partner();
+    }
+  });
+
   // form groups out of the participants (default partners them across teams as well)
   CommonStates.Group = StateApp.State.extend({
     name: "group",

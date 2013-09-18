@@ -80,9 +80,7 @@ function (App, Participant) {
     assignGroups: function (collection) {
       var models = (collection !== undefined) ? collection.models : this.get("participants").models;
 
-      var indices = [];
-      _.each(models, function (model, i) { indices[i] = i; });
-      indices = _.shuffle(indices);
+      var indices = _.shuffle(_.range(models.length));
 
       if (indices.length < 2) {
         console.log("less than two models");
@@ -102,6 +100,20 @@ function (App, Participant) {
         }
       }
     },
+
+    // (re)partners the models in the collection
+    partner: function () {
+      var group1 = this.get("group1").models, group2 = this.get("group2").models;
+      var indices = _.shuffle(_.range(group1.length));
+
+      for (var i = 0; i < indices.length; i++) {
+        var model = group1[indices[i]];
+        var partner = group2[i];
+
+        model.set("partner", partner);
+        partner.set("partner", model);
+      }
+    }
   });
   // deserialize from JSON
   CommonModels.GroupModel.fromJSON = function (jsonModel) {
