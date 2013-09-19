@@ -25,6 +25,7 @@ function (App, StateApp, Attendance, Common) {
     },
 
     initListen: function () {
+      this.stopListening();
       var participants = this.get("participants");
       if (this.options.autoAddNew) {
         this.listenTo(participants, "new-queued", function (model, collection) {
