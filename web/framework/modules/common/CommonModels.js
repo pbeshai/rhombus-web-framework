@@ -71,9 +71,34 @@ function (App, Participant) {
       return this.get("participants") && this.get("participants").hasNewParticipants();
     },
 
+    // add in elements in a different group model
+    addFromGroupModel: function (otherGroupModel) {
+      this.get("group1").add(otherGroupModel.get("group1").models);
+      this.get("group2").add(otherGroupModel.get("group2").models);
+      this.get("participants").add(otherGroupModel.get("participants").models);
+    },
+
+    remove: function (model) {
+      this.get("participants").remove(model);
+      this.get("group1").remove(model);
+      this.get("group2").remove(model);
+    },
+
     // can be overridden by subclasses to change type of bot added
     addBot: function (collection) {
       collection.add(new Participant.Bot());
+    },
+
+    // move a model from one group to the other
+    switchGroups: function (model) {
+      var group1 = this.get("group1"), group2 = this.get("group2");
+      if (group1.contains(model)) {
+        group1.remove(model);
+        group2.add(model);
+      } else if (group2.contains(model)) {
+        group2.remove(model);
+        group1.add(model);
+      }
     },
 
     // put the participants into groups and pair them up (group 1 participants paired with group 2)

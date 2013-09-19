@@ -71,7 +71,7 @@ function (App) {
 			}
 
 			// short delay before playing
-			this.delayedPlay();
+			// this.delayedPlay(); // TODO: see what this breaks now that it is commentd out
 		},
 
 		save: function () {
@@ -204,6 +204,12 @@ function (App) {
 			var newParticipants = this.newParticipants.slice(0); // copy
 			this.newParticipants.length = 0; // 'remove' all elements from array without destroying any references to it
 			this.trigger("new-added", newParticipants, this); // TODO: see if anyone is using this
+			return newParticipants;
+		},
+
+		clearNewParticipants: function () {
+			var newParticipants = this.newParticipants.slice(0); // copy
+			this.newParticipants.length = 0; // 'remove' all elements from array without destroying any references to it
 			return newParticipants;
 		},
 
