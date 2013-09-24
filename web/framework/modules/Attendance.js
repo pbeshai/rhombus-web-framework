@@ -28,72 +28,32 @@ function (App, Common, Participant, StateApp) {
 		}
 	});
 
-	Attendance.Views.Participant = App.BaseView.extend({
-		template: "framework/templates/attendance/participant",
-		tagName: "div",
+	Attendance.Views.Participant = Common.Views.ParticipantDisplay.extend({
 		className: "participant big-message",
-		hereClass: "participant-here",
 
-		serialize: function () {
-			return { model: this.model };
-		},
-
-		beforeRender: function () {
-			if (this.initialRender) {
-				this.$el.hide();
-			}
-
-			var choice = this.model.get("choice");
-
-			// remove old choice classes and set new one
-			if (choice != null) {
-				this.$el.addClass(this.hereClass);
-			} else {
-				this.$el.removeClass(this.hereClass);
+		mainText: function (model) {
+			if (this.model.get("choice") != null) {
+				return "&#x2713;";
 			}
 		},
 
-		afterRender: function () {
-			if (this.initialRender) {
-				this.$el.fadeIn(200);
+		cssClass: function (model) {
+			if (this.model.get("choice") != null) {
+				return "participant-here";
 			}
-			App.BaseView.prototype.afterRender.apply(this);
 		},
 
-		initialize: function () {
-			App.BaseView.prototype.initialize.apply(this, arguments);
-			this.listenTo(this.model, "change", this.render);
+		overlay: function (model) {
+			if (this.model.get("choice") != null) {
+				return "green";
+			}
 		}
 	});
 
-	Attendance.Views.Participants = App.registerView("attendance", App.BaseView.extend({
-		template: "framework/templates/attendance/layout",
-
-		serialize: function () {
-			return { collection: this.participants };
-		},
-
-		beforeRender: function () {
-			this.participants.each(function (participant) {
-				this.insertView(".participant-grid", new Attendance.Views.Participant({ model: participant }));
-			}, this);
-			this.insertView(new Common.Views.Instructions({ model: new Attendance.Instructions() }));
-		},
-
-		add: function (participant) {
-			var newView = new Attendance.Views.Participant({ model: participant });
-			this.insertView(".participant-grid", newView);
-			newView.render();
-		},
-
-		initialize: function (options) {
-			App.BaseView.prototype.initialize.apply(this, arguments);
-
-			this.listenTo(this.participants, {
-				"reset": this.render,
-				"add": this.add
-			});
-		}
+	Attendance.Views.Participants = App.registerView("attendance", Common.Views.SimpleLayout.extend({
+		header: "Check-in",
+		ParticipantView: Attendance.Views.Participant,
+		InstructionsModel: Attendance.Instructions
 	}));
 
 	// To be used in StateApps

@@ -15,8 +15,9 @@
 	position relative
 	display inline-block
 	transition 1s background-color
-
+	text-shadow: 2px 2px 0 #222, -1px -1px 0 #222, 1px -1px 0 #222, -1px 1px 0 #222, 1px 1px 0 #222;
 	background-size 5.5em
+	border: 1px solid #AAB
 
 .participant.choice-a
 	background-color #03588C
@@ -92,6 +93,14 @@
 	right 0
 	text-align center
 
+.participant.br-corner-message .message-text
+	top: auto
+	bottom: 2px
+	right: 5px
+	left: auto
+	margin-top: 0
+
+
 .participant.has-bottom .message-text
 	top: 53%
 
@@ -118,7 +127,6 @@
 	right 0
 	text-align center
 	background rgba(0,0,0,.2)
-	border-radius 4px
 
 .participant.results .partner-id
 	line-height 1.4em
@@ -155,11 +163,6 @@ bucket-color = rgb(18, 60, 88)
 .participant.bucket-6
 	background-color: lighten(bucket-color, 30%);
 
-.participant.image-display
-	text-shadow: 2px 2px 0 #222, -1px -1px 0 #222, 1px -1px 0 #222, -1px 1px 0 #222, 1px 1px 0 #222;
-	zoom: 1.5;
-
-
 .overlay {
 	position: absolute;
 	top: 0;
@@ -167,6 +170,10 @@ bucket-color = rgb(18, 60, 88)
 	left: 0;
 	right: 0;
 	transition: 1s background-color;
+}
+
+.overlay.no-animate {
+	transition: none;
 }
 
 .overlay:hover {
@@ -187,6 +194,12 @@ bucket-color = rgb(18, 60, 88)
 
 .overlay.choice-e, .overlay.red-orange
 	background-color rgba(224, 54, 0, 0.5)
+
+.overlay.dark-dim, .overlay.player.played
+	background-color: rgba(37, 16, 0, 0.7)
+
+.overlay.light-dim, .overlay.player.message
+	background-color: rgba(37, 16, 0, 0.4)
 
 .overlay.highlight
 	background-color: rgba(192, 215, 255, 0.7);

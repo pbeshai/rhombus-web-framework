@@ -27,7 +27,7 @@ function (App, Common, Participant, StateApp) {
 		},
 
 		cssClass: function (model) {
-			var css = "big-message animated ";
+			var css = "br-corner-message animated ";
 			if (model.get("choice")) {
 				return css + this.actionAnimations[model.get("choice")];
 			}

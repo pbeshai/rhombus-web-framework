@@ -48,13 +48,14 @@ function (App, CommonModels) {
   CommonViews.ParticipantDisplay = App.BaseView.extend({
     template: "framework/templates/common/participant_display",
     className: "participant",
-    optionProperties: [ "locked", "cssClass", "bottomText", "mainText", "overlay" ],
+    optionProperties: [ "locked", "cssClass", "bottomText", "mainText", "overlay", "image" ],
     locked: false,
     overlay: function (model) { },
     cssClass: function (model) { },
     bottomText: function (model) { },
     mainText: function (model) { return model.get("choice"); },
     idText: function (model) { return model.get("alias"); },
+    image: function (model) { return "/app/img/alias/" + model.get("alias") + ".jpg"; },
 
     serialize: function () {
       return {
@@ -62,7 +63,8 @@ function (App, CommonModels) {
         idText: this.idText(this.model),
         bottomText: this.bottomText(this.model),
         mainText: this.mainText(this.model),
-        overlay: this.overlay(this.model)
+        overlay: this.overlay(this.model),
+        image: this.image(this.model)
       };
     },
 
@@ -77,6 +79,16 @@ function (App, CommonModels) {
       // handle the overlay carefully so it can be preserved between renders (for animation)
       if (this.$overlay) {
         this.$overlay.remove();
+      }
+
+      // set up image
+      var img = this.image(this.model);
+      var bgImage = this.$el.css("background-image");
+
+      if (img && (!bgImage || bgImage === "none")) {
+        this.$el.css("background-image", "url(" + img + ")");
+      } else if (!img && bgImage !== "none") {
+        this.$el.css("background-image", "none");
       }
     },
 
@@ -120,33 +132,6 @@ function (App, CommonModels) {
     }
   });
 
-  CommonViews.ParticipantImageDisplay = CommonViews.ParticipantDisplay.extend({
-    className: "participant image-display",
-    optionProperties: ["image"].concat(CommonViews.ParticipantDisplay.prototype.optionProperties.slice()),
-    image: function (model) {
-      return "/img/junhao.jpg";
-    },
-
-    beforeRender: function () {
-      CommonViews.ParticipantDisplay.prototype.beforeRender.call(this);
-      var img = this.image(this.model);
-      var bgImage = this.$el.css("background-image");
-
-      if (img && (!bgImage || bgImage === "none")) {
-        this.$el.css("background-image", "url(" + img + ")");
-      } else if (!img && bgImage !== "none") {
-        this.$el.css("background-image", "none");
-      }
-    },
-
-    serialize: function () {
-      return _.extend(CommonViews.ParticipantDisplay.prototype.serialize.call(this), {
-        image: this.image(this.model)
-      });
-    }
-  });
-
-
   CommonViews.ParticipantPlay = CommonViews.ParticipantDisplay.extend({
     className: "participant player",
     playedClass: "played",
@@ -156,6 +141,13 @@ function (App, CommonModels) {
       if (model.get("played")) {
         return this.playedClass;
       }
+    },
+
+    overlay: function (model) {
+      if (model.get("played")) {
+        return "player played";
+      }
+      return "player";
     },
 
     afterRender: function () {
@@ -188,6 +180,13 @@ function (App, CommonModels) {
 
     mainText: function (model) {
       return this.model.get(this.messageAttribute);
+    },
+
+    overlay: function (model) {
+      if (model.get("played")) {
+        return "player played";
+      }
+      return "player no-animate message";
     },
 
     bottomText: function (model) {
