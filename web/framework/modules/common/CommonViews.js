@@ -45,6 +45,31 @@ function (App, CommonModels) {
       this.listenTo(this.model, "change", this.render); // ensures the view is up to date
     }
   });
+
+  CommonViews.Count = App.BaseView.extend({
+    className: "count",
+
+    count: function (collection) { // defaults to counting those who have made choices
+      return collection.reduce(function(memo, p) {
+        if (p.get("choice")) {
+          return memo + 1;
+        }
+        return memo;
+      }, 0);
+    },
+
+    afterRender: function () {
+      this.el.innerHTML = this.count(this.participants);
+      App.BaseView.prototype.afterRender.call(this);
+    },
+
+    initialize: function () {
+      App.BaseView.prototype.initialize.apply(this, arguments);
+      this.listenTo(this.participants, "update", this.render);
+    }
+  });
+
+
   CommonViews.ParticipantDisplay = App.BaseView.extend({
     template: "framework/templates/common/participant_display",
     className: "participant",
@@ -197,6 +222,15 @@ function (App, CommonModels) {
     }
   });
 
+  CommonViews.ParticipantAlias = CommonViews.ParticipantPlay.extend({
+    className: "participant-alias",
+    playedSelector: ".id-text",
+    mainText: function () { },
+    overlay: function (model) { },
+    image: function (model) { }
+  });
+
+
   CommonViews.ParticipantsGrid = App.BaseView.extend({
     className: "participant-grid",
     ParticipantView: CommonViews.ParticipantDisplay,
@@ -234,6 +268,12 @@ function (App, CommonModels) {
       });
     }
   });
+
+  CommonViews.ParticipantsList = CommonViews.ParticipantsGrid.extend({
+    className: null,
+    ParticipantView: CommonViews.ParticipantAlias
+  });
+
 
   // uses a Participant collection
   CommonViews.SimpleLayout = App.BaseView.extend({
