@@ -15,6 +15,18 @@ define([
 		root: "/",
 		BaseView: BaseView, // shortcut to BaseView class
 
+		// quick hack to only show instructions
+		showOnlyInstructions: function (enable) {
+			if (enable === undefined) {
+				enable = true;
+			}
+			if (enable) {
+				$(document.body).append("<style id=\"only-instructions-style\">.groups,.pre-header,.layout-header,.post-groups,.pre-groups { display: none; }</style>")
+			} else {
+				$("#only-instructions-style").remove();
+			}
+		},
+
 		instructorFocus: false,
 
 		model: new Backbone.Model({ browserId: "", screenName: "" }),

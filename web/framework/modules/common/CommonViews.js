@@ -282,6 +282,7 @@ function (App, CommonModels) {
     optionProperties: [ "header", "ParticipantView", "ParticipantsView", "PreParticipantsView",
       "PostParticipantsView", "InstructionsModel", "noParticipantsMessage"],
     header: "Participants",
+    HeaderView: null,
     ParticipantView: null,
     ParticipantsView: CommonViews.ParticipantsGrid,
     PreParticipantsView: null,
@@ -304,6 +305,10 @@ function (App, CommonModels) {
       }, this.options);
       if (this.PreHeaderView != null) {
         this.insertView(".pre-header", new this.PreHeaderView(viewOptions));
+      }
+
+      if (this.HeaderView != null) {
+        this.setView(".layout-header", new this.HeaderView(viewOptions));
       }
 
       if (this.ParticipantView != null) {

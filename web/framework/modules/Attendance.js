@@ -50,8 +50,21 @@ function (App, Common, Participant, StateApp) {
 		}
 	});
 
+	Attendance.Views.Header = App.BaseView.extend({
+		template: _.template("<h1><%= header %></h1>"),
+
+		serialize: function () {
+			return { header: "Check-in " };
+		},
+
+		beforeRender: function () {
+			this.insertView("h1", new Common.Views.Count({ tagName: "span", className: "subtle", participants: this.participants }));
+		},
+	});
+
 	Attendance.Views.Participants = App.registerView("attendance", Common.Views.SimpleLayout.extend({
 		header: "Check-in",
+		HeaderView: Attendance.Views.Header,
 		ParticipantView: Attendance.Views.Participant,
 		InstructionsModel: Attendance.Instructions
 	}));
