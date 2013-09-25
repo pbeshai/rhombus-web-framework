@@ -1,8 +1,12 @@
 <ul class="pull-right inline <%= classes.isConnected %> <%= classes.isAcceptingChoices %>">
-	<li class="connected"><i class="circle-status <%= classes.connected %>"></i>
-		<%= labels.connected %>
-	</li>
-	<li class="accepting-choices"><i class="circle-status <%= classes.acceptingChoices %>"></i>
-		<%= labels.acceptingChoices %>
-	</li>
+	<% if (showConnected) { %>
+		<li class="connected"><i class="circle-status <%= classes.connected %>"></i>
+			<%= labels.connected %>
+		</li>
+	<% } %>
+	<% if (showAccepting) { %>
+		<li class="accepting-choices"><i class="circle-status <%= classes.acceptingChoices %>"></i>
+			<%= labels.acceptingChoices %>
+		</li>
+	<% } %>
 </ul>

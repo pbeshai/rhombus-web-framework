@@ -129,7 +129,7 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       view = view || new Controls.Views.Controls({ participants: this.participants });
       App.layout.setViews({
         "#main-content": view,
-        ".server-status": new ParticipantServer.Views.Status({ model: App.controller.participantServer})
+        ".server-status": new ParticipantServer.Views.Status({ model: App.controller.participantServer })
       }).render();
     },
 
@@ -140,7 +140,10 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
     loadViewerView: function () {
       App.setTitle("Viewer");
-      App.setMainView(new Modes.Views.Viewer());
+      App.layout.setViews({
+        "#main-content": new Modes.Views.Viewer(),
+        ".server-status": new ParticipantServer.Views.Status({ model: App.model, simple: true })
+      }).render();
     },
 
     register: function () {

@@ -59,7 +59,12 @@ function (App, CommonModels) {
     },
 
     afterRender: function () {
-      this.el.innerHTML = this.count(this.participants);
+      var count = this.count(this.participants);
+      if (this.options.parens) {
+        count = "(" + count + ")";
+      }
+      this.el.innerHTML = count;
+
       App.BaseView.prototype.afterRender.call(this);
     },
 

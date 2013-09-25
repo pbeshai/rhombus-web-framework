@@ -124,7 +124,7 @@ define([
 		template: "framework/templates/participantServer/status",
 
 		serialize: function () {
-			return {
+			var serialized = {
 				model: this.model,
 				classes: {
 					isConnected: this.model.get("connected") ? "is-connected" : "not-connected",
@@ -135,14 +135,24 @@ define([
 				labels: {
 					connected: this.model.get("connected") ? "Connected" : "Disconnected",
 					acceptingChoices: this.model.get("acceptingChoices") ? "Accepting Choices" : "Not Accepting Choices"
-				}
+				},
+				showConnected: true,
+				showAccepting: true
 			};
+
+			if (this.options.simple) {
+				serialized.classes.isConnected = "";
+				serialized.showConnected = false;
+			}
+
+			return serialized;
 		},
 
 		initialize: function () {
 			this.listenTo(this.model, "change", this.render);
 		}
 	});
+
 
 	return ParticipantServer;
 });

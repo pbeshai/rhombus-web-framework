@@ -90,6 +90,8 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 
 			this.handleInstructor();
 			this.handleViewers();
+
+			this.listenTo(this.participantServer, "change:acceptingChoices", this.updateStatus);
 		},
 
 		handleViewers: function () {
@@ -104,7 +106,9 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 				viewers.push(viewer);
 				controller.set("viewers", viewers);
 				controller.trigger("change:viewers");
+				controller.updateStatus(); // ensure the status is up to date on new viewer
 				controller.reloadView();
+
 			});
 
 			this.appController.on("viewer-disconnect", function (viewer) {
@@ -192,6 +196,13 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 					currState.rerender();
 				}
 			}
+		},
+
+		updateStatus: function () {
+			var status = {
+				acceptingChoices: this.participantServer.get("acceptingChoices")
+			};
+			this.appController.updateStatus(status);
 		}
 	});
 
@@ -199,8 +210,8 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 		initialize: function (attrs) {
 			this.appController = new AppController.Model({ socket: attrs.socket });
 			this.listenTo(this.appController, "load-view", this.loadView);
-
 			this.listenTo(this.appController, "update-view", this.updateView);
+			this.listenTo(this.appController, "update-status", this.updateStatus);
 		},
 
 		loadView: function (data) {
@@ -245,6 +256,13 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			if (mainView.update) {
 				mainView.update(data);
 			}
+		},
+
+		updateStatus: function (data) {
+			console.log("viewer updating status", data);
+			if (data.acceptingChoices != null) {
+				App.model.set("acceptingChoices", data.acceptingChoices);
+			}
 		}
 	});
 
@@ -287,6 +305,10 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 				name: App.viewer.get("name")
 			};
 		},
+		initialize: function () {
+			console.log("initializing...");
+			App.BaseView.prototype.initialize.apply(this, arguments);
+		}
 	});
 
 	return Modes;

@@ -77,6 +77,11 @@ define([
 			this.sendAppMessage("update-view", data); // TODO add viewer , viewer: viewer });
 		},
 
+		updateStatus: function (data) {
+			console.log("updating status", data);
+			this.sendAppMessage("update-status", data);
+		},
+
 		initialize: function (attrs) {
 			// web socket
 			this.socket = attrs.socket;
