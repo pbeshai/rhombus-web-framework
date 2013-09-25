@@ -91,6 +91,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			this.handleInstructor();
 			this.handleViewers();
 
+			// TODO: perhaps update status should be more thoughtfully put together
 			this.listenTo(this.participantServer, "change:acceptingChoices", this.updateStatus);
 		},
 
