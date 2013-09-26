@@ -200,7 +200,6 @@ function (App, Common, Clicker, Apps) {
 			var oldHeight = $appControls.height();
 			$appControls.css("min-height", oldHeight).css({opacity: 0});
 
-
 			// reset the participants if there was another app running previously
 			this.options.participants.reset();
 
