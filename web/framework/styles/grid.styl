@@ -141,28 +141,16 @@
 	display inline
 
 
-bucket-color = rgb(18, 60, 88)
+bucket-base-color = rgb(6, 28, 43)
+bucket-color = rgba(bucket-base-color, .85)
+bucket-border-width = 8px
+bucket-border-opacity = .7
+bucket-increment = 8%
+for bucket in (0..7)
+	.bucket-{bucket}
+		background-color: lighten(bucket-color, bucket-increment*bucket);
+		border: bucket-border-width solid rgba(lighten(bucket-color, bucket-increment*bucket), bucket-border-opacity);
 
-.participant.bucket-0
-	background-color: bucket-color;
-
-.participant.bucket-1
-	background-color: lighten(bucket-color, 5%);
-
-.participant.bucket-2
-	background-color: lighten(bucket-color, 10%);
-
-.participant.bucket-3
-	background-color: lighten(bucket-color, 15%);
-
-.participant.bucket-4
-	background-color: lighten(bucket-color, 20%);
-
-.participant.bucket-5
-	background-color: lighten(bucket-color, 25%);
-
-.participant.bucket-6
-	background-color: lighten(bucket-color, 30%);
 
 .overlay {
 	position: absolute;
@@ -177,8 +165,9 @@ bucket-color = rgb(18, 60, 88)
 	transition: none;
 }
 
-.overlay:hover {
-	background: none;
+.overlay:hover, .overlay.no-animate:hover {
+	background-color: rgba(0,0,0,0);
+	transition: 1s background-color;
 }
 
 .overlay.choice-a, .overlay.green

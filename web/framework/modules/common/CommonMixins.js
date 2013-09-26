@@ -25,11 +25,16 @@ function (App) {
 
   CommonMixins.bucketParticipant = function (ParticipantDisplay) {
     return ParticipantDisplay.extend({
-      cssClass: function (model) {
+      overlay: function (model) {
+        var overlay = ParticipantDisplay.prototype.overlay.apply(this, arguments);
         var bucket = model.get("bucket");
         if (bucket != null) {
-          return "bucket-" + bucket;
+          if (!overlay) {
+            overlay = "";
+          }
+          overlay += " bucket-" + bucket;
         }
+        return overlay;
       },
     });
   };
