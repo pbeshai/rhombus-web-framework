@@ -77,9 +77,9 @@ define([
 			this.sendAppMessage("update-view", data); // TODO add viewer , viewer: viewer });
 		},
 
-		updateStatus: function (data) {
-			console.log("updating status", data);
-			this.sendAppMessage("update-status", data);
+		updateSystem: function (data) {
+			console.log("updating system", data);
+			this.sendAppMessage("update-system", data);
 		},
 
 		initialize: function (attrs) {

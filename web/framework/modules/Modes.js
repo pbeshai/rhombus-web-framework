@@ -84,6 +84,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 	Modes.Controller = Backbone.Model.extend({
 		initialize: function (attrs) {
 			_.bindAll(this, "handleInstructor", "changedParticipant", "syncParticipants", "newParticipant");
+			this.set("system", new Backbone.Model());
 			this.participantServer = new ParticipantServer.Model({ socket: attrs.socket });
 			this.appController = new AppController.Model({ socket: attrs.socket });
 			this.participantUpdater = new ParticipantUpdater();
@@ -91,8 +92,22 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			this.handleInstructor();
 			this.handleViewers();
 
-			// TODO: perhaps update status should be more thoughtfully put together
-			this.listenTo(this.participantServer, "change:acceptingChoices", this.updateStatus);
+			this.initSystemControls();
+
+		},
+
+		initSystemControls: function () {
+			this.listenTo(this.participantServer, "change:acceptingChoices", function (model, change) {
+				this.get("system").set("acceptingChoices", change);
+			});
+
+			// reset countdown between states and changing apps
+			this.on("change:activeApp", function (controller, app) {
+				this.listenTo(app, "change:currentState initialize", this.clearCountdown);
+			});
+
+
+			this.listenTo(this.get("system"), "change", this.updateSystem);
 		},
 
 		handleViewers: function () {
@@ -107,7 +122,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 				viewers.push(viewer);
 				controller.set("viewers", viewers);
 				controller.trigger("change:viewers");
-				controller.updateStatus(); // ensure the status is up to date on new viewer
+				controller.updateSystem(); // ensure the status is up to date on new viewer
 				controller.reloadView();
 
 			});
@@ -199,11 +214,17 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			}
 		},
 
-		updateStatus: function () {
-			var status = {
-				acceptingChoices: this.participantServer.get("acceptingChoices")
-			};
-			this.appController.updateStatus(status);
+		updateSystem: function () {
+			this.appController.updateSystem(this.get("system").attributes);
+		},
+
+		addCountdown: function () {
+			var baseTime = Math.max(this.get("system").get("countdown") || 0, new Date().getTime());
+			this.get("system").set("countdown", baseTime + 10000);
+		},
+
+		clearCountdown: function () {
+			this.get("system").unset("countdown");
 		}
 	});
 
@@ -212,7 +233,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			this.appController = new AppController.Model({ socket: attrs.socket });
 			this.listenTo(this.appController, "load-view", this.loadView);
 			this.listenTo(this.appController, "update-view", this.updateView);
-			this.listenTo(this.appController, "update-status", this.updateStatus);
+			this.listenTo(this.appController, "update-system", this.updateSystem);
 		},
 
 		loadView: function (data) {
@@ -236,6 +257,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			App.setMainView(new App.views[data.view](data.options));
 		},
 
+		// update the data used to draw the view
 		updateView: function (data) {
 			console.log("update view data", data);
 
@@ -259,10 +281,27 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			}
 		},
 
-		updateStatus: function (data) {
-			console.log("viewer updating status", data);
-			if (data.acceptingChoices != null) {
-				App.model.set("acceptingChoices", data.acceptingChoices);
+		// update data used outside of individual views
+		updateSystem: function (data) {
+			console.log("viewer updating system", data);
+
+			// accepting choices
+			App.model.set("acceptingChoices", data.acceptingChoices);
+
+			// countdown
+			var countdownView = App.layout.getView("#countdown-container");
+			if (data.countdown == null) {
+				if (countdownView) {
+					countdownView.remove();
+				}
+			} else {
+				if (!countdownView) {
+					countdownView = new Common.Views.Countdown({ endTime: data.countdown });
+					App.layout.insertView("#countdown-container", countdownView);
+				} else {
+					countdownView.options.endTime = data.countdown;
+				}
+				countdownView.render();
 			}
 		}
 	});

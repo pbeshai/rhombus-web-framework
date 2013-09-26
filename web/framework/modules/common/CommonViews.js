@@ -74,6 +74,53 @@ function (App, CommonModels) {
     }
   });
 
+  // needs option 'endTime' in ms set
+  CommonViews.Countdown = App.BaseView.extend({
+    timer: null,
+    className: "countdown animated",
+    afterRender: function () {
+      var timeLeft = Math.max(parseInt((this.options.endTime / 1000) - (new Date().getTime() / 1000), 10), 0);
+      this.timeLeft = timeLeft;
+      var seconds = timeLeft % 60;
+      var minutes = parseInt(timeLeft / 60, 10);
+      function z(str) { // add leading zero
+        return ("0"+str).slice(-2);
+      }
+      var formattedTime = z(minutes) + ":" + z(seconds);
+
+      this.$el.html("<div class='countdown-highlight'>" + formattedTime + "</div>" + formattedTime);
+      if (timeLeft < 10) {
+        this.$(".countdown-highlight").css("opacity", 1 - (timeLeft / 10));
+      }
+      if (timeLeft <= 3) {
+        this.$el.removeClass("pulse");
+        this.restartCssAnimationFix();
+        if (timeLeft === 0) {
+          this.$(".countdown-highlight").addClass("animated flash");
+        } else {
+          this.$el.addClass("pulse");
+        }
+      }
+
+      if (timeLeft > 0) {
+        this.clearTimer();
+        this.timer = setTimeout(_.bind(this.render, this), 1000);
+      }
+    },
+
+    clearTimer: function () {
+      if (this.timer != null) {
+        clearTimeout(this.timer); // make sure any existing timer is stopped
+        this.timer = null;
+      }
+    },
+
+    cleanup: function () {
+      console.log("cleaning up countdown");
+      this.clearTimer();
+    }
+  });
+
 
   CommonViews.ParticipantDisplay = App.BaseView.extend({
     template: "framework/templates/common/participant_display",

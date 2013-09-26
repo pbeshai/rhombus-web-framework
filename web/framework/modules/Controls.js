@@ -139,6 +139,8 @@ function (App, Common, Clicker, Apps) {
 
 		events: {
 			"click .clear-database": "clearDatabase",
+			"click .add-countdown-button": "addCountdown",
+			"click .clear-countdown-button": "clearCountdown"
 		},
 
 		initialize: function () {
@@ -266,6 +268,14 @@ function (App, Common, Clicker, Apps) {
 					}
 				});
 			}
+		},
+
+		addCountdown: function () {
+			App.controller.addCountdown();
+		},
+
+		clearCountdown: function () {
+			App.controller.clearCountdown();
 		}
 	});
 
