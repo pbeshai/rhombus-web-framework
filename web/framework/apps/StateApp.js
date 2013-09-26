@@ -73,7 +73,7 @@ function (App) {
 			App.controller.participantUpdater.ignoreChanges();
 
 			if (debug) { console.log("[state:"+this.toString()+"] enter" + ((prevState !== undefined) ? " from " + prevState.toString() : "" )); }
-
+			this.trigger("entry", input, prevState);
 			this.onEntry(input || this.input, prevState);
 
 			if (input) {
@@ -84,6 +84,7 @@ function (App) {
 			return this.deferRun.then(function () {
 				App.controller.participantUpdater.stopIgnoringChanges();
 
+				// add new participants if the state supports it
 				if (state.addNewParticipants) {
 					state.addNewParticipants();
 				}
@@ -259,7 +260,7 @@ function (App) {
 			}
 
 			this.config.numRounds = this.numRounds;
-
+			var that = this;
 			// initialize substates
 			this.states = [];
 			_.each(this.States, function (State, i) {
@@ -273,6 +274,10 @@ function (App) {
 				}, stateOptions), this.stateApp);
 
 				this.states.push(state);
+
+				state.on("entry", function (input, prevState) {
+					console.log("round " + that.roundCounter +" state "+i+" entered", arguments);
+				});
 
 				// link the states
 				if (i > 0) {
@@ -338,7 +343,7 @@ function (App) {
 					roundState.trigger("change");
 				});
 			}
-
+			// return a promise that simply contains the roundState (we're still inside it)
 			return $.Deferred(function () { this.resolve(); }).then(function () { return roundState; });
 		},
 
@@ -394,7 +399,7 @@ function (App) {
 			this.currentState = this.states[this.states.length - 1];
 
 			_.each(this.states, function (s) { s.options.lastRound = this.isLastRound(); }, this);
-
+			console.log("UNDO NEW ROUND", this.currentState.input.groupModel.get("participants").pluck("choice"));
 			this.currentState.enter.call(this.currentState);
 		},
 
@@ -403,6 +408,8 @@ function (App) {
 			this.roundCounter += 1;
 			this.config.round = this.roundCounter;
 			this.currentState = this.states[0];
+
+			console.log("NEW ROUND", input.groupModel.get("participants").pluck("choice"));
 
 			_.each(this.states, function (s) { s.options.lastRound = this.isLastRound(); }, this);
 
