@@ -10,7 +10,7 @@ define([
 ],
 
 function (App, CommonModels) {
-	var debug = false;
+	var debug = true;
 
 	// object to be used for passing data between states (onEntry this.input and the output of exit)
 	var StateMessage = function (data) {
@@ -151,7 +151,7 @@ function (App, CommonModels) {
 			App.controller.participantUpdater.ignoreChanges();
 
 			var output = this.onExit() || this.input;
-
+			this.trigger("exit", output);
 			App.controller.participantUpdater.stopIgnoringChanges();
 
 			this.cleanup();
@@ -555,6 +555,8 @@ function (App, CommonModels) {
 		initialize: function () {
 			ViewState.prototype.initialize.apply(this, arguments);
 
+			console.log("initializing multistate", this.name, this.options);
+
 			this.stateOutputs = [];
 			this.reset();
 
@@ -569,14 +571,24 @@ function (App, CommonModels) {
 				var state = new State(_.extend({
 					config: this.config,
 					stateOutputs: this.stateOutputs,
+					parentOptions: this.options,
 				}, stateOptions), this.stateApp);
 
 				this.states.push(state);
 
 				state.on("entry", function (input, prevState) {
-					console.log("multistate:: state "+i+" entered", arguments);
-					window.i = input;
+					console.log(that.name + " multistate:: state "+i+" entered", arguments, state.options);
+					if (i === that.stateOutputs.length) {
+						that.stateOutputs.pop();
+					} else if (that.stateOutputs[i]) {
+						that.stateOutputs[i] = undefined;
+					}
 
+				});
+
+				state.on("exit", function (output) {
+					console.log(that.name + " multistate:: state "+i+" exited", arguments);
+					that.stateOutputs[i] = that.stateOutput(output);
 				});
 
 				// link the states
@@ -590,8 +602,22 @@ function (App, CommonModels) {
 			return this.currentState === this.states[0];
 		},
 
+		// the complex MultiState check allows nesting of MultiStates
+		isFirstStateDeep: function () {
+			return this.isFirstState() &&
+				((this.currentState instanceof MultiState && this.currentState.isFirstState()) ||
+				!(this.currentState instanceof MultiState));
+		},
+
 		isLastState: function () {
 			return this.currentState === this.states[this.states.length - 1];
+		},
+
+		// the complex MultiState check allows nesting of MultiStates
+		isLastStateDeep: function () {
+			return this.isLastState() &&
+				((this.currentState instanceof MultiState && this.currentState.isLastState()) ||
+				!(this.currentState instanceof MultiState));
 		},
 
 		hasNext: function () {
@@ -613,7 +639,8 @@ function (App, CommonModels) {
 
 		next: function () {
 			var multiState = this;
-			if (this.isLastState()) {
+			// do deep to handle nested multistates
+			if (this.isLastStateDeep()) {
 				var newState = State.prototype.next.apply(this, arguments);
 				if (newState != null) { // we left the multistate (may not if there is no state that follows)
 					return newState;
@@ -630,7 +657,8 @@ function (App, CommonModels) {
 
 		prev: function () {
 			var multiState = this;
-			if (this.isFirstState()) {
+			// the complex MultiState check allows nesting of MultiStates
+			if (this.isFirstStateDeep()) {
 					var newState = State.prototype.prev.apply(this, arguments);
 					if (newState != null) { // we left (might not if first state -- no previous to go to)
 						return newState;
@@ -727,6 +755,37 @@ function (App, CommonModels) {
 				return str;
 			}).join(" ");
 			return (this.name || this.id) + ": " + statesString;
+		},
+
+		// delegate to current state
+		addNewParticipants: function (render) {
+			if (this.currentState && this.currentState.addNewParticipants) {
+				this.currentState.addNewParticipants(render);
+			}
+		},
+
+		// delegate to current state
+		handleConfigure: function () {
+			if (this.currentState) {
+				this.currentState.handleConfigure();
+			}
+		}
+	});
+
+	var RepeatState = MultiState.extend({
+		initialize: function () {
+			// handle round range
+			if (this.numRepeats === undefined && this.minRepeats !== undefined && this.maxRepeats !== undefined) {
+				this.numRepeats = this.minRepeats + Math.round(Math.random() * (this.maxRepeats - this.minRepeats));
+			}
+
+			// expand the State into many states
+			this.States = _(this.numRepeats).range().map(function () { return this.State; }, this);
+			console.log("STATES ARE ", this.States);
+			MultiState.prototype.initialize.apply(this, arguments);
+
+			// TODO: review this config thing.. seems questionable.
+			this.config.numRepeats = this.numRepeats;
 		}
 	});
 
@@ -867,7 +926,8 @@ function (App, CommonModels) {
 		StateMessage: StateMessage,
 		ViewState: ViewState,
 		MultiState: MultiState,
-		RoundState: RoundState,
+		RoundState: RoundState, // TODO: remove this
+		RepeatState: RepeatState,
 		App: StateApp,
 	};
 });
