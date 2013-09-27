@@ -136,7 +136,6 @@ function (App) {
 					model.set({ "choice": choiceData.choice }, { validate: this.options.validateOnChoice });
 					this.trigger("update:choice", model, choiceData.choice); // slightly different from change:choice since it is fired even if the choice is unchanged.
 				} else if (model !== "queued") {
-					console.log("queuing new user");
 					model = new Participant.Model({ alias: choiceData.id, choice: choiceData.choice });
 					this.queueNewParticipant(model);
 				}
@@ -147,6 +146,7 @@ function (App) {
 		update: function (data) {
 			_.each(data, function (participant, i) {
 				var model = this.aliasMap[participant.alias];
+				participant = _.clone(participant); // ensure we do not modify the passed in data
 
 				// handle partners as a special case (interpret from alias to reference)
 				if (model) {
@@ -167,6 +167,22 @@ function (App) {
 				}
 			}, this);
 			this.trigger("update", this, data);
+		},
+
+		// restores from a JSON snapshot
+		restore: function (snapshot) {
+			// TODO: this probably needs to remove participants
+
+			// clear attributes in each model
+			_.each(snapshot, function (participant, i) {
+				var model = this.aliasMap[participant.alias];
+
+				model.clear();
+			}, this);
+
+
+			// treat it as an update
+			this.update(snapshot);
 		},
 
 		// saves models without ids to database
@@ -199,7 +215,6 @@ function (App) {
 		},
 
 		addNewParticipants: function () {
-			console.log("New participants", this.newParticipants);
 			this.add(this.newParticipants);
 			var newParticipants = this.newParticipants.slice(0); // copy
 			this.newParticipants.length = 0; // 'remove' all elements from array without destroying any references to it

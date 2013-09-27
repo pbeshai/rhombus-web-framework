@@ -309,6 +309,7 @@ input[type="text"].input-large-text {
 	display: none;
 }
 .states.view-states-only .view-state,
+.states.view-states-only .multi-state,
 .states.view-states-only .round-state {
 	display: inline-block
 }
@@ -322,16 +323,20 @@ input[type="text"].input-large-text {
 	color: #222
 }
 
+.states li.active.multi-state span.active span.view-state,
 .states li.active.round-state span.active span.view-state {
 	border-radius: 1em;
 	font-weight: bold;
 	background-color: #bbc;
 }
-.states li.round-state .state-inner > span
+.states li.multi-state .state-inner > span,
+.states li.multi-state span.active span,
+.states li.round-state .state-inner > span,
 .states li.round-state span.active span {
 	padding: 0 10px;
 }
 
+.states li.multi-state .state-inner > span.active,
 .states li.round-state .state-inner > span.active {
 	padding: 0;
 }

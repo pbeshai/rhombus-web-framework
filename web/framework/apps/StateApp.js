@@ -6,25 +6,58 @@
 define([
 	// Application.
 	"framework/App",
+	"framework/modules/common/CommonModels"
 ],
 
-function (App) {
+function (App, CommonModels) {
 	var debug = false;
 
 	// object to be used for passing data between states (onEntry this.input and the output of exit)
 	var StateMessage = function (data) {
 		_.extend(this, data);
 	};
-	StateMessage.prototype.clone = function (newData) {
-		var data = _.clone(this);
-		for (var key in data) {
-			if (!this.hasOwnProperty(key)) {
-				delete data[key];
+	_.extend(StateMessage.prototype, {
+		clone: function (newData) {
+			var data = _.clone(this);
+			for (var key in data) {
+				if (!this.hasOwnProperty(key)) {
+					delete data[key];
+				}
 			}
+			data = _.extend(data, newData);
+			return new StateMessage(data);
+		},
+	});
+
+	// used to save state
+	var StateMessageSnapshot = function (data) {
+		_.extend(this, data);
+		this.snapshot = true;
+
+		if (this.groupModel) {
+			this.groupModel = this.groupModel.toJSON();
+		} else if (this.participants) {
+			this.participants = this.participants.toJSON();
 		}
-		data = _.extend(data, newData);
-		return new StateMessage(data);
 	};
+	_.extend(StateMessageSnapshot.prototype, {
+		// returns a real working StateMessage for live use
+		activate: function (message) {
+			var result;
+			// update an existing message
+			if (message != null) {
+				result = _.extend(message.clone(), _.omit(this, "groupModel", "participants"));
+
+				// TODO: for now assume message not null
+				if (this.groupModel && result.groupModel) {
+					result.groupModel.restore(this.groupModel);
+				} else if (this.participants && result.participants) {
+					result.participants.restore(this.participants);
+				}
+			}
+			return result;
+		}
+	});
 
 	// define the State prototype object
 	var State = function (options, stateApp) {
@@ -73,6 +106,13 @@ function (App) {
 			App.controller.participantUpdater.ignoreChanges();
 
 			if (debug) { console.log("[state:"+this.toString()+"] enter" + ((prevState !== undefined) ? " from " + prevState.toString() : "" )); }
+
+			if (input) {
+				this.inputSnapshot = new StateMessageSnapshot(input);
+			} else if (input == null && this.inputSnapshot) {
+				input = this.inputSnapshot.activate(this.input);
+			}
+
 			this.trigger("entry", input, prevState);
 			this.onEntry(input || this.input, prevState);
 
@@ -245,7 +285,7 @@ function (App) {
 		}
 	});
 
-	// a collection of states that is run through repeatedly before exiting
+// a collection of states that is run through repeatedly before exiting
 	var RoundState = ViewState.extend({
 		type: "round-state",
 		initialize: function () {
@@ -509,6 +549,187 @@ function (App) {
 		}
 	});
 
+	// a collection of states that is run through repeatedly before exiting
+	var MultiState = ViewState.extend({
+		type: "multi-state",
+		initialize: function () {
+			ViewState.prototype.initialize.apply(this, arguments);
+
+			this.stateOutputs = [];
+			this.reset();
+
+			var that = this;
+			// initialize substates
+			this.states = [];
+			_.each(this.States, function (State, i) {
+				var stateOptions;
+				if (this.options.stateOptions) {
+					stateOptions = this.options.stateOptions[i];
+				}
+				var state = new State(_.extend({
+					config: this.config,
+					stateOutputs: this.stateOutputs,
+				}, stateOptions), this.stateApp);
+
+				this.states.push(state);
+
+				state.on("entry", function (input, prevState) {
+					console.log("multistate:: state "+i+" entered", arguments);
+					window.i = input;
+
+				});
+
+				// link the states
+				if (i > 0) {
+					state.setPrev(this.states[i - 1]);
+				}
+			}, this);
+		},
+
+		isFirstState: function () {
+			return this.currentState === this.states[0];
+		},
+
+		isLastState: function () {
+			return this.currentState === this.states[this.states.length - 1];
+		},
+
+		hasNext: function () {
+			if (this.isLastState()) {
+				return ViewState.prototype.hasNext.call(this);
+			}
+			return true;
+		},
+
+		hasPrev: function () {
+			if (this.isFirstState()) {
+				return ViewState.prototype.hasPrev.call(this);
+			}
+			return true;
+		},
+
+		// returns what is saved after each state
+		stateOutput: function (output) { },
+
+		next: function () {
+			var multiState = this;
+			if (this.isLastState()) {
+				var newState = State.prototype.next.apply(this, arguments);
+				if (newState != null) { // we left the multistate (may not if there is no state that follows)
+					return newState;
+				}
+			} else { // not final state, so go to next
+				this.currentState.next().done(function (resultState) {
+					multiState.currentState = resultState;
+					multiState.trigger("change");
+				});
+			}
+			// return a promise that simply contains the multiState (we're still inside it)
+			return $.Deferred(function () { this.resolve(); }).then(function () { return multiState; });
+		},
+
+		prev: function () {
+			var multiState = this;
+			if (this.isFirstState()) {
+					var newState = State.prototype.prev.apply(this, arguments);
+					if (newState != null) { // we left (might not if first state -- no previous to go to)
+						return newState;
+					}
+			} else {
+				this.currentState.prev().done(function (resultState) {
+					multiState.currentState = resultState;
+					multiState.trigger("change");
+				});
+			}
+
+			return $.Deferred(function () { this.resolve(); }).then(function () { return multiState; });
+		},
+
+		reset: function () {
+			this.stateCounter = 0;
+			this.currentState = null;
+			this.stateOutputs.length = 0;
+		},
+
+		run: function () {
+			this.reset();
+			this.currentState = this.states[this.stateCounter];
+			this.currentState.enter.call(this.currentState, this.input);
+
+			return false; // do not automatically flow to next state
+		},
+
+		// delegate to current state
+		render: function () {
+			this.currentState.render();
+		},
+
+		rerender: function () {
+			this.currentState.rerender();
+		},
+
+		onExit: function () {
+			return this.currentState.exit().clone({ stateOutputs: this.stateOutputs });
+		},
+
+		// for debugging / logging
+		nextString: function () {
+			if (this.isLastState()) {
+				return State.prototype.nextString.call(this);
+			}
+			var stateCounter = _.indexOf(this.states, this.currentState) + 1;
+
+			var nextStateCounter = (stateCounter % this.states.length) + 1;
+
+			var str = this.stateString(stateCounter) +
+					" -> " + this.stateString(nextStateCounter);
+
+			return str;
+		},
+
+		stateString: function (stateCounter) {
+			return (this.name || this.id) + "[" + stateCounter + "] " + this.states[stateCounter - 1].toString();
+		},
+
+		// for debugging / logging
+		prevString: function () {
+			if (this.isFirstState()) {
+				return State.prototype.prevString.call(this);
+			}
+			var stateCounter = _.indexOf(this.states, this.currentState) + 1;
+
+			var prevStateCounter = (stateCounter === 1) ? this.states.length : stateCounter - 1;
+
+			var str = this.stateString(prevStateCounter) +
+					" <- " + this.stateString(stateCounter);
+
+			return str;
+		},
+
+		toString: function () {
+			var statesString = _.invoke(this.states, function (state) {
+				var str = this.toString();
+				if (this.type !== "view-state") {
+					str = "[" + str + "]";
+				}
+				return str;
+			}).join(", ");
+			return (this.name || this.id) + "[" + statesString+ "]";
+		},
+
+		toHtml: function () {
+			var currentState = this.currentState;
+			var statesString = _.invoke(this.states, function (state) {
+				var str = this.toHtml();
+				if (this === currentState) {
+					str = "<span class='active'>" + str + "</span>";
+				}
+				return str;
+			}).join(" ");
+			return (this.name || this.id) + ": " + statesString;
+		}
+	});
+
 	/**
 	 * State App - prototype object
 	 */
@@ -645,6 +866,7 @@ function (App) {
 		State: State,
 		StateMessage: StateMessage,
 		ViewState: ViewState,
+		MultiState: MultiState,
 		RoundState: RoundState,
 		App: StateApp,
 	};
