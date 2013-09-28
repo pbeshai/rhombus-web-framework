@@ -19,7 +19,7 @@ function (App) {
 
 		selectApp : function (evt) {
 			var $btn = $(evt.target);
-			var selectedApp = App.apps[$btn.data("key")];
+			var selectedApp = App.apps[$btn.data("index")];
 
 			$btn.removeClass("inactive").addClass("active");
 			this.$("button").not($btn).addClass("inactive").removeClass("active");

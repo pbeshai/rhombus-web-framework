@@ -18,12 +18,51 @@ function initialize(site, initConfig) {
 	site.post("/api/participants", registerParticipants);
 	site.get("/api/participants", listParticipants);
 	site.delete("/api/participants", deleteParticipants);
+	site.get("/api/apps", listApps);
 	site.all("/api/*", handle);
 
 	initConfig = initConfig || {};
 	_.extend(dbConfig, initConfig.database);
 
 	logger.info("api initialized, using dbConfig", { dbConfig: dbConfig });
+}
+
+// generates a js file with the dependencies for all applications in app/web/app/apps and the apps provided in framework.
+// supports: app/web/app/apps/<dir>/App.js and app/web/app/apps/<dir>/<dir>App.js
+function listApps(req, res) {
+	var baseDir = "app/web/app/";
+	var appsDir = "apps";
+	var apps = ["framework/apps/GridApp"];
+
+	fs.readdir(baseDir + appsDir, function (err, files) {
+		console.log(files);
+		if (err) {
+			console.log(err);
+			res.send(500);
+			return;
+		}
+		files.forEach(function (file) {
+			var path = baseDir + appsDir + "/" + file;
+			var stat = fs.statSync(path);
+			if (stat && stat.isDirectory()) {
+				// match either App.js or <dirname>App.js (e.g. CoinMatchingApp.js)
+				if (fs.existsSync(path + "/App.js")) {
+					apps.push(appsDir + "/" + file + "/App");
+				} else if (fs.existsSync(path + "/" + file + "App.js")) {
+					apps.push(appsDir + "/" + file + "/" +file + "App");
+				}
+			}
+		});
+
+		var dependencies = ["framework/App"].concat(apps);
+
+		res.set("Content-Type", "application/javascript");
+		res.send(200, 'define(' + JSON.stringify(dependencies) +
+			', function () { ' +
+			'var apps = Array.prototype.slice.call(arguments, 1);' +
+			'return _.map(apps, function (app) { return app.app; });' +
+			' });');
+	});
 }
 
 // if we make it here, 404.

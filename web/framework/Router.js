@@ -9,12 +9,11 @@ define([
   "framework/modules/Participant",
   "framework/modules/Controls",
   "framework/modules/Register",
-  "framework/modules/Modes",
-  "framework/apps/Apps",
+  "framework/modules/Modes"
 ],
 
 function (App, ParticipantServer, AppController, ViewControls, Participant,
-  Controls, Register, Modes, Apps) {
+  Controls, Register, Modes) {
 
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
@@ -35,8 +34,6 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
         ".view-controls": new ViewControls.Views.Controls(),
       });
     },
-
-    apps: Apps.apps,
 
     routes: {
       "": "index",

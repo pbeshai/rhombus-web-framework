@@ -36,7 +36,6 @@ function (App, StateApp, Attendance, Common) {
 
     addNewParticipants: function () {
       var participants = this.get("participants");
-      console.log("requested to add new participants", participants.newParticipants);
       participants.addNewParticipants();
     },
 

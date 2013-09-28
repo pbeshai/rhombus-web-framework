@@ -1,6 +1,6 @@
 <h1>App Selector</h1>
 <div class="grid-buttons">
-<% _.each(_.keys(apps), function (key) { %>
-	<button class="btn" type="button" data-key="<%= key %>"><%= apps[key].title %></button>
+<% _.each(apps, function (app, i) { %>
+	<button class="btn" type="button" data-index="<%= i %>"><%= app.title %></button>
 <% }) %>
 </div>
