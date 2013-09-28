@@ -473,6 +473,14 @@ function (App, CommonModels, StateApp) {
         this.numRepeats = this.numRounds;
       }
 
+      if (this.minRounds != null) {
+        this.minRepeats = this.minRounds;
+      }
+
+      if (this.maxRounds != null) {
+        this.maxRepeats = this.maxRounds;
+      }
+
       if (this.roundOptions != null) { // alias for repeatOptions
         this.repeatOptions = this.roundOptions;
       }

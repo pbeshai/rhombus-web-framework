@@ -57,7 +57,7 @@ function (App) {
     return Layout.extend({
       beforeRender: function () {
         Layout.prototype.beforeRender.call(this);
-        this.insertView(".layout-header", new CommonMixins.Views.RoundLabel({ round: this.options.round }));
+        this.insertView(".layout-header-h1", new CommonMixins.Views.RoundLabel({ round: this.options.round }));
       }
     });
   };
