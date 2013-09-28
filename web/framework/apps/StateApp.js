@@ -10,7 +10,7 @@ define([
 ],
 
 function (App, CommonModels) {
-	var debug = true;
+	var debug = false;
 
 	// object to be used for passing data between states (onEntry this.input and the output of exit)
 	var StateMessage = function (data) {
@@ -568,26 +568,34 @@ function (App, CommonModels) {
 				if (this.options.stateOptions) {
 					stateOptions = this.options.stateOptions[i];
 				}
-				var state = new State(_.extend({
-					config: this.config,
-					stateOutputs: this.stateOutputs,
-					parentOptions: this.options,
-				}, stateOptions), this.stateApp);
+
+				stateOptions = _.extend({
+						config: this.config,
+						stateIndex: i,
+						stateOutputs: this.stateOutputs,
+						parentOptions: this.options,
+					}, stateOptions);
+				// make the state index available in the views
+				if (!stateOptions.viewOptions) {
+					stateOptions.viewOptions = {};
+				}
+				stateOptions.viewOptions.stateIndex = i;
+
+				stateOptions = this.setSubstateOptions(i, stateOptions);
+
+				var state = new State(stateOptions, this.stateApp);
 
 				this.states.push(state);
 
 				state.on("entry", function (input, prevState) {
-					console.log(that.name + " multistate:: state "+i+" entered", arguments, state.options);
-					if (i === that.stateOutputs.length) {
+					if (i === that.stateOutputs.length - 1) {
 						that.stateOutputs.pop();
 					} else if (that.stateOutputs[i]) {
 						that.stateOutputs[i] = undefined;
 					}
-
 				});
 
 				state.on("exit", function (output) {
-					console.log(that.name + " multistate:: state "+i+" exited", arguments);
 					that.stateOutputs[i] = that.stateOutput(output);
 				});
 
@@ -596,6 +604,10 @@ function (App, CommonModels) {
 					state.setPrev(this.states[i - 1]);
 				}
 			}, this);
+		},
+
+		setSubstateOptions: function (index, options) {
+			return options;
 		},
 
 		isFirstState: function () {
@@ -780,8 +792,20 @@ function (App, CommonModels) {
 			}
 
 			// expand the State into many states
-			this.States = _(this.numRepeats).range().map(function () { return this.State; }, this);
-			console.log("STATES ARE ", this.States);
+			this.States = [];
+			var stateOptions = this.options.stateOptions; // not an array
+			this.options.stateOptions = [];
+			for (var i = 0; i < this.numRepeats; i++) {
+				this.States.push(this.State);
+				var options = _.extend({}, stateOptions);
+				// duplicate the 'repeat options' for the child repeated state
+				if (this.options.repeatOptions) {
+					options.stateOptions = this.options.repeatOptions;
+				}
+
+				this.options.stateOptions.push(options);
+			}
+
 			MultiState.prototype.initialize.apply(this, arguments);
 
 			// TODO: review this config thing.. seems questionable.

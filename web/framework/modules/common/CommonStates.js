@@ -451,5 +451,42 @@ function (App, CommonModels, StateApp) {
     }
   });
 
+  // expects to be a child of a MultiState or RepeatState to get the round #.
+  CommonStates.Round = StateApp.MultiState.extend({
+    name: "round",
+    // States: [ ], array of states in the round
+
+    setSubstateOptions: function (index, options) {
+      options.round = options.parentOptions.stateIndex + 1;
+      return options;
+    }
+  });
+
+  CommonStates.Phase = StateApp.RepeatState.extend({
+    name: "phase",
+    //State: SomeState, // typically a MultiState (e.g., CommonStates.Round)
+    //numRounds: 5, (alias for numRepeats)
+
+    initialize: function () {
+      if (this.numRounds != null) { // alias for numRepeats
+        this.numRepeats = this.numRounds;
+      }
+
+      if (this.roundOptions != null) { // alias for repeatOptions
+        this.repeatOptions = this.roundOptions;
+      }
+
+      StateApp.RepeatState.prototype.initialize.apply(this, arguments);
+    },
+
+    // what is saved between each round
+    roundOutput: function (output) { // alias for stateOutput
+    },
+
+    stateOutput: function (output) {
+      return this.roundOutput(output);
+    },
+  });
+
   return CommonStates;
 });

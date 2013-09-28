@@ -8,6 +8,7 @@ define([
 	],
 	function (App, SocketUtils) {
 	"use strict";
+	var debug = false;
 
 	var AppController = App.module();
 
@@ -49,7 +50,7 @@ define([
 		},
 
 		loadView: function (view, options, viewer) {
-			console.log("load view", view, options);
+			if (debug) { console.log("load view", view, options); }
 
 			// make JSON friendly
 			_.each(_.keys(options), function (key) {
@@ -67,7 +68,7 @@ define([
 		},
 
 		updateView: function (data) {
-			console.log("update view", data);
+			if (debug) { console.log("update view", data); }
 			// make JSON friendly
 			_.each(_.keys(data), function (key) {
 				if (data[key] && data[key].toJSON) {
