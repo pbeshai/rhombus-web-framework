@@ -70,7 +70,6 @@ function (App, Participant) {
     // restore from a JSON snapshot, different from update in that it clears
     // all non specified attributes and participants
     restore: function (snapshot) {
-      console.log("GROUPMODEL RESTORE FROM SNAPSHOT", snapshot);
       this.get("participants").restore(snapshot.participants);
     },
 

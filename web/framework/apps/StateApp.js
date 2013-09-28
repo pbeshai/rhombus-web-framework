@@ -555,8 +555,6 @@ function (App, CommonModels) {
 		initialize: function () {
 			ViewState.prototype.initialize.apply(this, arguments);
 
-			console.log("initializing multistate", this.name, this.options);
-
 			this.stateOutputs = [];
 			this.reset();
 
@@ -660,6 +658,7 @@ function (App, CommonModels) {
 			} else { // not final state, so go to next
 				this.currentState.next().done(function (resultState) {
 					multiState.currentState = resultState;
+
 					multiState.trigger("change");
 				});
 			}
@@ -686,15 +685,23 @@ function (App, CommonModels) {
 		},
 
 		reset: function () {
-			this.stateCounter = 0;
 			this.currentState = null;
 			this.stateOutputs.length = 0;
 		},
 
 		run: function () {
-			this.reset();
-			this.currentState = this.states[this.stateCounter];
-			this.currentState.enter.call(this.currentState, this.input);
+			if (this.currentState == null) {
+				this.currentState = this.states[0];
+			}
+
+			// if it is first state, load with the input we received, otherwise
+			// load with whatever input snaphsot it has (to support previous)
+			if (this.currentState === this.states[0]) {
+				this.currentState.enter.call(this.currentState, this.input);
+			} else {
+				this.currentState.enter.call(this.currentState);
+			}
+
 
 			return false; // do not automatically flow to next state
 		},
