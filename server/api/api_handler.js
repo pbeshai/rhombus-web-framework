@@ -32,7 +32,7 @@ function initialize(site, initConfig) {
 function listApps(req, res) {
 	var baseDir = "app/web/app/";
 	var appsDir = "apps";
-	var apps = ["framework/apps/GridApp"];
+	var apps = ["framework/apps/Grid/App"];
 
 	fs.readdir(baseDir + appsDir, function (err, files) {
 		console.log(files);

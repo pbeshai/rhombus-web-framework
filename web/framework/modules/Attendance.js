@@ -10,7 +10,7 @@ define([
 	"framework/modules/common/Common",
 	"framework/modules/Participant",
 
-	"framework/apps/StateApp"
+	"framework/modules/StateApp/Module"
 ],
 
 function (App, Common, Participant, StateApp) {

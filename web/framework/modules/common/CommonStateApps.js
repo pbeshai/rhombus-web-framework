@@ -1,6 +1,6 @@
 define([
   "framework/App",
-  "framework/apps/StateApp",
+  "framework/modules/StateApp/Module",
   "framework/modules/Attendance",
   "framework/modules/common/Common",
 ],

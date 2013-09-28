@@ -1,19 +1,11 @@
-/**
-
-	A simple grid app for displaying choices
-
-*/
 define([
-	// Application.
 	"framework/App",
-
 	"framework/modules/common/Common",
-	"framework/modules/Participant",
 
-	"framework/apps/StateApp"
+	"framework/modules/StateApp/Module"
 ],
 
-function (App, Common, Participant, StateApp) {
+function (App, Common, StateApp) {
 
 	var Grid = App.module();
 

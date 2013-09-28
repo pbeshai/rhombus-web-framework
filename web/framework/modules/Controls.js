@@ -9,7 +9,7 @@ define([
 
 	"framework/modules/common/Common",
 	"framework/modules/Clicker",
-	"framework/apps/Apps",
+	"framework/modules/Apps",
 
 	"framework/util/jquery/jQuery.psToggleButton"
 ],

@@ -6,11 +6,9 @@
 define([
 	// Application.
 	"framework/App",
-
-	"framework/apps/StateApp",
-
+	"framework/modules/StateApp/Module",
 	"framework/modules/common/CommonStateApps",
-	"framework/modules/Grid"
+	"framework/apps/Grid/Module"
 ],
 
 function (App, StateApp, CommonStateApps, Grid) {

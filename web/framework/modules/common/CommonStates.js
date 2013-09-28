@@ -2,7 +2,7 @@ define([
   "framework/App",
   "framework/modules/common/CommonModels",
 
-  "framework/apps/StateApp",
+  "framework/modules/StateApp/Module",
 ],
 function (App, CommonModels, StateApp) {
   var CommonStates = {};
