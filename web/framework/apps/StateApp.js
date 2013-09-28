@@ -224,7 +224,7 @@ function (App, CommonModels) {
 		},
 
 		toHtml: function () {
-			return "<span class='" + this.type + "'>" + this.toString() + "</span>";
+			return "<span class='state type-" + this.type + "'>" + this.toString() + "</span>";
 		},
 
 		// commonly used to log results via an API call
@@ -512,6 +512,8 @@ function (App, CommonModels) {
 				var str = this.toHtml();
 				if (this === currentState) {
 					str = "<span class='active'>" + str + "</span>";
+				} else {
+					str = "<span class='inactive'>" + str + "</span>";
 				}
 				return str;
 			}).join(" ");
