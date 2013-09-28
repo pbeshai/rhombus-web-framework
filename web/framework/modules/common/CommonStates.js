@@ -466,6 +466,7 @@ function (App, CommonModels, StateApp) {
     name: "phase",
     //State: SomeState, // typically a MultiState (e.g., CommonStates.Round)
     //numRounds: 5, (alias for numRepeats)
+    stateOutputsKey: "roundOutputs", // use roundOutputs instead of stateOutputs
 
     initialize: function () {
       if (this.numRounds != null) { // alias for numRepeats

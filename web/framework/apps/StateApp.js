@@ -285,277 +285,14 @@ function (App, CommonModels) {
 		}
 	});
 
-// a collection of states that is run through repeatedly before exiting
-	var RoundState = ViewState.extend({
-		type: "round-state",
-		initialize: function () {
-			ViewState.prototype.initialize.apply(this, arguments);
-
-			this.roundOutputs = [];
-			this.reset();
-
-			// handle round range
-			if (this.numRounds === undefined && this.minRounds !== undefined && this.maxRounds !== undefined) {
-				this.numRounds = this.minRounds + Math.round(Math.random() * (this.maxRounds - this.minRounds));
-			}
-
-			this.config.numRounds = this.numRounds;
-			var that = this;
-			// initialize substates
-			this.states = [];
-			_.each(this.States, function (State, i) {
-				var stateOptions;
-				if (this.options.stateOptions) {
-					stateOptions = this.options.stateOptions[i];
-				}
-				var state = new State(_.extend({
-					config: this.config,
-					roundOutputs: this.roundOutputs,
-				}, stateOptions), this.stateApp);
-
-				this.states.push(state);
-
-				state.on("entry", function (input, prevState) {
-					console.log("round " + that.roundCounter +" state "+i+" entered", arguments);
-				});
-
-				// link the states
-				if (i > 0) {
-					state.setPrev(this.states[i - 1]);
-				}
-			}, this);
-		},
-
-		isFirstState: function () {
-			return this.currentState === this.states[0];
-		},
-
-		isFirstRound: function () {
-			return this.roundCounter === 1;
-		},
-
-		isLastState: function () {
-			return this.currentState === this.states[this.states.length - 1];
-		},
-
-		isLastRound: function () {
-			return this.roundCounter === this.numRounds;
-		},
-
-		hasNext: function () {
-			if (this.isLastRound() && this.isLastState()) {
-				return ViewState.prototype.hasNext.call(this);
-			}
-			return true;
-		},
-
-		hasPrev: function () {
-			if (this.isFirstRound() && this.isFirstState()) {
-				return ViewState.prototype.hasPrev.call(this);
-			}
-			return true;
-		},
-
-		// returns what is saved after each round
-		roundOutput: function (output) { },
-
-		next: function () {
-			var roundState = this;
-			if (this.isLastState()) {
-				this.endRound();
-
-				// final state, final round -> leave the round state
-				if (this.isLastRound()) {
-					var newState = State.prototype.next.apply(this, arguments);
-					if (newState == null) { // we didn't leave (e.g. last state of app)
-						this.undoEndRound();
-					} else {
-						return newState;
-					}
-				} else {
-					// start new round
-					this.newRound(this.lastOutput);
-					this.trigger("change");
-				}
-			} else { // not final state in round, so go to next
-				this.currentState.next().done(function (resultState) {
-					roundState.currentState = resultState;
-					roundState.trigger("change");
-				});
-			}
-			// return a promise that simply contains the roundState (we're still inside it)
-			return $.Deferred(function () { this.resolve(); }).then(function () { return roundState; });
-		},
-
-		prev: function () {
-			var roundState = this;
-			if (this.isFirstState()) {
-				this.undoEndRound();
-
-				// first state, first round -> leave the round state
-				if (this.isFirstRound()) {
-					var newState = State.prototype.prev.apply(this, arguments);
-					if (newState == null) { // we didn't leave (e.g. first state of app)
-						this.endRound();
-					} else {
-						return newState;
-					}
-				} else {
-					this.undoNewRound();
-					this.trigger("change");
-				}
-			} else {
-				this.currentState.prev().done(function (resultState) {
-					roundState.currentState = resultState;
-					roundState.trigger("change");
-				});
-			}
-
-			return $.Deferred(function () { this.resolve(); }).then(function () { return roundState; });
-		},
-
-		// used when prev'ing into an old round
-		undoEndRound: function () {
-			// put lastOutput as the previous rounds output
-			this.lastOutput = this.roundOutputs[this.roundOutputs.length - 2];
-
-			// delete the old round output
-			this.roundOutputs.pop();
-		},
-
-		// after last state in round
-		endRound: function () {
-			// exit the final state
-			this.lastOutput = this.currentState.exit();
-
-			// save the round output
-			this.roundOutputs.push(this.roundOutput(this.lastOutput));
-		},
-
-		// used when prev'ing into an old round
-		undoNewRound: function () {
-			this.roundCounter -= 1;
-			this.config.round = this.roundCounter;
-			this.currentState = this.states[this.states.length - 1];
-
-			_.each(this.states, function (s) { s.options.lastRound = this.isLastRound(); }, this);
-			console.log("UNDO NEW ROUND", this.currentState.input.groupModel.get("participants").pluck("choice"));
-			this.currentState.enter.call(this.currentState);
-		},
-
-		// start at first state of round
-		newRound: function (input) {
-			this.roundCounter += 1;
-			this.config.round = this.roundCounter;
-			this.currentState = this.states[0];
-
-			console.log("NEW ROUND", input.groupModel.get("participants").pluck("choice"));
-
-			_.each(this.states, function (s) { s.options.lastRound = this.isLastRound(); }, this);
-
-			this.currentState.enter.call(this.currentState, input);
-		},
-
-		reset: function () {
-			this.roundCounter = 0;
-			this.config.round = 0;
-			this.stateCounter = 0;
-			this.currentState = null;
-			this.roundOutputs.length = 0;
-		},
-
-		run: function () {
-			this.reset();
-			this.newRound(this.input);
-
-			return false; // do not automatically flow to next state
-		},
-
-		// delegate to current state
-		render: function () {
-			this.currentState.render();
-		},
-
-		rerender: function () {
-			this.currentState.rerender();
-		},
-
-
-		onExit: function () {
-			return this.currentState.exit().clone({ roundOutputs: this.roundOutputs });
-		},
-
-		// for debugging / logging
-		nextString: function () {
-			if (this.isLastState()) {
-				if (this.isLastRound()) {
-					return State.prototype.nextString.call(this);
-				}
-			}
-			var stateCounter = _.indexOf(this.states, this.currentState) + 1;
-
-			var nextStateCounter = (stateCounter % this.states.length) + 1;
-			var nextRoundCounter = (stateCounter < nextStateCounter) ? this.roundCounter : this.roundCounter + 1;
-
-			var str = this.stateString(stateCounter, this.roundCounter) +
-					" -> " + this.stateString(nextStateCounter, nextRoundCounter);
-
-			return str;
-		},
-
-		stateString: function (stateCounter, roundCounter) {
-			return (this.name || this.id) + "[" + roundCounter + "][" + stateCounter + "] " + this.states[stateCounter - 1].toString();
-		},
-
-		// for debugging / logging
-		prevString: function () {
-			if (this.isFirstState()) {
-				if (this.isFirstRound()) {
-					return State.prototype.prevString.call(this);
-				}
-			}
-			var stateCounter = _.indexOf(this.states, this.currentState) + 1;
-
-			var prevStateCounter = (stateCounter === 1) ? this.states.length : stateCounter - 1;
-			var prevRoundCounter = (stateCounter > prevStateCounter) ? this.roundCounter : this.roundCounter - 1;
-
-			var str = this.stateString(prevStateCounter, prevRoundCounter) +
-					" <- " + this.stateString(stateCounter, this.roundCounter);
-
-			return str;
-		},
-
-		toString: function () {
-			var statesString = _.invoke(this.states, function (state) {
-				var str = this.toString();
-				if (this.type !== "view-state") {
-					str = "[" + str + "]";
-				}
-				return str;
-			}).join(", ");
-			return (this.name || this.id) + "["+this.numRounds+" x (" + statesString+ ")]";
-		},
-
-		toHtml: function () {
-			var currentState = this.currentState;
-			var statesString = _.invoke(this.states, function (state) {
-				var str = this.toHtml();
-				if (this === currentState) {
-					str = "<span class='active'>" + str + "</span>";
-				}
-				return str;
-			}).join(" ");
-			return (this.name || this.id) + ": "+ this.roundCounter + " of "+this.numRounds+": " + statesString;
-		}
-	});
-
 	// a collection of states that is run through repeatedly before exiting
 	var MultiState = ViewState.extend({
 		type: "multi-state",
+		stateOutputsKey: "stateOutputs", // can be customized for easier reading (e.g., roundOutputs)
 		initialize: function () {
 			ViewState.prototype.initialize.apply(this, arguments);
 
-			this.stateOutputs = [];
+			this[this.stateOutputsKey] = [];
 			this.reset();
 
 			var that = this;
@@ -566,13 +303,15 @@ function (App, CommonModels) {
 				if (this.options.stateOptions) {
 					stateOptions = this.options.stateOptions[i];
 				}
+
+				var stateOutputsOption = {};
+				stateOutputsOption[this.stateOutputsKey] = this[this.stateOutputsKey];
 
 				stateOptions = _.extend({
 						config: this.config,
 						stateIndex: i,
-						stateOutputs: this.stateOutputs,
 						parentOptions: this.options,
-					}, stateOptions);
+					}, stateOutputsOption, stateOptions);
 				// make the state index available in the views
 				if (!stateOptions.viewOptions) {
 					stateOptions.viewOptions = {};
@@ -586,15 +325,15 @@ function (App, CommonModels) {
 				this.states.push(state);
 
 				state.on("entry", function (input, prevState) {
-					if (i === that.stateOutputs.length - 1) {
-						that.stateOutputs.pop();
-					} else if (that.stateOutputs[i]) {
-						that.stateOutputs[i] = undefined;
+					if (i === that[that.stateOutputsKey].length - 1) {
+						that[that.stateOutputsKey].pop();
+					} else if (that[that.stateOutputsKey][i]) {
+						that[that.stateOutputsKey][i] = undefined;
 					}
 				});
 
 				state.on("exit", function (output) {
-					that.stateOutputs[i] = that.stateOutput(output);
+					that[that.stateOutputsKey][i] = that.stateOutput(output);
 				});
 
 				// link the states
@@ -686,7 +425,7 @@ function (App, CommonModels) {
 
 		reset: function () {
 			this.currentState = null;
-			this.stateOutputs.length = 0;
+			this[this.stateOutputsKey].length = 0;
 		},
 
 		run: function () {
@@ -716,7 +455,10 @@ function (App, CommonModels) {
 		},
 
 		onExit: function () {
-			return this.currentState.exit().clone({ stateOutputs: this.stateOutputs });
+			var stateOutputsOption = {};
+			stateOutputsOption[this.stateOutputsKey] = this[this.stateOutputsKey];
+
+			return this.currentState.exit().clone(stateOutputsOption);
 		},
 
 		// for debugging / logging
@@ -941,6 +683,7 @@ function (App, CommonModels) {
 			}, this.logData);
 
 			console.log("Logging", this.logApiCall, logData);
+			console.log(JSON.stringify(logData)); // dump to console in case something goes wrong
 			App.api({ call: this.logApiCall, type: "post", data: logData });
 		},
 
@@ -957,7 +700,6 @@ function (App, CommonModels) {
 		StateMessage: StateMessage,
 		ViewState: ViewState,
 		MultiState: MultiState,
-		RoundState: RoundState, // TODO: remove this
 		RepeatState: RepeatState,
 		App: StateApp,
 	};
