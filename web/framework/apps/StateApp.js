@@ -370,14 +370,14 @@ function (App, CommonModels) {
 		},
 
 		hasNext: function () {
-			if (this.isLastState()) {
+			if (this.isLastStateDeep()) {
 				return ViewState.prototype.hasNext.call(this);
 			}
 			return true;
 		},
 
 		hasPrev: function () {
-			if (this.isFirstState()) {
+			if (this.isFirstStateDeep()) {
 				return ViewState.prototype.hasPrev.call(this);
 			}
 			return true;
