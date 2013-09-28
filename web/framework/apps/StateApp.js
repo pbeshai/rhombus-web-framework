@@ -554,8 +554,14 @@ function (App, CommonModels) {
 					options.stateOptions = this.options.repeatOptions;
 				}
 
+				if (!options.name) {
+					options.name = this.State.prototype.name + " " + (i + 1);
+				}
+
 				this.options.stateOptions.push(options);
 			}
+
+
 
 			MultiState.prototype.initialize.apply(this, arguments);
 
