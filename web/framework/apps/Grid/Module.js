@@ -49,6 +49,10 @@ function (App, Common, StateApp) {
 			return { participants: this.input.participants || this.options.participants };
 		},
 
+		addNewParticipants: function () {
+			this.input.participants.addNewParticipants();
+		},
+
 		onEntry: function (input) {
 			var participants = input.participants;
 

@@ -35,8 +35,12 @@ function (App, StateApp, Attendance, Common) {
     },
 
     addNewParticipants: function () {
-      var participants = this.get("participants");
-      participants.addNewParticipants();
+      var currState = this.get("currentState");
+      if (currState && currState.addNewParticipants) {
+        currState.addNewParticipants(true); // true to render
+      } else {
+        console.log("Could not add in new participants to " + currState);
+      }
     },
 
     initStateOptions: function () { },
@@ -100,7 +104,7 @@ function (App, StateApp, Attendance, Common) {
       if (this.prepend.group) {
         this.prependStates.push({ state: Common.States.Group, options: this.groupOptions });
       }
-    }
+    },
   });
 
 
