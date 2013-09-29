@@ -203,6 +203,10 @@ function (App) {
 			}
 		},
 
+		newParticipantsCount: function () {
+			return this.newParticipants.length;
+		},
+
 		queueNewParticipant: function (model) {
 			// if we do not add something to the alias map, the new participant will be added repeatedly
 			this.aliasMap[model.get("alias")] = "queued";

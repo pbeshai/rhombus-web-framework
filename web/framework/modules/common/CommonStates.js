@@ -1,10 +1,11 @@
 define([
   "framework/App",
+  "framework/modules/Participant",
   "framework/modules/common/CommonModels",
 
   "framework/modules/StateApp/Module",
 ],
-function (App, CommonModels, StateApp) {
+function (App, Participant, CommonModels, StateApp) {
   var CommonStates = {};
 
   /***** NON-VIEW STATES *********************************************************************/
@@ -245,8 +246,9 @@ function (App, CommonModels, StateApp) {
     defaultChoice: "A", // choice made when a player does not play
 
     prepareParticipant: function (participant) {
+      console.log("preparing participant", participant.get("alias"));
       participant.reset();
-
+      console.log(participant.get("played"));
       if (this.validChoices) {
         participant.set("validChoices", this.validChoices);
       }
@@ -263,7 +265,7 @@ function (App, CommonModels, StateApp) {
       // listen for setting play
       this.stopListening();
       this.listenTo(participants, "change:choice update:choice add", function (participant, choice) {
-        participant.set("played", choice != null);
+        participant.set("played", participant.get("choice") != null);
       });
 
       // reset played and choices
@@ -287,6 +289,64 @@ function (App, CommonModels, StateApp) {
       }, this);
 
       return new StateApp.StateMessage({ participants: this.participants });
+    },
+
+    addNewParticipants: function (render) {
+      // default to with bots, with partners
+      this.addNewParticipantsHelper(render, true, true);
+    },
+
+    addNewParticipantsHelper: function (render, hasBots, pairModels) {
+      var participants = this.input.participants;
+      if (!participants.hasNewParticipants()) {
+        return;
+      }
+
+      if (pairModels === "asymmetric") {
+        // TODO: this is problematic to do without breaking the current partnering.
+        console.log("Asymmetric pairing on new participants not currently supported.");
+        return;
+      }
+
+      // store the new participants and clear them as we will add them later
+      var newParticipants = participants.clearNewParticipants();
+      var replacedBot = false;
+      // if there is an odd number of new participants and there is a bot currently playing, we need to replace it
+      if (hasBots && newParticipants.length % 2 === 1) {
+        var bot = participants.find(function (p) { return p.bot; });
+        if (bot) { // adding odd new to odd existing: replace the bot.
+          var botPartner = bot.get("partner");
+          var newPartner = newParticipants[0];
+          botPartner.set("partner", newPartner);
+          newPartner.set("partner", botPartner);
+
+          participants.remove(bot);
+          replacedBot = true;
+          console.log("bot replaced");
+        } else {
+          // adding odd new to even existing: need a new bot.
+          newParticipants.push(new Participant.Bot());
+        }
+      }
+
+      if (pairModels === true) {
+        if (replacedBot) { // do not include the first one since it was partnered with a bot
+          console.log("partnering without first");
+          participants.pairModels(newParticipants.slice(1));
+        } else {
+          console.log("partnering");
+          participants.pairModels(newParticipants);
+        }
+      }
+
+      // prepare the new participants (sets valid choices and whatever else)
+      _.each(newParticipants, this.prepareParticipant, this);
+
+      participants.add(newParticipants);
+
+      if (render) {
+        this.rerender();
+      }
     }
   });
 
