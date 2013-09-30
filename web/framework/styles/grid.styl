@@ -141,15 +141,20 @@
 	display inline
 
 
-bucket-base-color = rgb(6, 28, 43)
-bucket-color = rgba(bucket-base-color, .85)
+
 bucket-border-width = 8px
 bucket-border-opacity = .7
 bucket-increment = 8%
-for bucket in (0..7)
-	.bucket-{bucket}
-		background-color: lighten(bucket-color, bucket-increment*bucket);
-		border: bucket-border-width solid rgba(lighten(bucket-color, bucket-increment*bucket), bucket-border-opacity);
+bucket(bucket-color, bucket-prefix = "")
+	for bucket in (0..7)
+		{bucket-prefix}.bucket-{bucket}
+			background-color: lighten(bucket-color, bucket-increment*bucket);
+			border: bucket-border-width solid rgba(lighten(bucket-color, bucket-increment*bucket), bucket-border-opacity);
+
+
+bucket(rgba(4, 17, 26, 0.85)); /* default bucket - blue */
+bucket(rgba(27, 12, 54, 0.85), ".bucket-purple") /* purple buckets */
+bucket(rgba(27, 48, 9, 0.85), ".bucket-green") /* purple buckets */
 
 
 .overlay {
@@ -194,6 +199,10 @@ for bucket in (0..7)
 .overlay.highlight
 	background-color: rgba(192, 215, 255, 0.7);
 	transition: none;
+
+.overlay.max-score
+	border: 3px solid rgb(245, 237, 57) !important; /* yellow border to draw attention */
+
 
 .overlay.cancel
 	background-color: rgba(255, 124, 124, .7);

@@ -1,5 +1,8 @@
 @import "nib"
 
+text-outline()
+	text-shadow: 2px 2px 0 #222, -1px -1px 0 #222, 1px -1px 0 #222, -1px 1px 0 #222, 1px 1px 0 #222;
+
 .subtle {
 	font-weight: 200;
 }
@@ -455,4 +458,39 @@ input[type="text"].input-large-text {
 	line-height: 1.3em;
 	display: inline-block;
 	color: #89A8A4
+}
+
+
+.percentage-bar {
+	height: 30px;
+	background: #999;
+	line-height: 30px;
+	margin: 10px 0;
+	position: relative;
+	box-shadow: rgba(0,0,0,.5) 3px 3px 0px;
+}
+.percentage-bar .percentage-section {
+	outline:1px solid #444;
+	display: inline-block;
+	color: #fff;
+	overflow: hidden;
+	text-align: center;
+	font-size: 1.4em;
+	text-outline()
+}
+
+.percentage-bar .section-label {
+	margin-right: 6px;
+}
+
+.percentage-bar.hover-labels .section-label {
+	display: none
+	background: rgba(50,50,50,.5);
+	padding: 0 8px;
+	position: absolute;
+	margin-right: 0;
+}
+
+.percentage-bar.hover-labels .percentage-section:hover .section-label {
+	display: block;
 }

@@ -327,7 +327,7 @@ function (App) {
 				if (isNaN(bucket)) {
 					bucket = Math.floor(numBuckets / 2);
 				}
-				participant.set("bucket", bucket);
+				participant.set({ "bucket": bucket, "bucketMin": min, "bucketMax": max });
 			});
 		}
 	});

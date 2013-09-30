@@ -273,10 +273,16 @@ function (App, Participant, CommonModels, StateApp) {
     },
 
     viewOptions: function () {
-      return {
+      var viewOptions = {
         participants: this.participants,
         config: this.config
       };
+
+      if (this.options.round != null) {
+        viewOptions.round = this.options.round;
+      }
+
+      return viewOptions;
     },
 
     // outputs a participant participants
@@ -403,7 +409,7 @@ function (App, Participant, CommonModels, StateApp) {
     },
 
     viewOptions: function () {
-      return {
+      var viewOptions = {
         model: this.groupModel,
         group1Name: this.config.group1Name,
         group2Name: this.config.group2Name,
@@ -411,6 +417,12 @@ function (App, Participant, CommonModels, StateApp) {
         group2NameSuffix: this.config.group2NameSuffix,
         config: this.config
       };
+
+      if (this.options.round != null) {
+        viewOptions.round = this.options.round;
+      }
+
+      return viewOptions;
     },
 
     prepareParticipantOutput: function (participant) {
@@ -512,10 +524,16 @@ function (App, Participant, CommonModels, StateApp) {
     },
 
     viewOptions: function () {
-      return {
+      var viewOptions = {
         participants: this.participants,
         config: this.config
       };
+
+      if (this.options.round != null) {
+        viewOptions.round = this.options.round;
+      }
+
+      return viewOptions;
     },
 
     handleConfigure: function () {
@@ -541,7 +559,7 @@ function (App, Participant, CommonModels, StateApp) {
     },
 
     viewOptions: function () {
-      return {
+      var viewOptions = {
         model: this.groupModel,
         group1Name: this.config.group1Name,
         group2Name: this.config.group2Name,
@@ -549,6 +567,12 @@ function (App, Participant, CommonModels, StateApp) {
         group2NameSuffix: this.config.group2NameSuffix,
         config: this.config
       };
+
+      if (this.options.round != null) {
+        viewOptions.round = this.options.round;
+      }
+
+      return viewOptions;
     },
 
     handleConfigure: function () {
@@ -592,8 +616,8 @@ function (App, Participant, CommonModels, StateApp) {
         this.maxRepeats = this.maxRounds;
       }
 
-      if (this.roundOptions != null) { // alias for repeatOptions
-        this.repeatOptions = this.roundOptions;
+      if (this.options.roundOptions != null) { // alias for repeatOptions
+        this.options.repeatOptions = this.options.roundOptions;
       }
 
       StateApp.RepeatState.prototype.initialize.apply(this, arguments);
