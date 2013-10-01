@@ -21,7 +21,7 @@ define([
 				enable = true;
 			}
 			if (enable) {
-				$(document.body).append("<style id=\"only-instructions-style\">.groups,.pre-header,.layout-header,.post-groups,.pre-groups { display: none; }</style>")
+				$(document.body).append("<style id=\"only-instructions-style\">.participants,.pre-participants,.post-participants,.groups,.pre-header,.layout-header,.post-groups,.pre-groups { display: none; }</style>")
 			} else {
 				$("#only-instructions-style").remove();
 			}
