@@ -153,8 +153,10 @@ function (App, Participant) {
   };
 
   CommonModels.Instructions = Backbone.Model.extend({
+    layout: { description: "top" },
+
     initialize: function (attrs, options) {
-      attrs = _.defaults(this.attributes, { header: this.header, description: this.description, buttonConfig: this.buttonConfig });
+      attrs = _.defaults(this.attributes, { header: this.header, description: this.description, buttonConfig: this.buttonConfig, layout: this.layout });
       var instrModel = this;
       // check if the description is a template, in which case, load it
       if (_.isObject(this.description) && this.description.template) {

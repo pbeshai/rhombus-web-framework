@@ -35,6 +35,7 @@ function (App, CommonModels) {
     serialize: function () {
       return {
         header: this.model.get("header") || "Instructions",
+        layout: this.model.get("layout"),
         description: this.model.get("description"),
         buttons: [ "A", "B", "C", "D", "E" ],
         buttonConfig: this.model.get("buttonConfig"), // buttonConfig: { A: { description: "" }, B: undefined } undefined = disabled
