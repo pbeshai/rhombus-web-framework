@@ -10,7 +10,7 @@ define([
 	// Provide a global location to place configuration settings and module
 	// creation.
 	var App = {
-		socketUrl: "http://localhost",
+		socketUrl: window.location.host,
 		// The root path to run the application.
 		root: "/",
 		BaseView: BaseView, // shortcut to BaseView class
