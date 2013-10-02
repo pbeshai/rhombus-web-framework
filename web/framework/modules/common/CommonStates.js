@@ -244,6 +244,7 @@ function (App, Participant, CommonModels, StateApp) {
   CommonStates.Play = StateApp.ViewState.extend({
     name: "play",
     defaultChoice: "A", // choice made when a player does not play
+    botStrategy: "random",
 
     prepareParticipant: function (participant) {
       console.log("preparing participant", participant.get("alias"));
@@ -254,6 +255,7 @@ function (App, Participant, CommonModels, StateApp) {
       }
 
       if (participant.bot) {
+        participant.useStrategy(this.botStrategy);
         participant.delayedPlay();
       }
     },
@@ -359,6 +361,7 @@ function (App, Participant, CommonModels, StateApp) {
   CommonStates.GroupPlay = StateApp.ViewState.extend({
     name: "play",
     defaultChoice: "A",
+    botStrategy: "random",
 
     initialize: function () {
       StateApp.ViewState.prototype.initialize.call(this);
@@ -375,6 +378,7 @@ function (App, Participant, CommonModels, StateApp) {
       }
 
       if (participant.bot) {
+        participant.useStrategy(this.botStrategy);
         participant.delayedPlay();
       }
     },

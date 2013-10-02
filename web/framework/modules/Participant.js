@@ -36,9 +36,6 @@ function (App) {
 			return result;
 		},
 
-		initialize: function () {
-		},
-
 		// resets choice related attributes (retains alias)
 		reset: function () {
 			// TODO: look into possibly unsetting these instead so we don't send excess data over the socket
@@ -63,15 +60,22 @@ function (App) {
 
 	Participant.Bot = Participant.Model.extend({
 		bot: true,
+		defaults: {
+			"strategy": "random" // strategy can be a string or a function
+		},
 
-		initialize: function () {
+		initialize: function (attrs, options) {
 			Participant.Model.prototype.initialize.call(this);
 			if (this.get("alias") === undefined) {
 				this.set("alias", "bot");
 			}
 
-			// short delay before playing
-			// this.delayedPlay(); // TODO: see what this breaks now that it is commentd out
+			// initialize strategy map here so we can use functions
+			this.strategyMap = {
+				"random": this.randomPlay
+			};
+			// interpret the strategy if string
+			this.useStrategy(this.get("strategy"));
 		},
 
 		save: function () {
@@ -98,10 +102,30 @@ function (App) {
 			setTimeout(_.bind(this.play, this), 50);
 		},
 
+		useStrategy: function (strategy) {
+			// convert strategy from string to algorithm
+			if (_.isString(strategy) && this.strategyMap[strategy] != null) {
+				this.set("strategy", this.strategyMap[strategy], { silent: true });
+			} else {
+				this.set("strategy", strategy, { silent: true });
+			}
+		},
+
 		play: function () {
+			var strategy = this.get("strategy");
+			var choice;
+			if (_.isString(strategy)) { // useful if you want the bot to always play "A" for instance
+				choice = strategy;
+			} else {
+				choice = strategy.call(this);
+			}
+			this.set("choice", choice);
+		},
+
+		randomPlay: function () {
 			var choices = this.get("validChoices");
 			var choice = choices[Math.min(Math.floor(Math.random() * choices.length), choices.length - 1)];
-			this.set("choice", choice);
+			return choice;
 		}
 	});
 
