@@ -108,6 +108,8 @@ function (App, State, ViewState) {
 		stateOutput: function (output) { },
 
 		next: function () {
+			// TODO: the samed defer complexity that was added to prev should be added here
+			// to support having the case where the last state in the multistate is an autoflow
 			var multiState = this;
 			// do deep to handle nested multistates
 			if (this.isLastStateDeep()) {
@@ -128,20 +130,35 @@ function (App, State, ViewState) {
 
 		prev: function () {
 			var multiState = this;
+
+			var defer = $.Deferred();
+			var prevState = this;
+			var promise = defer.then(function () { return prevState; });
+
 			// the complex MultiState check allows nesting of MultiStates
 			if (this.isFirstStateDeep()) {
 					var newState = State.prototype.prev.apply(this, arguments);
 					if (newState != null) { // we left (might not if first state -- no previous to go to)
 						return newState;
 					}
+					defer.resolve();
 			} else {
 				this.currentState.prev().done(function (resultState) {
+					if (resultState == null) { // prev'd past first in multistate (possible if non view states -- auto flow)
+						prevState = State.prototype.prev.apply(multiState, arguments);
+						if (prevState == null) { // we did not leave this state, reset prevState to this
+							prevState = multiState;
+						}
+					}
+
 					multiState.currentState = resultState;
 					multiState.trigger("change");
+
+					defer.resolve();
 				});
 			}
 
-			return $.Deferred(function () { this.resolve(); }).then(function () { return multiState; });
+			return promise;
 		},
 
 		reset: function () {
@@ -156,11 +173,21 @@ function (App, State, ViewState) {
 
 			// if it is first state, load with the input we received, otherwise
 			// load with whatever input snaphsot it has (to support previous)
+			var promise;
 			if (this.currentState === this.states[0]) {
-				this.currentState.enter.call(this.currentState, this.input);
+				promise = this.currentState.enter.call(this.currentState, this.input);
 			} else {
-				this.currentState.enter.call(this.currentState);
+				promise = this.currentState.enter.call(this.currentState);
 			}
+
+			var multiState = this;
+			promise.done(function (resultState) {
+
+				if (resultState && multiState.currentState !== resultState) {
+					console.log("promise finished with new result state", multiState.currentState, resultState);
+					multiState.currentState = resultState;
+				}
+			});
 
 
 			return false; // do not automatically flow to next state
