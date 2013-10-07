@@ -200,8 +200,9 @@ function (App) {
 			// clear attributes in each model
 			_.each(snapshot, function (participant, i) {
 				var model = this.aliasMap[participant.alias];
-
-				model.clear();
+				if (model) { // TODO: what do we do if no model in alias map??
+					model.clear();
+				}
 			}, this);
 
 

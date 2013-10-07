@@ -9,8 +9,9 @@ define([
 	var frameworkTemplatePrefix = "framework/templates/";
 	// Provide a global location to place configuration settings and module
 	// creation.
+	console.log("window location", window.location.host, window.location);
 	var App = {
-		socketUrl: window.location.host,
+		socketUrl: window.location.origin,
 		// The root path to run the application.
 		root: "/",
 		BaseView: BaseView, // shortcut to BaseView class

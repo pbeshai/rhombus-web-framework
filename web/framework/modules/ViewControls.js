@@ -14,7 +14,7 @@ function (App) {
 
 	ViewControls.Models = {};
 	ViewControls.Models.Zoom = Backbone.Model.extend({
-		maxLevel: 5,
+		maxLevel: 10,
 		minLevel: 0,
 		startLevel: 1,
 
@@ -44,7 +44,6 @@ function (App) {
 			"click .zoom-in" : "zoomIn",
 			"click .zoom-box" : "zoom"
 		},
-		classes: ["zoom-0", "zoom-1", "zoom-2", "zoom-3", "zoom-4", "zoom-5"],
 
 		serialize: function () {
 			return {
@@ -72,6 +71,10 @@ function (App) {
 		},
 
 		initialize: function () {
+			this.classes = [];
+			for (var i = this.model.minLevel; i < this.model.maxLevel + 1; i++) {
+				this.classes.push("zoom-" + i);
+			}
 			this.listenTo(this.model, "change", this.render);
 		}
 	});

@@ -17,18 +17,24 @@ function (App) {
   CommonUtil.Totals = {};
 
   CommonUtil.Totals.groupPhase = function (groupModel, roundOutputs) {
-    savePhaseTotal(1);
-    savePhaseTotal(2);
+    setPhaseTotal(1);
+    setPhaseTotal(2);
 
-    function savePhaseTotal(groupNum) {
+    function setPhaseTotal(groupNum) {
       // save the phase total (we need to do this before results since we show the phase total there)
       groupModel.get("group" + groupNum).each(function (participant, i) {
+        var alias = participant.get("alias");
         // sum up total scores from rounds in this phase
         var phaseTotal = _.reduce(roundOutputs, function (memo, roundOutput) {
-          var participantOutput = roundOutput["group" + groupNum][i];
-          if (participantOutput && participantOutput.alias === participant.get("alias")) {
+          // can't simply look at roundOutput[groupX][i] because index may have changed due to latecomers
+          var participantOutput = _.find(roundOutput["group" + groupNum], function (ro) {
+            return ro.alias === alias;
+          });
+
+          if (participantOutput) {
             return participantOutput.score + memo;
           } else {
+            console.log(i, participant.get("alias"), participantOutput, participant);
             return memo;
           }
         }, 0) + participant.get("score");

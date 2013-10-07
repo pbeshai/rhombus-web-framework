@@ -77,26 +77,17 @@ h1 {
 	background: #666;
 	margin: 2px;
 	border-radius 3px
+
+}
+.zoom-box.zoom-1,.zoom-box.zoom-1.active {
+  background: #6a6;
 }
 
-.zoom-0 #main-content {
-	zoom: 0.75;
-}
-.zoom-1 #main-content {
-	zoom: 1;
-}
-.zoom-2 #main-content {
-	zoom: 1.5;
-}
-.zoom-3 #main-content {
-	zoom: 2;
-}
-.zoom-4 #main-content {
-	zoom: 2.5;
-}
-.zoom-5 #main-content {
-	zoom: 3;
-}
+/* generate zoom levels */
+for zoomlevel in (0..10)
+	.zoom-{zoomlevel} #main-content {
+		zoom: 0.8 + 0.2*zoomlevel;
+	}
 
 
 .clicker-toolbar button {
