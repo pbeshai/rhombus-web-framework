@@ -300,11 +300,19 @@ function (App, Participant, CommonModels, StateApp) {
     },
 
     addNewParticipants: function (render) {
-      // default to with bots, with partners
-      this.addNewParticipantsHelper(render, true, true);
+      // default to with bots, with partners, forget choices that made added them
+      this.addNewParticipantsHelper({
+        render: render,
+        hasBots: true,
+        pairModels: true,
+        keepChoices: false
+      });
     },
 
-    addNewParticipantsHelper: function (render, hasBots, pairModels) {
+    addNewParticipantsHelper: function (options) {
+      var render = options.render, hasBots = options.hasBots,
+          pairModels = options.pairModels, keepChoices = options.keepChoices;
+
       var participants = this.input.participants;
       if (!participants.hasNewParticipants()) {
         return;
@@ -348,7 +356,15 @@ function (App, Participant, CommonModels, StateApp) {
       }
 
       // prepare the new participants (sets valid choices and whatever else)
+      var choices = _.map(newParticipants, function (p) { return p.get("choice"); });
+
       _.each(newParticipants, this.prepareParticipant, this);
+
+      // restore choices
+      if (keepChoices) {
+        _.each(newParticipants, function (p, i) { p.set("choice", choices[i], { silent: true}); });
+      }
+
 
       participants.add(newParticipants);
 
