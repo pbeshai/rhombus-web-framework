@@ -1,0 +1,5 @@
+<div class="percentage-bar <% if (hoverLabels) { print('hover-labels') } %>">
+<% _.each(sections, function (section, i) {
+	%><div class="percentage-section percentage-section-<%= i %> percentage-section-<%= section.key %>" style="width: <%= section.percentage %>%"><span class="section-label"><%= section.label %></span><span class="percentage"><%= section.percentage %>%</span></div><%
+}); %>
+</div>

@@ -122,6 +122,53 @@ function (App, CommonModels) {
     }
   });
 
+  CommonViews.PercentageBar = App.BaseView.extend({
+    template: "framework/templates/common/percentage_bar",
+    hoverLabels: true,
+    serialize: function () {
+      return {
+        hoverLabels: this.hoverLabels,
+        sections: this.percentageSections()
+      };
+    },
+
+    percentageSections: function () {
+      return this.options.sections;
+    }
+  });
+
+  CommonViews.ChoicePercentageBar = CommonViews.PercentageBar.extend({
+    choices: {
+      "A" : { label: "A", key: "choice-a" },
+      "B" : { label: "B", key: "choice-b" },
+      "C" : { label: "C", key: "choice-c" },
+      "D" : { label: "D", key: "choice-d" },
+      "E" : { label: "E", key: "choice-e" },
+      "null" : { label: "#", key: "choice-null" }
+    },
+
+    percentageSections: function () {
+      var sections = [];
+
+      var total = this.participants.length;
+
+      var counts = _.countBy(this.participants.pluck("choice"), function (choice) {
+        return choice;
+      });
+
+      _.each(_.keys(this.choices), addSection, this);
+
+      function addSection(choice) {
+        if (counts[choice]) {
+          var section = _.extend({ percentage: (100 * counts[choice] / total).toFixed(1) }, this.choices[choice]);
+          sections.push(section);
+        }
+      }
+
+      return sections;
+    }
+  });
+
 
   CommonViews.ParticipantDisplay = App.BaseView.extend({
     template: "framework/templates/common/participant_display",

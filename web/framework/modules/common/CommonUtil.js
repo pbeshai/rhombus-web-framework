@@ -16,6 +16,17 @@ function (App) {
 
   CommonUtil.Totals = {};
 
+  // total an attribute in a collectino or array of models
+  CommonUtil.Totals.total = function (collection, attribute) {
+    var models = collection;
+    if (collection instanceof Backbone.Collection) {
+      collection = collection.models;
+    }
+    return _.reduce(collection, function (memo, p) {
+      return memo + (p.get(attribute) || 0);
+    }, 0);
+  };
+
   CommonUtil.Totals.groupPhase = function (groupModel, roundOutputs) {
     setPhaseTotal(1);
     setPhaseTotal(2);
