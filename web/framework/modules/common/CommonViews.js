@@ -262,6 +262,17 @@ function (App, CommonModels) {
     playedClass: "played",
     playedSelector: ".message-text", // the element that fades in after each play
 
+    getScore: function (model) {
+      return model.get("score");
+    },
+
+    // default to showing previous score
+    bottomText: function (model) {
+      if (this.getScore(model) != null) {
+        return "Prev. " + this.getScore(model);
+      }
+    },
+
     cssClass: function (model) {
       if (model.get("played")) {
         return this.playedClass;
@@ -289,7 +300,6 @@ function (App, CommonModels) {
   });
 
   CommonViews.ParticipantHiddenPlay = CommonViews.ParticipantPlay.extend({
-    bottomText: function (model) { },
     mainText: function (model) {
       if (model.get("played")) {
         return "Played";
@@ -372,6 +382,68 @@ function (App, CommonModels) {
   CommonViews.ParticipantsList = CommonViews.ParticipantsGrid.extend({
     className: null,
     ParticipantView: CommonViews.ParticipantAlias
+  });
+
+  CommonViews.ParticipantScoreDisplay = CommonViews.ParticipantDisplay.extend({
+    locked: true,
+    scoreAttribute: "score",
+    maxScoreAttribute: "bucketMax",
+
+    getScore: function (model) {
+      return model.get(this.scoreAttribute);
+    },
+
+    getMaxScore: function (model) {
+      if (this.maxScoreAttribute == null) {
+        return null;
+      }
+
+      return model.get(this.maxScoreAttribute);
+    },
+
+    overlay: function (model) {
+      var overlay = "no-animate";
+      if (this.maxScoreAttribute != null && this.getScore(model) === this.getMaxScore(model)) {
+        overlay += " max-score";
+      }
+
+      return overlay;
+    },
+
+    mainText: function (model) {
+      return this.getScore(model);
+    },
+  });
+
+  CommonViews.ParticipantScoreChoiceDisplay = CommonViews.ParticipantScoreDisplay.extend({
+    maxScoreAttribute: null,
+    totalAttribute: "phaseTotal",
+
+    labelChoice: function (choice) {
+      return choice;
+    },
+
+    mainText: function (model) {
+      var choice = this.labelChoice(model.get("choice")),
+          partnerChoice = this.labelChoice(model.get("partner").get("choice"));
+
+      var outcome = choice + partnerChoice;
+      if (this.getScore(model) != null) {
+        outcome += " " + this.getScore(model);
+      }
+
+      return outcome;
+    },
+
+    getTotal: function (model) {
+      return model.get(this.totalAttribute);
+    },
+
+    bottomText: function (model) {
+      if (this.totalAttribute != null && this.getTotal(model) != null) {
+        return "Total " + this.getTotal(model);
+      }
+    }
   });
 
 

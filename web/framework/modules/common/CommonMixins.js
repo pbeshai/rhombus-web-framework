@@ -1,7 +1,8 @@
 define([
-  "framework/App"
+  "framework/App",
+  "framework/modules/common/CommonUtil",
 ],
-function (App) {
+function (App, CommonUtil) {
   var CommonMixins = {
     Views: {}
   };
@@ -33,6 +34,18 @@ function (App) {
             overlay = "";
           }
           overlay += " bucket-" + bucket;
+
+          if (this.bucketChoiceMap) {
+            var bucketChoiceClass = this.bucketChoiceMap[model.get("choice")];
+            if (bucketChoiceClass) {
+              overlay += " " + bucketChoiceClass;
+            } else if (this.bucketChoiceMap.default) {
+              overlay += " " + this.bucketChoiceMap.default;
+            }
+          }
+        // the mapping is defined with a default specified, so give it to those with no bucket value
+        } else if (this.bucketChoiceMap && this.bucketChoiceMap.default) {
+          overlay += " " + this.bucketChoiceMap.default;
         }
         return overlay;
       },
@@ -59,6 +72,20 @@ function (App) {
         Layout.prototype.beforeRender.call(this);
         this.insertView(".layout-header-h1", new CommonMixins.Views.RoundLabel({ round: this.options.round }));
       }
+    });
+  };
+
+  CommonMixins.phaseTotals = function (Layout) {
+    return Layout.extend({
+      group1HeaderRight: function () { return CommonUtil.Totals.total(this.model.get("group1"), "phaseTotal"); },
+      group2HeaderRight: function () { return CommonUtil.Totals.total(this.model.get("group2"), "phaseTotal"); }
+    });
+  };
+
+  CommonMixins.totals = function (Layout) {
+    return Layout.extend({
+      group1HeaderRight: function () { return CommonUtil.Totals.total(this.model.get("group1"), "total"); },
+      group2HeaderRight: function () { return CommonUtil.Totals.total(this.model.get("group2"), "total"); }
     });
   };
 
