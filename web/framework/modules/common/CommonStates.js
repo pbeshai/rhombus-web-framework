@@ -2,10 +2,11 @@ define([
   "framework/App",
   "framework/modules/Participant",
   "framework/modules/common/CommonModels",
+  "framework/modules/common/CommonUtil",
 
   "framework/modules/StateApp/Module",
 ],
-function (App, Participant, CommonModels, StateApp) {
+function (App, Participant, CommonModels, CommonUtil, StateApp) {
   var CommonStates = {};
 
   /***** NON-VIEW STATES *********************************************************************/
@@ -143,6 +144,18 @@ function (App, Participant, CommonModels, StateApp) {
     onExit: function () {
       this.groupModel = this.input.groupModel;
       this.assignScores(this.groupModel);
+    }
+  });
+
+  // saves the phase total
+  CommonStates.GroupRoundScore = CommonStates.GroupScore.extend({
+    onExit: function () {
+      var result = CommonStates.GroupScore.prototype.onExit.call(this);
+
+      // calculate phase total
+      CommonUtil.Totals.groupPhase(this.groupModel, this.options.parentOptions.roundOutputs);
+
+      return result;
     }
   });
 
@@ -606,6 +619,48 @@ function (App, Participant, CommonModels, StateApp) {
     }
   });
 
+  // saves the 'phaseTotal' attr as a phaseXTotal based on options.phase
+  CommonStates.GroupPhaseResults = CommonStates.GroupResults.extend({
+    name: "phase-results",
+    beforeRender: function () {
+      CommonStates.GroupResults.prototype.beforeRender.call(this);
+
+      // save the phaseTotal on the participant as phase#Total
+      this.groupModel.get("participants").each(function (participant, i) {
+        participant.set("phase" + this.options.phase + "Total", participant.get("phaseTotal"));
+      }, this);
+    },
+
+    logResults: function () {
+      var logData = {};
+      logData["phase" + this.options.phase] = {
+        results: this.input.roundOutputs,
+        config: this.config
+      };
+      return logData;
+    }
+  });
+
+  // total for phases 1 to options.numPhases (Adds up phaseXTotal from participants)
+  CommonStates.GroupTotalPhaseResults = CommonStates.GroupResults.extend({
+    name: "total-results",
+    numBuckets: 6,
+    beforeRender: function () {
+      CommonStates.GroupResults.prototype.beforeRender.call(this);
+
+      this.groupModel.get("participants").each(function (participant) {
+        participant.set("total", 0);
+        for (var i = 0; i < this.options.numPhases; i++) {
+          var phaseTotal = participant.get("phase" + (i+1) + "Total");
+          if (phaseTotal) {
+            participant.set("total", participant.get("total") + phaseTotal);
+          }
+        }
+      }, this);
+      this.groupModel.get("participants").bucket("total", this.numBuckets);
+    },
+  });
+
   // expects to be a child of a MultiState or RepeatState to get the round #.
   CommonStates.Round = StateApp.MultiState.extend({
     name: "round",
@@ -643,12 +698,42 @@ function (App, Participant, CommonModels, StateApp) {
       StateApp.RepeatState.prototype.initialize.apply(this, arguments);
     },
 
+    // how to save a participant in round output
+    serializeParticipant: function (participant) {
+      return {
+        alias: participant.get("alias"),
+        choice: participant.get("choice"),
+        score: participant.get("score"),
+        pairChoices: participant.get("pairChoices"),
+        partner: participant.get("partner").get("alias")
+      };
+    },
+
     // what is saved between each round
-    roundOutput: function (output) { // alias for stateOutput
+    roundOutput: function (output) {
+      var roundOutput;
+      if (output.participants) {
+        roundOutput = output.participants.map(this.serializeParticipant);
+      } else if (output.groupModel) {
+        roundOutput = {
+          group1: output.groupModel.get("group1").map(this.serializeParticipant),
+          group2: output.groupModel.get("group2").map(this.serializeParticipant)
+        };
+      }
+
+      return roundOutput;
     },
 
     stateOutput: function (output) {
       return this.roundOutput(output);
+    },
+
+    onEntry: function (input, prevState) {
+      input.groupModel.get("participants").each(function (participant) {
+        participant.set({ "phaseTotal": 0, "score": null}); // must reset score to prevent "prevScore" from showing up
+      });
+
+      StateApp.RepeatState.prototype.onEntry.apply(this, arguments);
     },
   });
 
