@@ -79,19 +79,19 @@ _.extend(Manager.prototype, {
 
 	// viewers send to controller
 	appMessageFromViewer: function (message, viewer) {
-		logger.info(this.id + ": msg from " + viewer.toString(), { msg: message });
+		logger.info(this.id + ": msg from " + viewer, { msg: message });
 		if (!this.controller) return;
-		logger.info(this.id + ":       to " + this.controller.toString());
+		logger.info(this.id + ":       to " + this.controller);
 		this.controller.sendAppMessage(message);
 	},
 
 	// controller sends to viewers
 	appMessageFromController: function (message) {
-		logger.info(this.id + ": msg from " + this.controller.toString(), { msg: message });
+		logger.info(this.id + ": msg from " + this.controller, { msg: message });
 		var mId = this.id;
 		_.each(this.viewers, function (viewer) {
 			if (!message.viewer || viewer.id === message.viewer) {
-				logger.info(mId + ":       to " + viewer.toString());
+				logger.info(mId + ":       to " + viewer);
 				viewer.sendAppMessage(message);
 			}
 		});

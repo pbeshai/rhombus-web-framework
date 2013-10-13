@@ -729,7 +729,11 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
     },
 
     onEntry: function (input, prevState) {
-      input.groupModel.get("participants").each(function (participant) {
+      var participants = input.participants;
+      if (input.groupModel) {
+        participants = input.groupModel.get("participants");
+      }
+      participants.each(function (participant) {
         participant.set({ "phaseTotal": 0, "score": null}); // must reset score to prevent "prevScore" from showing up
       });
 

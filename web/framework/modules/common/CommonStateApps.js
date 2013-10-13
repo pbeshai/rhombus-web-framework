@@ -121,7 +121,59 @@ function (App, StateApp, Attendance, Common) {
       CommonStateApps.BasicGame.prototype.initialize.apply(this, arguments);
     },
 
-    getPhaseStateOptions: function (phaseIndex, stateIndex) { }, // template method
+    // default implementation assumes phases are structured: Play, Score, Bucket, Results
+    getPhaseRoundOptions: function (phaseIndex, stateIndex) {
+      var phaseNum = phaseIndex + 1;
+      return [
+          { viewOptions: { header: "Play Phase " + phaseNum } },
+          undefined, // score
+          undefined, // bucket
+          { viewOptions: { header: "Results Phase " + phaseNum } }
+        ];
+    },
+
+    getPhaseStateOptions: function (phaseIndex, stateIndex) {
+      var phaseNum = phaseIndex + 1;
+      var phaseStates = this.PhaseStates[phaseIndex];
+      var state = phaseStates[stateIndex];
+      switch (state.prototype.name) {
+        case "phase": // options for Round
+          return _.extend({
+            config: this.phaseConfigs[phaseIndex],
+            name: "phase " + phaseNum,
+            roundOptions: this.getPhaseRoundOptions(phaseIndex, stateIndex)
+          });
+
+        case "bucket": // options for phase total bucket
+          return { phase: phaseNum };
+
+        case "phase-results": // options for phase results
+          return {
+            config: this.phaseConfigs[phaseIndex],
+            phase: phaseNum,
+            viewOptions: {
+              header: "Phase " + phaseNum + " Total Results"
+            }
+          };
+
+        case "total-results": // options for total results
+          var header = "Total Results from Phase";
+          if (phaseNum === 1) {
+            header += " 1";
+          } else if (phaseNum === 2) {
+            header += "s 1 &amp; 2";
+          } else {
+            header += "s 1 to " + phaseNum;
+          }
+          return {
+            config: this.config,
+            numPhases: phaseNum,
+            viewOptions: {
+              header: header
+            }
+          };
+      }
+    },
 
     addPhaseStates: function () {
       // for each phase
