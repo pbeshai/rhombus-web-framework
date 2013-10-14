@@ -636,14 +636,17 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       CommonStates.Results.prototype.beforeRender.call(this);
 
       // save the phaseTotal on the participant as phase#Total
+      var phaseNum = (this.options.phase == null) ? 1 : this.options.phase;
+
       this.participants.each(function (participant, i) {
-        participant.set("phase" + this.options.phase + "Total", participant.get("phaseTotal"));
+        participant.set("phase" + phaseNum + "Total", participant.get("phaseTotal"));
       }, this);
     },
 
     logResults: function () {
       var logData = {};
-      logData["phase" + this.options.phase] = {
+      var phase = (this.options.phase == null) ? "phase1" : "phase" + this.options.phase;
+      logData[phase] = {
         results: this.input.roundOutputs,
         config: this.config
       };
