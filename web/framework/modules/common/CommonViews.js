@@ -160,7 +160,7 @@ function (App, CommonModels) {
 
       function addSection(choice) {
         if (counts[choice]) {
-          var section = _.extend({ percentage: (100 * counts[choice] / total).toFixed(1) }, this.choices[choice]);
+          var section = _.extend({ percentage: (100 * counts[choice] / total) }, this.choices[choice]);
           sections.push(section);
         }
       }

@@ -106,9 +106,8 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
 
     // assign scores on exit, so it only happens when going to next state, not back to prev
     onExit: function () {
-      var participants = this.input.participants;
-
-      this.assignScores(participants);
+      this.participants = this.input.participants;
+      this.assignScores(this.participants);
     }
   });
 
@@ -144,6 +143,18 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
     onExit: function () {
       this.groupModel = this.input.groupModel;
       this.assignScores(this.groupModel);
+    }
+  });
+
+  // saves the phase total
+  CommonStates.RoundScore = CommonStates.Score.extend({
+    onExit: function () {
+      var result = CommonStates.Score.prototype.onExit.call(this);
+
+      // calculate phase total
+      CommonUtil.Totals.phase(this.participants, this.options.parentOptions.roundOutputs);
+
+      return result;
     }
   });
 
@@ -618,6 +629,29 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       return new StateApp.StateMessage({ groupModel: this.groupModel });
     }
   });
+
+  CommonStates.PhaseResults = CommonStates.Results.extend({
+    name: "phase-results",
+    beforeRender: function () {
+      CommonStates.Results.prototype.beforeRender.call(this);
+
+      // save the phaseTotal on the participant as phase#Total
+      this.participants.each(function (participant, i) {
+        participant.set("phase" + this.options.phase + "Total", participant.get("phaseTotal"));
+      }, this);
+    },
+
+    logResults: function () {
+      var logData = {};
+      logData["phase" + this.options.phase] = {
+        results: this.input.roundOutputs,
+        config: this.config
+      };
+      return logData;
+    }
+  });
+
+
 
   // saves the 'phaseTotal' attr as a phaseXTotal based on options.phase
   CommonStates.GroupPhaseResults = CommonStates.GroupResults.extend({

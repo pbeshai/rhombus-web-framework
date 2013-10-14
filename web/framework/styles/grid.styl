@@ -152,7 +152,7 @@ bucket(bucket-color, bucket-prefix = "")
 			border: bucket-border-width solid rgba(lighten(bucket-color, bucket-increment*bucket), bucket-border-opacity);
 
 
-bucket(rgba(4, 17, 26, 0.85)); /* default bucket - blue */
+bucket(rgba(8, 37, 28, 0.85)); /* default bucket - green/blue */
 bucket(rgba(27, 12, 54, 0.85), ".bucket-purple") /* purple buckets */
 bucket(rgba(27, 48, 9, 0.85), ".bucket-green") /* purple buckets */
 bucket(rgba(7, 31, 48, .85), ".bucket-blue")
@@ -170,11 +170,6 @@ bucket(rgba(58, 30, 5, 0.85), ".bucket-orange") //orange
 
 .overlay.no-animate {
 	transition: none;
-}
-
-.overlay:hover, .overlay.no-animate:hover {
-	background-color: rgba(0,0,0,0);
-	transition: 1s background-color;
 }
 
 .overlay.choice-a, .overlay.green
