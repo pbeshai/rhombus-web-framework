@@ -22,12 +22,12 @@ function (App, Common, Clicker, Apps) {
 		$button.psToggleButton({
 			clickState1: participantServer.enableChoices,
 			clickState2: participantServer.disableChoices,
-			textState1: "Enable Choices",
-			textState2: "Disable Choices",
+			textState1: "<i class='circle-status status-off'></i> Not Accepting Choices",
+			textState2: "<i class='circle-status status-on'></i> Accepting Choices",
 			state1To2Event: "enable-choices",
 			state2To1Event: "disable-choices",
-			classState1: "btn-success",
-			classState2: "btn-danger",
+			titleState1: "Click to start accepting choices",
+			titleState2: "Click to stop accepting choices",
 			participantServer: participantServer
 		});
 
@@ -238,12 +238,12 @@ function (App, Common, Clicker, Apps) {
 		afterRender: function () {
 			enableChoicesButton(this.$(".enable-choices-button"), App.controller.participantServer);
 			this.$(".instructor-controller").toggleButton({
-				textState1: "Disable Instructor Controller",
-				textState2: "Enable Instructor Controller",
+				textState1: "<i class='circle-status status-on'></i> Instructor Controller Enabled",
+				textState2: "<i class='circle-status status-off'></i> Instructor Controller Disabled",
 				clickState1: this.toggleInstructorControl,
 				clickState2: this.toggleInstructorControl,
-				classState1: "btn-danger",
-				classState2: "btn-success"
+				titleState1: "Click to interpret the instructor's controller as a normal participant",
+				titleState2: "Click to interpret the instructor's controller as as a controller for the system"
 			});
 		},
 
