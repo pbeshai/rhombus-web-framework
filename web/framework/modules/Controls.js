@@ -133,12 +133,39 @@ function (App, Common, Clicker, Apps) {
 		}
 	});
 
+	Controls.Views.Admin = App.BaseView.extend({
+		className: "controls",
+		template: "framework/templates/controls/admin",
+
+		events: {
+			"click .clear-database": "clearDatabase",
+		},
+
+		clearDatabase: function () {
+			var verify = confirm("Are you sure you want to clear the participant database?");
+
+			if (verify) {
+				console.log("clearing database");
+				App.api({
+					call: "participants",
+					type: "DELETE",
+					success: function () {
+						console.log("successful deletion of participants");
+					},
+					error: function () {
+						console.log("error deleting participants");
+					}
+				});
+			}
+		},
+
+	});
+
 	Controls.Views.Controls = App.BaseView.extend({
 		className: "controls",
 		template: "framework/templates/controls/controls",
 
 		events: {
-			"click .clear-database": "clearDatabase",
 			"click .add-countdown-button": "addCountdown",
 			"click .clear-countdown-button": "clearCountdown"
 		},
@@ -219,24 +246,6 @@ function (App, Common, Clicker, Apps) {
 		toggleInstructorControl: function () {
 			var instructorControl = App.controller.participantServer.get("instructorControl");
 			App.controller.participantServer.set("instructorControl", !instructorControl);
-		},
-
-		clearDatabase: function () {
-			var verify = confirm("Are you sure you want to clear the participant database?");
-
-			if (verify) {
-				console.log("clearing database");
-				App.api({
-					call: "participants",
-					type: "DELETE",
-					success: function () {
-						console.log("successful deletion of participants");
-					},
-					error: function () {
-						console.log("error deleting participants");
-					}
-				});
-			}
 		},
 
 		addCountdown: function () {

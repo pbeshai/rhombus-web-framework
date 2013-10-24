@@ -41,8 +41,7 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       ":managerId/controller" : "controller",
       ":managerId/viewer/:name": "viewer",
       "register": "register",
-      "sandbox": "sandbox",
-
+      "admin": "admin"
     },
 
     // selects the mode and connects the websocket
@@ -120,6 +119,13 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       this.reset();
 
       App.setMainView(new Modes.Views.Selector({ model: App.model }));
+    },
+
+    admin: function () {
+      console.log("[router: admin]");
+
+      App.setTitle("Admin");
+      App.setMainView(new Controls.Views.Admin());
     },
 
     controller: function (managerId) {
