@@ -37,6 +37,7 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
     routes: {
       "": "index",
+      ":managerId/controller/debug" : "debugController",
       ":managerId/controller" : "controller",
       ":managerId/viewer/:name": "viewer",
       "register": "register",
@@ -84,7 +85,12 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
         if (mode === "controller") {
           App.controller = new Modes.Controller({ id: data.id, socket: socket });
           if (!hasView) { // standalone will handle their own view
-            router.loadControllerView();
+            if (options.debug) {
+              router.loadDebugControllerView();
+            } else {
+              router.loadControllerView();
+            }
+
           }
         } else {
           App.viewer = new Modes.Viewer({ id: data.id, socket: socket, name: name });
@@ -117,7 +123,7 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
     },
 
     controller: function (managerId) {
-      console.log("[router: controls]", managerId);
+      console.log("[router: controller]", managerId);
       App.setTitle("Controls");
       this.selectMode({ mode: "controller", managerId: managerId });
     },
@@ -140,6 +146,20 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       App.layout.setViews({
         "#main-content": new Modes.Views.Viewer(),
         ".server-status": new ParticipantServer.Views.Status({ model: App.model, simple: true })
+      }).render();
+    },
+
+    debugController: function (managerId) {
+      console.log("[router: debug controller]", managerId);
+      App.setTitle("Debug Controls");
+      this.selectMode({ mode: "controller", managerId: managerId, debug: true });
+    },
+
+    loadDebugControllerView: function (view) {
+      view = view || new Controls.Views.DebugControls({ participants: this.participants });
+      App.layout.setViews({
+        "#main-content": view,
+        ".server-status": new ParticipantServer.Views.Status({ model: App.controller.participantServer })
       }).render();
     },
 

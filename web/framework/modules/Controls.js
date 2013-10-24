@@ -151,36 +151,6 @@ function (App, Common, Clicker, Apps) {
 			this.listenTo(this.options.participants, "add", App.controller.newParticipant);
 			// reset viewers
 			App.controller.appController.clearView();
-
-			// TODO: temporary keyboard shortcuts for faster debugging
-			var testApp = "seq-alias";
-			$(document.body).on("keypress", function (evt) {
-				if (evt.ctrlKey) {
-					switch (evt.which) {
-						case 49: // ctrl-1
-							$(".prev-state").click();
-							break;
-						case 50: // ctrl-2
-							$(".next-state").click();
-							break;
-						case 51: // ctrl-3
-							$(".random-votes").click();
-							break;
-						case 52: // ctrl-4
-							$(".random-votes-ab").click();
-							break;
-						case 53: // ctrl-5
-							$(".random-votes-cd").click();
-							break;
-						case 54: // ctrl-6
-							$(".add-clickers").click();
-							break;
-						case 48: // ctrl-0
-							$('button[data-key="' + testApp + '"]').click(); // select app
-							break;
-					}
-				}
-			});
 		},
 
 		beforeRender: function () {
@@ -191,7 +161,6 @@ function (App, Common, Clicker, Apps) {
 			// when an application has been selected
 			appSelector.on("app-selected", _.bind(this.appSelected, this));
 
-			this.setView(".clicker-panel", new Clicker.Views.Clickers({ collection: this.options.participants}));
 			this.setView(".viewers", new Controls.Views.Viewers());
 		},
 
@@ -278,6 +247,49 @@ function (App, Common, Clicker, Apps) {
 			App.controller.clearCountdown();
 		}
 	});
+
+
+	Controls.Views.DebugControls = App.BaseView.extend({
+		template: "framework/templates/controls/debug_controls",
+
+		initialize: function () {
+			// TODO: temporary keyboard shortcuts for faster debugging
+			var testApp = "npd";
+			$(document.body).on("keypress", function (evt) {
+				if (evt.ctrlKey) {
+					switch (evt.which) {
+						case 49: // ctrl-1
+							$(".prev-state").click();
+							break;
+						case 50: // ctrl-2
+							$(".next-state").click();
+							break;
+						case 51: // ctrl-3
+							$(".random-votes").click();
+							break;
+						case 52: // ctrl-4
+							$(".random-votes-ab").click();
+							break;
+						case 53: // ctrl-5
+							$(".random-votes-cd").click();
+							break;
+						case 54: // ctrl-6
+							$(".add-clickers").click();
+							break;
+						case 48: // ctrl-0
+							$('button[data-key="' + testApp + '"]').click(); // select app
+							break;
+					}
+				}
+			});
+		},
+
+		beforeRender: function () {
+			this.setView(".main-controls", new Controls.Views.Controls({ participants: this.options.participants }));
+			this.setView(".clicker-panel", new Clicker.Views.Clickers({ collection: this.options.participants }));
+		}
+	});
+
 
 	return Controls;
 });
