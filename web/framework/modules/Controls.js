@@ -253,7 +253,7 @@ function (App, Common, Clicker, Apps) {
 		template: "framework/templates/controls/debug_controls",
 
 		initialize: function () {
-			// TODO: temporary keyboard shortcuts for faster debugging
+			// keyboard shortcuts for faster debugging
 			var testApp = "npd";
 			$(document.body).on("keypress", function (evt) {
 				if (evt.ctrlKey) {
