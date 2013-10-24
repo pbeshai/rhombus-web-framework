@@ -42,7 +42,7 @@ define([
 			return view;
 		},
 
-		setMainView: function (view, render) {
+		setMainView: function (view, render, appClass) {
 			render = (render === undefined) ? true : render;
 
 			App.layout.setViews({
@@ -52,6 +52,26 @@ define([
 			if (render) {
 				App.layout.render();
 			}
+
+			// add in some namespacing for easier styling
+			// remove app-* classes from the body
+			var currClass = $(document.body).attr("class") || "";
+			namespaceClass = _.reject(currClass.split(" "), function (clazz) { return clazz.indexOf("app-") === 0; }).join(" ");
+			if (appClass) {
+				// use the namespace and remove any spaces or periods
+				appClass = appClass.substring(0,appClass.indexOf(":")).replace(/[ \.]/g,'');
+				if (appClass) {
+					appClass = "app-" + appClass;
+					namespaceClass += " " + appClass;
+				}
+			}
+			if (namespaceClass) {
+				$(document.body).attr('class', $.trim(namespaceClass));
+			} else {
+				$(document.body).removeAttr('class');
+			}
+
+
 		},
 
 		getMainView: function () {

@@ -35,9 +35,8 @@ function listApps(req, res) {
 	var apps = ["framework/apps/Grid/App"];
 
 	fs.readdir(baseDir + appsDir, function (err, files) {
-		console.log(files);
 		if (err) {
-			console.log(err);
+			logger.error(err);
 			res.send(500);
 			return;
 		}
