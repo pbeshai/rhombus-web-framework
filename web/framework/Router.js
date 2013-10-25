@@ -18,8 +18,7 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
     initialize: function () {
-      console.log("TODO REMOVE THIS - App in window (top of Router.js)");
-      window.App = App;
+      window.App = App; // this is useful for debugging on the fly, so I'll leave it.
 
       var collections = {
         // Set up the users.
@@ -144,6 +143,10 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
     viewer: function (managerId, viewerName) {
       console.log("[router: viewer]", managerId, viewerName);
+      // basic hack to quickly allow an instructions view
+      if (viewerName === "instructions") {
+        App.showOnlyInstructions();
+      }
       this.selectMode({ mode: "viewer", managerId: managerId, name: viewerName });
     },
 

@@ -271,9 +271,7 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
     botStrategy: "random",
 
     prepareParticipant: function (participant) {
-      console.log("preparing participant", participant.get("alias"));
       participant.reset();
-      console.log(participant.get("played"));
       if (this.validChoices) {
         participant.set("validChoices", this.validChoices);
       }

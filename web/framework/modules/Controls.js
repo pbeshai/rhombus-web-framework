@@ -67,7 +67,8 @@ function (App, Common, Clicker, Apps) {
 		template: "framework/templates/controls/viewers",
 		events: {
 			"click .reload-view" : "reloadView",
-			"click .open-new-viewer" : "newViewer",
+			"click .open-new-viewer" : "newMainViewer",
+			"click .open-new-instructions" : "newInstructionsViewer",
 		},
 
 		serialize: function () {
@@ -78,7 +79,16 @@ function (App, Common, Clicker, Apps) {
 			this.listenTo(App.controller, "change:viewers", this.render);
 		},
 
-		newViewer: function () {
+		newMainViewer: function () {
+			return this.newViewer("main");
+		},
+
+		newInstructionsViewer: function () {
+			return this.newViewer("instructions");
+		},
+
+		newViewer: function (viewerType) {
+			viewerType = viewerType || "main"; // can also be "instructions"
 			// from http://stackoverflow.com/questions/57652/how-do-i-get-javascript-to-open-a-popup-window-on-the-current-monitor
 			function popup_params(width, height) {
 				var x = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
@@ -92,7 +102,7 @@ function (App, Common, Clicker, Apps) {
 				var output = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',scrollbars=1';
 				return output;
 			}
-			var newWindow = window.open("/m1/viewer/main", "_blank", "status=0,location=0,toolbar=0," + popup_params(1024, 768));
+			var newWindow = window.open("/m1/viewer/" + viewerType, "_blank", "status=1,location=1,toolbar=0," + popup_params(1024, 768));
 		},
 
 		reloadView: function (evt) {
