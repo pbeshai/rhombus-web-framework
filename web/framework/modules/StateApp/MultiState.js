@@ -111,21 +111,35 @@ function (App, State, ViewState) {
 			// TODO: the samed defer complexity that was added to prev should be added here
 			// to support having the case where the last state in the multistate is an autoflow
 			var multiState = this;
+
+			var defer = $.Deferred();
+			var nextState = this;
+			var promise = defer.then(function () { return nextState; });
+
 			// do deep to handle nested multistates
 			if (this.isLastStateDeep()) {
 				var newState = State.prototype.next.apply(this, arguments);
 				if (newState != null) { // we left the multistate (may not if there is no state that follows)
 					return newState;
 				}
+				defer.resolve();
 			} else { // not final state, so go to next
 				this.currentState.next().done(function (resultState) {
-					multiState.currentState = resultState;
+					if (resultState == null) { // next'd past last in multistate (possible if non view states -- auto flow)
+						nextState = State.prototype.next.apply(multiState, arguments);
+						if (nextState == null) { // we did not leave this state, reset nextState to this
+							nextState = multiState;
+						}
+					}
 
+					multiState.currentState = resultState;
 					multiState.trigger("change");
+
+					defer.resolve();
 				});
 			}
-			// return a promise that simply contains the multiState (we're still inside it)
-			return $.Deferred(function () { this.resolve(); }).then(function () { return multiState; });
+
+			return promise;
 		},
 
 		prev: function () {
