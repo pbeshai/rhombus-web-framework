@@ -100,7 +100,7 @@ function () {
 						.on("mouseout", hideTooltip);
 
 				gBarEnter.append("rect")
-						.attr("class", function (d) { console.log("D = ", d); return "bar bar-"+ d[0].replace(/ /g,""); })
+						.attr("class", function (d) { return "bar bar-"+ d[0].replace(/ /g,""); })
 						.attr("x", function (d) { return xScale(d[0]) + (xScale.rangeBand() * (1 - scaleFactor(d)))/2; })
 						.attr("y", function (d) { return yScale(d[1]); })
 						.attr("width", function (d) { return xScale.rangeBand() * scaleFactor(d); })
