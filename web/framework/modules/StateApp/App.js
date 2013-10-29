@@ -5,6 +5,10 @@ define([
 function (App) {
 	var StateApp = Backbone.Model.extend({
 		initialize: function (attrs, options) {
+			// save the config as defaults and use a copy
+			this.configDefaults = this.config;
+			this.config = $.extend(true, {}, this.configDefaults);
+
 			this.options = options || {};
 			_.defaults(this.options, {
 				writeLogAtEnd: true // default to writing a log when the final state is reached
@@ -36,6 +40,11 @@ function (App) {
 				this.clearView();
 			}
 			this.trigger("initialize", this);
+		},
+
+		restoreDefaultConfig: function () {
+			$.extend(true, this.config, this.configDefaults);
+			this.handleConfigure();
 		},
 
 		clearView: function () {

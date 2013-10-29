@@ -6,7 +6,7 @@
 		</div>
 		<h3>Configuration</h3>
 	</header>
-	<div id="config-body" class="collapse">
+	<div id="config-body" class="collapse <%= collapsed ? '' : 'in' %> ">
 		<div class="collapse-inner">
 			<div class="form-inline control-panel-group">
 				<input placeholder="Message" type="text" value="<%= model.get('message') %>" class="config-message input-xlarge"/>

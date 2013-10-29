@@ -622,9 +622,10 @@ function (App, CommonModels) {
 
   CommonViews.GroupConfigure = App.BaseView.extend({
     template: "framework/templates/common/group_configure",
-    modelOptions: {
-      group1Name: "Group 1",
-      group2Name: "Group 2"
+    modelOptions: function () { return {
+        group1Name: "Group 1",
+        group2Name: "Group 2"
+      };
     },
     optionProperties: [ "nameHeader", "group1Label", "group2Label" ],
     nameHeader: "Group Names",
@@ -658,9 +659,11 @@ function (App, CommonModels) {
 
     initialize: function (options) {
       handleOptions(this, options);
+      console.log("GC");
 
+      var modelOptions = _.isFunction(this.modelOptions) ? this.modelOptions() : this.modelOptions;
       // use defaults so we don't overwrite if already there
-      _.defaults(this.model.attributes, this.modelOptions);
+      _.defaults(this.model.attributes, modelOptions);
     }
   });
 
@@ -812,8 +815,10 @@ function (App, CommonModels) {
     },
 
     initialize: function () {
+      var modelOptions = _.isFunction(this.modelOptions) ? this.modelOptions() : this.modelOptions;
+      console.log("ModelConfigure", this.model.attributes, modelOptions);
       // use defaults so we don't overwrite if already there
-      _.defaults(this.model.attributes, this.modelOptions);
+      _.defaults(this.model.attributes, modelOptions);
 
       this.on("update", this.onUpdate);
     }
@@ -935,7 +940,7 @@ function (App, CommonModels) {
 
     initialize: function () {
       this.model = new CommonModels.ConfigureModel();
-      this.collapsed = true;
+      this.collapsed = false;
     }
   });
 
