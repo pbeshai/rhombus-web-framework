@@ -79,20 +79,31 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       socket.on("registered", function (data) {
         App.model.set("browserId", data.id);
         console.log("Registered with ID " + data.id);
-
+        var attrs = { id: data.id, socket: socket };
         if (mode === "controller") {
-          App.controller = new Modes.Controller({ id: data.id, socket: socket });
-          if (!hasView) { // standalone will handle their own view
-            if (options.debug) {
-              router.loadDebugControllerView();
-            } else {
-              router.loadControllerView();
-            }
 
+          if (App.controller) { // reconnect to websocket case
+            console.log("Already initialized as controller", data, App.controller);
+            App.controller.set(attrs); // update ID and socket
+          } else {
+            App.controller = new Modes.Controller(attrs);
+            if (!hasView) { // standalone will handle their own view
+              if (options.debug) {
+                router.loadDebugControllerView();
+              } else {
+                router.loadControllerView();
+              }
+            }
           }
         } else {
-          App.viewer = new Modes.Viewer({ id: data.id, socket: socket, name: name });
-          router.loadViewerView();
+          attrs.name = name;
+          if (App.viewer) { // reconnect to websocket case
+            console.log("Already initialized as viewer", data, App.viewer);
+            App.viewer.set(attrs); // update to new ID and socket (and possibly name)
+          } else {
+            App.viewer = new Modes.Viewer({ id: data.id, socket: socket, name: name });
+            router.loadViewerView();
+          }
         }
         dfd.resolve();
       });
