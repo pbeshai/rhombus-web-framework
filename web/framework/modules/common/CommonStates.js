@@ -488,6 +488,7 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
 
     afterRender: function () {
       this.log(this.logResults());
+      App.controller.participantUpdater.ignoreChanges();
     },
 
     viewOptions: function () {
@@ -523,6 +524,7 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
 
     afterRender: function () {
       this.log(this.logResults());
+      App.controller.participantUpdater.ignoreChanges();
     },
 
     viewOptions: function () {
