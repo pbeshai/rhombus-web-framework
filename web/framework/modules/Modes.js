@@ -199,7 +199,6 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 		appConfig: function (config) {
 			var activeApp = this.get("activeApp");
 			if (activeApp) {
-				console.log("App Config", config, activeApp);
 				activeApp.configure(config);
 			}
 		},
@@ -278,6 +277,15 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 
 			if (mainView.update) {
 				mainView.update(data);
+			} else if (mainView.updateMeta) {
+				// ignore participants and model
+				var sanitizedData = _.clone(data);
+				delete sanitizedData.model;
+				delete sanitizedData.participants;
+
+				if (_.keys(sanitizedData).length) {
+					mainView.updateMeta(sanitizedData);
+				}
 			}
 		},
 

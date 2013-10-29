@@ -453,10 +453,6 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       this.groupModel.get("group2").each(this.prepareParticipantOutputGroup2, this);
     },
 
-    handleConfigure: function () {
-      App.controller.appController.updateView({ config: this.config }, "Viewer1"); // TODO: "Viewer1"
-    },
-
     // outputs a GroupModel
     onExit: function () {
       this.prepareOutputGroup1();
@@ -504,10 +500,6 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       return viewOptions;
     },
 
-    handleConfigure: function () {
-      this.render();
-    },
-
     logResults: function () { }, // template method
 
     onExit: function () {
@@ -542,10 +534,6 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       }
 
       return viewOptions;
-    },
-
-    handleConfigure: function () {
-      this.render();
     },
 
     logResults: function () { }, // template method

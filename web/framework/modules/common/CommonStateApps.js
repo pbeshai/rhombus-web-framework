@@ -196,7 +196,6 @@ function (App, StateApp, Attendance, Common) {
     },
 
     handleConfigure: function () {
-      console.log("phase handle configure", this.config, this.phaseConfigs);
       // update the phase configs
       _.each(this.phaseConfigs, function (phaseConfig) {
         _.extend(phaseConfig, this.config);

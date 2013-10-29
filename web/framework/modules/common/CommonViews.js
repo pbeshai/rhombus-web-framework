@@ -6,9 +6,12 @@ function (App, CommonModels) {
   var CommonViews = {};
 
   // sets 'this.options' and overrides properties with options if specified
-  function handleOptions(object, options) {
+  function handleOptions(object, options, incremental) {
     // options = _.extend(object.options || {}, options);
-    object.options = options = (options || {});
+    options = (options || {});
+    if (!incremental) {
+      object.options = options;
+    }
 
     // override properties with options if specified
     _.each(object.optionProperties, function (property) {
@@ -513,6 +516,13 @@ function (App, CommonModels) {
       }
     },
 
+    // update options based on new configuration
+    updateMeta: function (data) {
+      _.extend(this.options, data);
+      handleOptions(this, data, true); // re-interpret options
+      this.render();
+    },
+
     initialize: function (options) {
       App.BaseView.prototype.initialize.apply(this, arguments);
       handleOptions(this, options);
@@ -580,7 +590,12 @@ function (App, CommonModels) {
         if (this.PostParticipantsView != null) {
           this.insertView(".group" + groupNum + " .post-participants", new this.PostParticipantsView(viewOptions));
         }
-      }
+      } // end addGroup function
+
+
+      var viewOptions = _.extend({
+        participants: this.model.get("participants")
+      }, this.options);
 
       if (this.PreHeaderView != null) {
         this.insertView(".pre-header", new this.PreHeaderView(viewOptions));
@@ -588,10 +603,6 @@ function (App, CommonModels) {
 
       addGroup.apply(this, [1]);
       addGroup.apply(this, [2]);
-
-      var viewOptions = _.extend({
-        participants: this.model.get("participants")
-      }, this.options);
 
       if (this.PreGroupsView != null) {
         this.insertView(".pre-groups", new this.PreGroupsView(viewOptions));
@@ -613,6 +624,13 @@ function (App, CommonModels) {
       if (this.inactive.group2) {
         this.$(".group2").addClass("inactive");
       }
+    },
+
+    // update options based on new configuration
+    updateMeta: function (data) {
+      _.extend(this.options, data);
+      handleOptions(this, data, true); // re-interpret options
+      this.render();
     },
 
     initialize: function (options) {
@@ -816,7 +834,6 @@ function (App, CommonModels) {
 
     initialize: function () {
       var modelOptions = _.isFunction(this.modelOptions) ? this.modelOptions() : this.modelOptions;
-      console.log("ModelConfigure", this.model.attributes, modelOptions);
       // use defaults so we don't overwrite if already there
       _.defaults(this.model.attributes, modelOptions);
 
