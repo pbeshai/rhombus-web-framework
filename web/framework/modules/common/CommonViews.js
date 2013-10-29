@@ -905,12 +905,25 @@ function (App, CommonModels) {
       }
     },
 
+    afterRender: function () {
+      App.BaseView.prototype.afterRender.apply(this, arguments);
+
+      // remember collapse state
+      this.$el.on("show.bs.collapse", _.bind(function () {
+        this.collapsed = false;
+      }, this));
+      this.$el.on("hide.bs.collapse", _.bind(function () {
+        this.collapsed = true;
+      }, this));
+    },
+
     updateMessage: function (evt) {
       this.model.set("message", $(evt.target).val());
     },
 
     serialize: function () {
       return {
+        collapsed: this.collapsed,
         model: this.model
       };
     },
@@ -922,6 +935,7 @@ function (App, CommonModels) {
 
     initialize: function () {
       this.model = new CommonModels.ConfigureModel();
+      this.collapsed = true;
     }
   });
 
