@@ -648,7 +648,7 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       StateApp.RepeatState.prototype.initialize.apply(this, arguments);
     },
 
-    handleConfigure: function () {
+    handleConfigure: function (active) {
       StateApp.RepeatState.prototype.handleConfigure.apply(this, arguments);
       if (this.config.roundsPerPhase) {
         this.setRepeats(this.config.roundsPerPhase);

@@ -113,7 +113,14 @@ function (App) {
 		},
 
 		handleConfigure: function () {
-			this.get("currentState").handleConfigure();
+			var currentState = this.get("currentState");
+			_.each(this.states, function (state, i) {
+				if (state === currentState) {
+					state.handleConfigure(true);
+				} else {
+					state.handleConfigure();
+				}
+			});
 		},
 
 		addLogData: function (data) {

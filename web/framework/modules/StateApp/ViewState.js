@@ -57,9 +57,11 @@ function (App, State) {
 			return this.viewOptions();
 		},
 
-    handleConfigure: function () {
-      App.controller.appController.updateView(this.configViewOptions(), "Viewer1"); // TODO: "Viewer1"
-    },
+		handleConfigure: function (active) {
+			if (active) {
+				App.controller.appController.updateView(this.configViewOptions(), "Viewer1"); // TODO: "Viewer1"
+			}
+		},
 	});
 
 	return ViewState;

@@ -295,10 +295,15 @@ function (App, State, ViewState) {
 		},
 
 		// delegate to current state
-		handleConfigure: function () {
-			if (this.currentState) {
-				this.currentState.handleConfigure();
-			}
+		handleConfigure: function (active) {
+			var currentState = this.currentState;
+			_.each(this.states, function (state, i) {
+				if (state === currentState) {
+					state.handleConfigure(true);
+				} else {
+					state.handleConfigure();
+				}
+			});
 		}
 	});
 

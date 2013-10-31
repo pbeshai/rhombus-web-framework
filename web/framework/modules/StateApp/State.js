@@ -182,7 +182,7 @@ function (App, StateMessage) {
 		},
 
 		// can be called when a state app configures itself (perhaps a new config is set)
-		handleConfigure: function () {}
+		handleConfigure: function (active) {}
 	});
 
 	return State;
