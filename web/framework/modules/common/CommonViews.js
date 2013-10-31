@@ -852,7 +852,7 @@ function (App, CommonModels) {
     },
 
     initialize: function (options) {
-      this.listenTo(this.options.activeApp, "change:currentState initialize", this.render);
+      this.listenTo(this.options.activeApp, "change change:currentState initialize", this.render);
       this.model = new Backbone.Model({ "views-only": true });
     },
 

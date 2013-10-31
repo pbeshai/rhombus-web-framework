@@ -648,6 +648,13 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       StateApp.RepeatState.prototype.initialize.apply(this, arguments);
     },
 
+    handleConfigure: function () {
+      StateApp.RepeatState.prototype.handleConfigure.apply(this, arguments);
+      if (this.config.roundsPerPhase) {
+        this.setRepeats(this.config.roundsPerPhase);
+      }
+    },
+
     // how to save a participant in round output
     serializeParticipant: function (participant) {
       return {

@@ -109,6 +109,7 @@ function (App) {
 			// and in the event the full config isn't being overwritten
 			_.extend(this.config, config);
 			this.handleConfigure();
+			this.trigger("change");
 		},
 
 		handleConfigure: function () {

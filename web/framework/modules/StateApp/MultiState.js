@@ -19,49 +19,54 @@ function (App, State, ViewState) {
 			var that = this;
 			// initialize substates
 			this.states = [];
-			_.each(this.States, function (State, i) {
-				var stateOptions;
-				if (this.options.stateOptions) {
-					stateOptions = this.options.stateOptions[i];
+			_.each(this.States, this.setState, this);
+		},
+
+		// set the state at this.states[index] to a new instantiation of the State param
+		setState: function (State, index) {
+			var that = this;
+			var i = index;
+			var stateOptions;
+			if (this.options.stateOptions) {
+				stateOptions = this.options.stateOptions[i];
+			}
+
+			var stateOutputsOption = {};
+			stateOutputsOption[this.stateOutputsKey] = this[this.stateOutputsKey];
+
+			stateOptions = _.extend({
+					config: this.config,
+					stateIndex: i,
+					parentOptions: this.options,
+				}, stateOutputsOption, stateOptions);
+			// make the state index available in the views
+			if (!stateOptions.viewOptions) {
+				stateOptions.viewOptions = {};
+			}
+			stateOptions.viewOptions.stateIndex = i;
+
+			stateOptions = this.setSubstateOptions(i, stateOptions);
+
+			var state = new State(stateOptions, this.stateApp);
+
+			this.states[i] = state;
+
+			state.on("entry", function (input, prevState) {
+				if (i === that[that.stateOutputsKey].length - 1) {
+					that[that.stateOutputsKey].pop();
+				} else if (that[that.stateOutputsKey][i]) {
+					that[that.stateOutputsKey][i] = undefined;
 				}
+			});
 
-				var stateOutputsOption = {};
-				stateOutputsOption[this.stateOutputsKey] = this[this.stateOutputsKey];
+			state.on("exit", function (output) {
+				that[that.stateOutputsKey][i] = that.stateOutput(output);
+			});
 
-				stateOptions = _.extend({
-						config: this.config,
-						stateIndex: i,
-						parentOptions: this.options,
-					}, stateOutputsOption, stateOptions);
-				// make the state index available in the views
-				if (!stateOptions.viewOptions) {
-					stateOptions.viewOptions = {};
-				}
-				stateOptions.viewOptions.stateIndex = i;
-
-				stateOptions = this.setSubstateOptions(i, stateOptions);
-
-				var state = new State(stateOptions, this.stateApp);
-
-				this.states.push(state);
-
-				state.on("entry", function (input, prevState) {
-					if (i === that[that.stateOutputsKey].length - 1) {
-						that[that.stateOutputsKey].pop();
-					} else if (that[that.stateOutputsKey][i]) {
-						that[that.stateOutputsKey][i] = undefined;
-					}
-				});
-
-				state.on("exit", function (output) {
-					that[that.stateOutputsKey][i] = that.stateOutput(output);
-				});
-
-				// link the states
-				if (i > 0) {
-					state.setPrev(this.states[i - 1]);
-				}
-			}, this);
+			// link the states
+			if (i > 0) {
+				state.setPrev(this.states[i - 1]);
+			}
 		},
 
 		setSubstateOptions: function (index, options) {
