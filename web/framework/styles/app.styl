@@ -289,6 +289,9 @@ input[type="text"].input-large-text {
 .states {
 	margin: 10px 0 20px;
 	cursor: default;
+	white-space: nowrap;
+	overflow-x: auto;
+	position: relative;
 }
 
 .states li:after {
@@ -300,6 +303,27 @@ input[type="text"].input-large-text {
 	content: "";
 	margin: 0;
 	display: none;
+}
+.states .multi-state {
+	display: block;
+}
+
+
+.states .active > .multi-state {
+	background: rgba(255,255,255,.5);
+	padding: 2px 8px;
+	margin: -2px -8px;
+	border-radius: 4px;
+}
+
+
+.states li {
+	vertical-align: top;
+}
+
+.states .state-inner {
+	display: inline-block;
+	vertical-align: top;
 }
 
 .states .state.type-state,
@@ -328,11 +352,12 @@ input[type="text"].input-large-text {
 	display: none;
 }
 
-.states li.active .inactive * {
-	background-color: #e7e7ef  !important;
+.states li.active .inactive .state {
+	background-color: rgba(0,0,0,.1)  !important;
 	font-weight: normal !important;
 	border-radius: 1em
 }
+
 
 .states li.active span.state {
 	font-weight: bold;
@@ -342,12 +367,14 @@ input[type="text"].input-large-text {
 .states li.active .active > .state {
 	border-radius: 1em;
 	font-weight: bold;
-	background-color: #bbc;
+	background-color: rgba(255,255,255,.5);
+	border: 1px solid #888;
+	box-shadow: 1px 1px 1px #000;
 }
 
 .states li.type-multi-state .state {
 	padding: 0 10px;
-	border: 1px solid #bbc;
+	border: 1px solid rgba(0,0,0,.25);
 	border-radius: 1em;
 	line-height: 1.5em;
 	background: #fff;
@@ -360,7 +387,7 @@ input[type="text"].input-large-text {
 }
 
 .states .state-inner {
-	border: 1px solid #bbc;
+	border: 1px solid #ccc;
 	border-radius: 1em;
 	background: #fff;
 	padding: 3px 10px;
@@ -368,23 +395,20 @@ input[type="text"].input-large-text {
 
 .states .type-multi-state .state-inner {
 	background: #eeeef4;
-	border: 1px solid transparent;
 	line-height: 2em;
 }
 
 
 .states .type-state .state-inner {
 	background: #eee;
-	border: 1px solid transparent; /* prevent jumping */
+	border: 1px solid transparent; // prevent jumping
 }
 
 .states li.active .state-inner {
-	border-bottom: 1px solid #bbc;
-	border-right: 1px solid #bbc;
-	background: #dddde9;
+	border: 1px solid #888;
+	background: #CCF5C6;
+	box-shadow: 1px 1px 1px #000;
 }
-
-
 
 
 .collapse-toggle {

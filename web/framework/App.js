@@ -2,6 +2,7 @@ define([
 	"framework/base/BaseView",
 	"jquery",
 	"backbone/backbone.layoutmanager",
+	"jquery/jquery.scrollTo",
 	"d3"
 ], function (BaseView) {
 	var io = window.io;

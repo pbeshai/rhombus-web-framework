@@ -284,7 +284,7 @@ function (App, State, ViewState) {
 				}
 				return str;
 			}).join(" ");
-			return (this.name || this.id) + ": " + statesString;
+			return "<span class='multi-state'>" + (this.name || this.id) + ": " + statesString + "</span>";
 		},
 
 		// delegate to current state

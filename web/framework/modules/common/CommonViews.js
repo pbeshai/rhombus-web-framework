@@ -852,7 +852,7 @@ function (App, CommonModels) {
     },
 
     initialize: function (options) {
-      this.listenTo(this.options.activeApp, "change change:currentState initialize", this.render);
+      this.listenTo(this.options.activeApp, "config change:currentState initialize", this.render);
       this.model = new Backbone.Model({ "views-only": true });
     },
 
@@ -870,6 +870,31 @@ function (App, CommonModels) {
 
     prevState: function () {
       App.controller.appPrev();
+    },
+
+    beforeRender: function () {
+      // save the scroll left
+      this.$el.data("stateScroll", this.$el.find(".states").scrollLeft())
+    },
+
+    afterRender: function () {
+      App.BaseView.prototype.afterRender.apply(this, arguments);
+      var $states = this.$el.find(".states");
+      var oldScroll = this.$el.data("stateScroll");
+      if (oldScroll) {
+        $states.scrollLeft(oldScroll); // prevent flicker
+      }
+
+      // scroll to show the current state (scrolls to previous one so you can see previous state)
+      var $scrollEl = this.$el.find("li.active").prevAll("li:visible:first");
+
+      if (!$scrollEl.length) {
+        $scrollEl = this.$el.find("li.active");
+      }
+      console.log("scroll el is", $scrollEl[0]);
+      console.log(".states", this.$el.find(".states"));
+
+      $states.scrollTo($scrollEl, 200);
     },
 
     toggleViewStates: function (evt) {
