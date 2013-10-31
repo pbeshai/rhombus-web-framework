@@ -982,7 +982,7 @@ function (App, CommonModels) {
 
     initialize: function () {
       this.model = new CommonModels.ConfigureModel();
-      this.collapsed = false;
+      this.collapsed = true; // start collapsed
     }
   });
 
