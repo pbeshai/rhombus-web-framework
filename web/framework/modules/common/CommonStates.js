@@ -592,6 +592,27 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
   });
 
   // total for phases 1 to options.numPhases (Adds up phaseXTotal from participants)
+  CommonStates.TotalPhaseResults = CommonStates.Results.extend({
+    name: "total-results",
+    numBuckets: 6,
+    beforeRender: function () {
+      CommonStates.Results.prototype.beforeRender.call(this);
+
+      this.participants.each(function (participant) {
+        participant.set("total", 0);
+        for (var i = 0; i < this.options.numPhases; i++) {
+          var phaseTotal = participant.get("phase" + (i+1) + "Total");
+          if (phaseTotal) {
+            participant.set("total", participant.get("total") + phaseTotal);
+          }
+        }
+      }, this);
+      this.participants.bucket("total", this.numBuckets);
+    },
+  });
+
+
+  // total for phases 1 to options.numPhases (Adds up phaseXTotal from participants)
   CommonStates.GroupTotalPhaseResults = CommonStates.GroupResults.extend({
     name: "total-results",
     numBuckets: 6,

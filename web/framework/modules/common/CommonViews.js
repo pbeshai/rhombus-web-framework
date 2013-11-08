@@ -391,6 +391,7 @@ function (App, CommonModels) {
     locked: true,
     scoreAttribute: "score",
     maxScoreAttribute: "bucketMax",
+    totalAttribute: null,
 
     getScore: function (model) {
       return model.get(this.scoreAttribute);
@@ -416,6 +417,19 @@ function (App, CommonModels) {
     mainText: function (model) {
       return this.getScore(model);
     },
+
+    getTotal: function (model) {
+      if (this.totalAttribute == null) {
+        return null;
+      }
+      return model.get(this.totalAttribute);
+    },
+
+    bottomText: function (model) {
+      if (this.totalAttribute != null && this.getTotal(model) != null) {
+        return "Total " + this.getTotal(model);
+      }
+    }
   });
 
   CommonViews.ParticipantScoreChoiceDisplay = CommonViews.ParticipantScoreDisplay.extend({
@@ -436,16 +450,6 @@ function (App, CommonModels) {
       }
 
       return outcome;
-    },
-
-    getTotal: function (model) {
-      return model.get(this.totalAttribute);
-    },
-
-    bottomText: function (model) {
-      if (this.totalAttribute != null && this.getTotal(model) != null) {
-        return "Total " + this.getTotal(model);
-      }
     }
   });
 
