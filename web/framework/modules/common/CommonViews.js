@@ -125,6 +125,17 @@ function (App, CommonModels) {
     }
   });
 
+  CommonViews.Legend = App.BaseView.extend({
+    template: "framework/templates/common/legend",
+    items: {}, //{ key: label }
+
+    serialize: function () {
+      return {
+        items: this.items
+      };
+    }
+  });
+
   CommonViews.PercentageBar = App.BaseView.extend({
     template: "framework/templates/common/percentage_bar",
     hoverLabels: true,
