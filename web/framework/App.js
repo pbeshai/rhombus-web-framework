@@ -155,7 +155,7 @@ define([
 		},
 
 		setTitle: function (subtitle) {
-			var title = "Clicker Testing";
+			var title = "Rhombus Participation System";
 			if (!_.isEmpty(subtitle)) {
 				title = subtitle + " - " + title;
 			}
