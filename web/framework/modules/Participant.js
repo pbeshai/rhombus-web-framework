@@ -257,6 +257,65 @@ function (App) {
 			return newParticipants;
 		},
 
+		// adds new participants, but takes into consideration pairing and bots
+		addNewParticipantsAdvanced: function (options) {
+      var prepare = options.prepare, hasBots = options.hasBots,
+          pairModels = options.pairModels, keepChoices = options.keepChoices;
+
+      var participants = this;
+      if (!participants.hasNewParticipants()) {
+        return;
+      }
+
+      if (pairModels === "asymmetric") {
+        // TODO: this is problematic to do without breaking the current partnering.
+        console.log("Asymmetric pairing on new participants not currently supported.");
+        return;
+      }
+
+      // store the new participants and clear them as we will add them later
+      var newParticipants = participants.clearNewParticipants();
+      var replacedBot = false;
+      // if there is an odd number of new participants and there is a bot currently playing, we need to replace it
+      if (hasBots && newParticipants.length % 2 === 1) {
+        var bot = participants.find(function (p) { return p.bot; });
+        if (bot) { // adding odd new to odd existing: replace the bot.
+          var botPartner = bot.get("partner");
+          var newPartner = newParticipants[0];
+          botPartner.set("partner", newPartner);
+          newPartner.set("partner", botPartner);
+
+          participants.remove(bot);
+          replacedBot = true;
+        } else {
+          // adding odd new to even existing: need a new bot.
+          newParticipants.push(new Participant.Bot());
+        }
+      }
+
+      if (pairModels === true) {
+        if (replacedBot) { // do not include the first one since it was partnered with a bot (now partnered with an existing participant)
+          participants.pairModels(newParticipants.slice(1));
+        } else {
+          participants.pairModels(newParticipants);
+        }
+      }
+
+      // prepare the new participants (sets valid choices and whatever else)
+      var choices = _.map(newParticipants, function (p) { return p.get("choice"); });
+
+      if (prepare) {
+        prepare(newParticipants);
+      }
+
+      // restore choices
+      if (keepChoices) {
+        _.each(newParticipants, function (p, i) { p.set("choice", choices[i], { silent: true}); });
+      }
+
+      participants.add(newParticipants);
+    },
+
 		addCallback: function (model) {
 			this.aliasMap[model.get("alias")] = model;
 		},
@@ -336,7 +395,9 @@ function (App) {
 		},
 
 		addBot: function () {
-			this.add(new Participant.Bot());
+			var bot = new Participant.Bot()
+			this.add(bot);
+			return bot;
 		},
 
 		bucket: function (bucketAttribute, numBuckets) {

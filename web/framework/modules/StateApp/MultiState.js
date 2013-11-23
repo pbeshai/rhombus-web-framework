@@ -19,49 +19,54 @@ function (App, State, ViewState) {
 			var that = this;
 			// initialize substates
 			this.states = [];
-			_.each(this.States, function (State, i) {
-				var stateOptions;
-				if (this.options.stateOptions) {
-					stateOptions = this.options.stateOptions[i];
+			_.each(this.States, this.setState, this);
+		},
+
+		// set the state at this.states[index] to a new instantiation of the State param
+		setState: function (State, index) {
+			var that = this;
+			var i = index;
+			var stateOptions;
+			if (this.options.stateOptions) {
+				stateOptions = this.options.stateOptions[i];
+			}
+
+			var stateOutputsOption = {};
+			stateOutputsOption[this.stateOutputsKey] = this[this.stateOutputsKey];
+
+			stateOptions = _.extend({
+					config: this.config,
+					stateIndex: i,
+					parentOptions: this.options,
+				}, stateOutputsOption, stateOptions);
+			// make the state index available in the views
+			if (!stateOptions.viewOptions) {
+				stateOptions.viewOptions = {};
+			}
+			stateOptions.viewOptions.stateIndex = i;
+
+			stateOptions = this.setSubstateOptions(i, stateOptions);
+
+			var state = new State(stateOptions, this.stateApp);
+
+			this.states[i] = state;
+
+			state.on("entry", function (input, prevState) {
+				if (i === that[that.stateOutputsKey].length - 1) {
+					that[that.stateOutputsKey].pop();
+				} else if (that[that.stateOutputsKey][i]) {
+					that[that.stateOutputsKey][i] = undefined;
 				}
+			});
 
-				var stateOutputsOption = {};
-				stateOutputsOption[this.stateOutputsKey] = this[this.stateOutputsKey];
+			state.on("exit", function (output) {
+				that[that.stateOutputsKey][i] = that.stateOutput(output);
+			});
 
-				stateOptions = _.extend({
-						config: this.config,
-						stateIndex: i,
-						parentOptions: this.options,
-					}, stateOutputsOption, stateOptions);
-				// make the state index available in the views
-				if (!stateOptions.viewOptions) {
-					stateOptions.viewOptions = {};
-				}
-				stateOptions.viewOptions.stateIndex = i;
-
-				stateOptions = this.setSubstateOptions(i, stateOptions);
-
-				var state = new State(stateOptions, this.stateApp);
-
-				this.states.push(state);
-
-				state.on("entry", function (input, prevState) {
-					if (i === that[that.stateOutputsKey].length - 1) {
-						that[that.stateOutputsKey].pop();
-					} else if (that[that.stateOutputsKey][i]) {
-						that[that.stateOutputsKey][i] = undefined;
-					}
-				});
-
-				state.on("exit", function (output) {
-					that[that.stateOutputsKey][i] = that.stateOutput(output);
-				});
-
-				// link the states
-				if (i > 0) {
-					state.setPrev(this.states[i - 1]);
-				}
-			}, this);
+			// link the states
+			if (i > 0) {
+				state.setPrev(this.states[i - 1]);
+			}
 		},
 
 		setSubstateOptions: function (index, options) {
@@ -111,21 +116,35 @@ function (App, State, ViewState) {
 			// TODO: the samed defer complexity that was added to prev should be added here
 			// to support having the case where the last state in the multistate is an autoflow
 			var multiState = this;
+
+			var defer = $.Deferred();
+			var nextState = this;
+			var promise = defer.then(function () { return nextState; });
+
 			// do deep to handle nested multistates
 			if (this.isLastStateDeep()) {
 				var newState = State.prototype.next.apply(this, arguments);
 				if (newState != null) { // we left the multistate (may not if there is no state that follows)
 					return newState;
 				}
+				defer.resolve();
 			} else { // not final state, so go to next
 				this.currentState.next().done(function (resultState) {
-					multiState.currentState = resultState;
+					if (resultState == null) { // next'd past last in multistate (possible if non view states -- auto flow)
+						nextState = State.prototype.next.apply(multiState, arguments);
+						if (nextState == null) { // we did not leave this state, reset nextState to this
+							nextState = multiState;
+						}
+					}
 
+					multiState.currentState = resultState;
 					multiState.trigger("change");
+
+					defer.resolve();
 				});
 			}
-			// return a promise that simply contains the multiState (we're still inside it)
-			return $.Deferred(function () { this.resolve(); }).then(function () { return multiState; });
+
+			return promise;
 		},
 
 		prev: function () {
@@ -265,7 +284,7 @@ function (App, State, ViewState) {
 				}
 				return str;
 			}).join(" ");
-			return (this.name || this.id) + ": " + statesString;
+			return "<span class='multi-state'>" + (this.name || this.id) + ": " + statesString + "</span>";
 		},
 
 		// delegate to current state
@@ -276,10 +295,15 @@ function (App, State, ViewState) {
 		},
 
 		// delegate to current state
-		handleConfigure: function () {
-			if (this.currentState) {
-				this.currentState.handleConfigure();
-			}
+		handleConfigure: function (active) {
+			var currentState = this.currentState;
+			_.each(this.states, function (state, i) {
+				if (state === currentState) {
+					state.handleConfigure(true);
+				} else {
+					state.handleConfigure();
+				}
+			});
 		}
 	});
 

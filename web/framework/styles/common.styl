@@ -124,8 +124,8 @@ h1 .round-header, h1 .round-label {
 
 .countdown {
   position: fixed;
-  right: 20px;
-  top: 55px;
+  right: 2px;
+  top: 38px;
   font-size: 4em;
   text-shadow: #fff 2px 2px 10px, #fff -2px -2px 10px; /* white glow */
 }
@@ -134,4 +134,39 @@ h1 .round-header, h1 .round-label {
   position: absolute;
   color: rgb(206, 0, 0);
   opacity: 0;
+}
+
+.legend
+  font-size: 1.3em;
+  line-height: 1.4em;
+  float: right;
+  margin-right: 30px;
+
+.legend > div
+  padding-left: 1.2em; /* for swatch */
+
+.legend > div > span /* swatch */
+  display: block;
+  width:  1em;
+  height: 1em;
+  border-radius: 4px;
+  float: left;
+  margin-left: -1.2em;
+  margin-top: 3px;
+
+
+.legend .blue > span {
+  background-color: #1f77b4
+}
+
+.legend .orange > span {
+  background-color: #ff7f0e;
+}
+
+.legend .green > span {
+  background-color: rgb(78,140,26);
+}
+
+.legend .red > span {
+  background-color rgb(206, 0, 0);
 }

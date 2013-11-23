@@ -50,7 +50,18 @@ function (App, State) {
 		rerender: function () {
 			this.setViewOptions();
 			this._render();
-		}
+		},
+
+		// optional method for passing different view options when updating configuration
+		configViewOptions: function () {
+			return this.viewOptions();
+		},
+
+		handleConfigure: function (active) {
+			if (active) {
+				App.controller.appController.updateView(this.configViewOptions(), "Viewer1"); // TODO: "Viewer1"
+			}
+		},
 	});
 
 	return ViewState;

@@ -59,6 +59,16 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       } else {
         participants.pairModelsAsymmetric();
       }
+    },
+
+    addNewParticipants: function () {
+      var options = {
+        hasBots: this.options.symmetric,
+        pairModels: false,
+        keepChoices: false,
+      };
+
+      this.input.participants.addNewParticipantsAdvanced(options);
     }
   });
 
@@ -71,7 +81,11 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       var groupModel = this.input.groupModel;
 
       groupModel.partner();
-    }
+    },
+
+    addNewParticipants: function (render) {
+      this.input.groupModel.addNewParticipants(true);
+    },
   });
 
   // form groups out of the participants (default partners them across teams as well)
@@ -271,9 +285,7 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
     botStrategy: "random",
 
     prepareParticipant: function (participant) {
-      console.log("preparing participant", participant.get("alias"));
       participant.reset();
-      console.log(participant.get("played"));
       if (this.validChoices) {
         participant.set("validChoices", this.validChoices);
       }
@@ -337,60 +349,9 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       var render = options.render, hasBots = options.hasBots,
           pairModels = options.pairModels, keepChoices = options.keepChoices;
 
-      var participants = this.input.participants;
-      if (!participants.hasNewParticipants()) {
-        return;
-      }
+      options.prepare = _.bind(function (newParticipants) { _.each(newParticipants, this.prepareParticipant, this); }, this);
 
-      if (pairModels === "asymmetric") {
-        // TODO: this is problematic to do without breaking the current partnering.
-        console.log("Asymmetric pairing on new participants not currently supported.");
-        return;
-      }
-
-      // store the new participants and clear them as we will add them later
-      var newParticipants = participants.clearNewParticipants();
-      var replacedBot = false;
-      // if there is an odd number of new participants and there is a bot currently playing, we need to replace it
-      if (hasBots && newParticipants.length % 2 === 1) {
-        var bot = participants.find(function (p) { return p.bot; });
-        if (bot) { // adding odd new to odd existing: replace the bot.
-          var botPartner = bot.get("partner");
-          var newPartner = newParticipants[0];
-          botPartner.set("partner", newPartner);
-          newPartner.set("partner", botPartner);
-
-          participants.remove(bot);
-          replacedBot = true;
-          console.log("bot replaced");
-        } else {
-          // adding odd new to even existing: need a new bot.
-          newParticipants.push(new Participant.Bot());
-        }
-      }
-
-      if (pairModels === true) {
-        if (replacedBot) { // do not include the first one since it was partnered with a bot
-          console.log("partnering without first");
-          participants.pairModels(newParticipants.slice(1));
-        } else {
-          console.log("partnering");
-          participants.pairModels(newParticipants);
-        }
-      }
-
-      // prepare the new participants (sets valid choices and whatever else)
-      var choices = _.map(newParticipants, function (p) { return p.get("choice"); });
-
-      _.each(newParticipants, this.prepareParticipant, this);
-
-      // restore choices
-      if (keepChoices) {
-        _.each(newParticipants, function (p, i) { p.set("choice", choices[i], { silent: true}); });
-      }
-
-
-      participants.add(newParticipants);
+      this.input.participants.addNewParticipantsAdvanced(options)
 
       if (render) {
         this.rerender();
@@ -492,10 +453,6 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       this.groupModel.get("group2").each(this.prepareParticipantOutputGroup2, this);
     },
 
-    handleConfigure: function () {
-      App.controller.appController.updateView({ config: this.config }, "Viewer1"); // TODO: "Viewer1"
-    },
-
     // outputs a GroupModel
     onExit: function () {
       this.prepareOutputGroup1();
@@ -505,55 +462,17 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
     },
 
     addNewParticipants: function (render) {
-      this.addNewParticipantsHelper(render, true); // default to with bots
-    },
-
-    addNewParticipantsHelper: function (render, hasBots) {
-      var groupModel = this.input.groupModel;
-      if (!groupModel.hasNewParticipants()) {
-        return;
+      function prepare(newParticipantsModel) {
+        this.beforeRenderGroup1(newParticipantsModel.get("group1"));
+        this.beforeRenderGroup2(newParticipantsModel.get("group2"));
       }
 
-      // store the new participants and clear them as we will add them later
-      var newParticipants = groupModel.get("participants").clearNewParticipants();
-
-      // handles partnering with each other and shuffling
-      var newParticipantsModel = new CommonModels.GroupModel({ participants: newParticipants }, { forceEven: hasBots });
-
-      // if there is an odd number of new participants and there is a bot currently playing, we need to replace it
-      if (hasBots && newParticipants.length % 2 === 1) {
-        var bot = groupModel.get("participants").find(function (p) { return p.bot; });
-        if (bot) { // replace the bot.
-          var botPartnerGroup = groupModel.get("group1").contains(bot) ? 2 : 1;
-
-          var newBot = newParticipantsModel.get("participants").find(function (p) { return p.bot; });
-          var newBotPartnerGroup = newParticipantsModel.get("group1").contains(newBot) ? 2 : 1;
-
-          var currentBotPartner = bot.get("partner");
-          var newBotPartner = newBot.get("partner");
-          currentBotPartner.set("partner", newBotPartner);
-          newBotPartner.set("partner", currentBotPartner);
-
-          // make sure they are in different groups
-          if (newBotPartnerGroup === botPartnerGroup) {
-            newParticipantsModel.switchGroups(newBotPartner);
-          }
-
-          groupModel.remove(bot);
-          newParticipantsModel.remove(newBot);
-        }
-      }
-
-      // prepare the new participants (sets valid choices and whatever else)
-      this.beforeRenderGroup1(newParticipantsModel.get("group1"));
-      this.beforeRenderGroup2(newParticipantsModel.get("group2"));
-
-      groupModel.addFromGroupModel(newParticipantsModel);
+      this.input.groupModel.addNewParticipants(true, _.bind(prepare, this));
 
       if (render) {
         this.rerender();
       }
-    }
+    },
   });
 
   CommonStates.Results = StateApp.ViewState.extend({
@@ -565,6 +484,7 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
 
     afterRender: function () {
       this.log(this.logResults());
+      App.controller.participantUpdater.ignoreChanges();
     },
 
     viewOptions: function () {
@@ -578,10 +498,6 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       }
 
       return viewOptions;
-    },
-
-    handleConfigure: function () {
-      this.render();
     },
 
     logResults: function () { }, // template method
@@ -600,6 +516,7 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
 
     afterRender: function () {
       this.log(this.logResults());
+      App.controller.participantUpdater.ignoreChanges();
     },
 
     viewOptions: function () {
@@ -617,10 +534,6 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       }
 
       return viewOptions;
-    },
-
-    handleConfigure: function () {
-      this.render();
     },
 
     logResults: function () { }, // template method
@@ -679,6 +592,27 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
   });
 
   // total for phases 1 to options.numPhases (Adds up phaseXTotal from participants)
+  CommonStates.TotalPhaseResults = CommonStates.Results.extend({
+    name: "total-results",
+    numBuckets: 6,
+    beforeRender: function () {
+      CommonStates.Results.prototype.beforeRender.call(this);
+
+      this.participants.each(function (participant) {
+        participant.set("total", 0);
+        for (var i = 0; i < this.options.numPhases; i++) {
+          var phaseTotal = participant.get("phase" + (i+1) + "Total");
+          if (phaseTotal) {
+            participant.set("total", participant.get("total") + phaseTotal);
+          }
+        }
+      }, this);
+      this.participants.bucket("total", this.numBuckets);
+    },
+  });
+
+
+  // total for phases 1 to options.numPhases (Adds up phaseXTotal from participants)
   CommonStates.GroupTotalPhaseResults = CommonStates.GroupResults.extend({
     name: "total-results",
     numBuckets: 6,
@@ -733,6 +667,13 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
       }
 
       StateApp.RepeatState.prototype.initialize.apply(this, arguments);
+    },
+
+    handleConfigure: function (active) {
+      StateApp.RepeatState.prototype.handleConfigure.apply(this, arguments);
+      if (this.config.roundsPerPhase) {
+        this.setRepeats(this.config.roundsPerPhase);
+      }
     },
 
     // how to save a participant in round output

@@ -18,8 +18,7 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
     initialize: function () {
-      console.log("TODO REMOVE THIS - App in window (top of Router.js)");
-      window.App = App;
+      window.App = App; // this is useful for debugging on the fly, so I'll leave it.
 
       var collections = {
         // Set up the users.
@@ -37,11 +36,11 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
     routes: {
       "": "index",
+      ":managerId/controller/debug" : "debugController",
       ":managerId/controller" : "controller",
       ":managerId/viewer/:name": "viewer",
       "register": "register",
-      "sandbox": "sandbox",
-
+      "admin": "admin"
     },
 
     // selects the mode and connects the websocket
@@ -80,15 +79,31 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       socket.on("registered", function (data) {
         App.model.set("browserId", data.id);
         console.log("Registered with ID " + data.id);
-
+        var attrs = { id: data.id, socket: socket };
         if (mode === "controller") {
-          App.controller = new Modes.Controller({ id: data.id, socket: socket });
-          if (!hasView) { // standalone will handle their own view
-            router.loadControllerView();
+
+          if (App.controller) { // reconnect to websocket case
+            console.log("Already initialized as controller", data, App.controller);
+            App.controller.set(attrs); // update ID and socket
+          } else {
+            App.controller = new Modes.Controller(attrs);
+            if (!hasView) { // standalone will handle their own view
+              if (options.debug) {
+                router.loadDebugControllerView();
+              } else {
+                router.loadControllerView();
+              }
+            }
           }
         } else {
-          App.viewer = new Modes.Viewer({ id: data.id, socket: socket, name: name });
-          router.loadViewerView();
+          attrs.name = name;
+          if (App.viewer) { // reconnect to websocket case
+            console.log("Already initialized as viewer", data, App.viewer);
+            App.viewer.set(attrs); // update to new ID and socket (and possibly name)
+          } else {
+            App.viewer = new Modes.Viewer({ id: data.id, socket: socket, name: name });
+            router.loadViewerView();
+          }
         }
         dfd.resolve();
       });
@@ -116,8 +131,15 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       App.setMainView(new Modes.Views.Selector({ model: App.model }));
     },
 
+    admin: function () {
+      console.log("[router: admin]");
+
+      App.setTitle("Admin");
+      App.setMainView(new Controls.Views.Admin());
+    },
+
     controller: function (managerId) {
-      console.log("[router: controls]", managerId);
+      console.log("[router: controller]", managerId);
       App.setTitle("Controls");
       this.selectMode({ mode: "controller", managerId: managerId });
     },
@@ -132,6 +154,10 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
 
     viewer: function (managerId, viewerName) {
       console.log("[router: viewer]", managerId, viewerName);
+      // basic hack to quickly allow an instructions view
+      if (viewerName === "instructions") {
+        App.showOnlyInstructions();
+      }
       this.selectMode({ mode: "viewer", managerId: managerId, name: viewerName });
     },
 
@@ -140,6 +166,20 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       App.layout.setViews({
         "#main-content": new Modes.Views.Viewer(),
         ".server-status": new ParticipantServer.Views.Status({ model: App.model, simple: true })
+      }).render();
+    },
+
+    debugController: function (managerId) {
+      console.log("[router: debug controller]", managerId);
+      App.setTitle("Debug Controls");
+      this.selectMode({ mode: "controller", managerId: managerId, debug: true });
+    },
+
+    loadDebugControllerView: function (view) {
+      view = view || new Controls.Views.DebugControls({ participants: this.participants });
+      App.layout.setViews({
+        "#main-content": view,
+        ".server-status": new ParticipantServer.Views.Status({ model: App.controller.participantServer })
       }).render();
     },
 

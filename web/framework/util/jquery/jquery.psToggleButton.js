@@ -19,7 +19,9 @@ function (jQuery) {
 			clickState2: null,			// function that is called when state2 button clicked
 			state1to2Event: null,		// string event name from Participant Server
 			state2to1Event: null,		// string event name from Participant Server
-			participantServer: null
+			participantServer: null,
+			titleState1: null,
+			titleState2: null
 		};
 		return this.each(function () {
 			var config = $.extend({}, defaults, settings);
@@ -28,7 +30,7 @@ function (jQuery) {
 
 			var $button = $(this);
 
-			$button.addClass(config.classState1).text(config.textState1);
+			$button.addClass(config.classState1).html(config.textState1).attr('title', config.titleState1);
 
 			$button.on("click", clickHandler);
 			if (config.state1To2Event !== null && config.participantServer) {
@@ -61,7 +63,8 @@ function (jQuery) {
 
 				$button.removeClass(config.classPending).removeClass(config.classState1)
 					.removeClass("disabled").prop("disabled", false)
-					.addClass(config.classState2).text(config.textState2);
+					.addClass(config.classState2).html(config.textState2)
+					.attr('title', config.titleState2);
 			}
 
 			function toState1(success) {
@@ -69,7 +72,8 @@ function (jQuery) {
 
 				$button.removeClass(config.classPending).removeClass(config.classState2)
 					.removeClass("disabled").prop("disabled", false)
-					.addClass(config.classState1).text(config.textState1);
+					.addClass(config.classState1).html(config.textState1)
+					.attr('title', config.titleState1);
 			}
 		});
 	};

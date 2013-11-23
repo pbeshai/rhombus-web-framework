@@ -15,6 +15,8 @@ function (jQuery) {
 			textState2: "State 2",
 			clickState1: null,			// function that is called when state1 button clicked
 			clickState2: null,			// function that is called when state2 button clicked
+			titleState1: null,
+			titleState2: null,
 		};
 		return this.each(function () {
 			var config = $.extend({}, defaults, settings);
@@ -23,7 +25,7 @@ function (jQuery) {
 
 			var $button = $(this);
 
-			$button.addClass(config.classState1).text(config.textState1);
+			$button.addClass(config.classState1).html(config.textState1).attr('title', config.titleState1);
 
 			$button.on("click", clickHandler);
 
@@ -48,14 +50,16 @@ function (jQuery) {
 
 			function toState2() {
 				$button.removeClass(config.classState1)
-					.addClass(config.classState2).text(config.textState2);
+					.addClass(config.classState2).html(config.textState2)
+					.attr('title', config.titleState2);
 
 				$button.trigger("state2");
 			}
 
 			function toState1(success) {
 				$button.removeClass(config.classState2)
-					.addClass(config.classState1).text(config.textState1);
+					.addClass(config.classState1).html(config.textState1)
+					.attr('title', config.titleState1);
 
 				$button.trigger("state1");
 			}

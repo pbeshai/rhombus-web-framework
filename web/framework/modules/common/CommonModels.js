@@ -77,6 +77,50 @@ function (App, Participant) {
       return this.get("participants") && this.get("participants").hasNewParticipants();
     },
 
+    addNewParticipants: function (hasBots, prepare) {
+      var groupModel = this;
+      if (!groupModel.hasNewParticipants()) {
+        return;
+      }
+
+      // store the new participants and clear them as we will add them later
+      var newParticipants = groupModel.get("participants").clearNewParticipants();
+
+      // handles partnering with each other and shuffling
+      var newParticipantsModel = new CommonModels.GroupModel({ participants: newParticipants }, { forceEven: hasBots });
+
+      // if there is an odd number of new participants and there is a bot currently playing, we need to replace it
+      if (hasBots && newParticipants.length % 2 === 1) {
+        var bot = groupModel.get("participants").find(function (p) { return p.bot; });
+        if (bot) { // replace the bot.
+          var botPartnerGroup = groupModel.get("group1").contains(bot) ? 2 : 1;
+
+          var newBot = newParticipantsModel.get("participants").find(function (p) { return p.bot; });
+          var newBotPartnerGroup = newParticipantsModel.get("group1").contains(newBot) ? 2 : 1;
+
+          var currentBotPartner = bot.get("partner");
+          var newBotPartner = newBot.get("partner");
+          currentBotPartner.set("partner", newBotPartner);
+          newBotPartner.set("partner", currentBotPartner);
+
+          // make sure they are in different groups
+          if (newBotPartnerGroup === botPartnerGroup) {
+            newParticipantsModel.switchGroups(newBotPartner);
+          }
+
+          groupModel.remove(bot);
+          newParticipantsModel.remove(newBot);
+        }
+      }
+
+      // prepare the new participants (sets valid choices and whatever else)
+      if (prepare) {
+        prepare(newParticipantsModel);
+      }
+
+      groupModel.addFromGroupModel(newParticipantsModel);
+    },
+
     // add in elements in a different group model
     addFromGroupModel: function (otherGroupModel) {
       this.get("group1").add(otherGroupModel.get("group1").models);

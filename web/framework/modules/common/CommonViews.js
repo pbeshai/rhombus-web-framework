@@ -6,9 +6,12 @@ function (App, CommonModels) {
   var CommonViews = {};
 
   // sets 'this.options' and overrides properties with options if specified
-  function handleOptions(object, options) {
+  function handleOptions(object, options, incremental) {
     // options = _.extend(object.options || {}, options);
-    object.options = options = (options || {});
+    options = (options || {});
+    if (!incremental) {
+      object.options = options;
+    }
 
     // override properties with options if specified
     _.each(object.optionProperties, function (property) {
@@ -119,6 +122,17 @@ function (App, CommonModels) {
     cleanup: function () {
       console.log("cleaning up countdown");
       this.clearTimer();
+    }
+  });
+
+  CommonViews.Legend = App.BaseView.extend({
+    template: "framework/templates/common/legend",
+    items: {}, //{ key: label }
+
+    serialize: function () {
+      return {
+        items: this.items
+      };
     }
   });
 
@@ -388,6 +402,7 @@ function (App, CommonModels) {
     locked: true,
     scoreAttribute: "score",
     maxScoreAttribute: "bucketMax",
+    totalAttribute: null,
 
     getScore: function (model) {
       return model.get(this.scoreAttribute);
@@ -413,6 +428,19 @@ function (App, CommonModels) {
     mainText: function (model) {
       return this.getScore(model);
     },
+
+    getTotal: function (model) {
+      if (this.totalAttribute == null) {
+        return null;
+      }
+      return model.get(this.totalAttribute);
+    },
+
+    bottomText: function (model) {
+      if (this.totalAttribute != null && this.getTotal(model) != null) {
+        return "Total " + this.getTotal(model);
+      }
+    }
   });
 
   CommonViews.ParticipantScoreChoiceDisplay = CommonViews.ParticipantScoreDisplay.extend({
@@ -433,16 +461,6 @@ function (App, CommonModels) {
       }
 
       return outcome;
-    },
-
-    getTotal: function (model) {
-      return model.get(this.totalAttribute);
-    },
-
-    bottomText: function (model) {
-      if (this.totalAttribute != null && this.getTotal(model) != null) {
-        return "Total " + this.getTotal(model);
-      }
     }
   });
 
@@ -513,6 +531,13 @@ function (App, CommonModels) {
       }
     },
 
+    // update options based on new configuration
+    updateMeta: function (data) {
+      _.extend(this.options, data);
+      handleOptions(this, data, true); // re-interpret options
+      this.render();
+    },
+
     initialize: function (options) {
       App.BaseView.prototype.initialize.apply(this, arguments);
       handleOptions(this, options);
@@ -580,7 +605,12 @@ function (App, CommonModels) {
         if (this.PostParticipantsView != null) {
           this.insertView(".group" + groupNum + " .post-participants", new this.PostParticipantsView(viewOptions));
         }
-      }
+      } // end addGroup function
+
+
+      var viewOptions = _.extend({
+        participants: this.model.get("participants")
+      }, this.options);
 
       if (this.PreHeaderView != null) {
         this.insertView(".pre-header", new this.PreHeaderView(viewOptions));
@@ -588,10 +618,6 @@ function (App, CommonModels) {
 
       addGroup.apply(this, [1]);
       addGroup.apply(this, [2]);
-
-      var viewOptions = _.extend({
-        participants: this.model.get("participants")
-      }, this.options);
 
       if (this.PreGroupsView != null) {
         this.insertView(".pre-groups", new this.PreGroupsView(viewOptions));
@@ -615,6 +641,13 @@ function (App, CommonModels) {
       }
     },
 
+    // update options based on new configuration
+    updateMeta: function (data) {
+      _.extend(this.options, data);
+      handleOptions(this, data, true); // re-interpret options
+      this.render();
+    },
+
     initialize: function (options) {
       handleOptions(this, options);
     },
@@ -622,9 +655,10 @@ function (App, CommonModels) {
 
   CommonViews.GroupConfigure = App.BaseView.extend({
     template: "framework/templates/common/group_configure",
-    modelOptions: {
-      group1Name: "Group 1",
-      group2Name: "Group 2"
+    modelOptions: function () { return {
+        group1Name: "Group 1",
+        group2Name: "Group 2"
+      };
     },
     optionProperties: [ "nameHeader", "group1Label", "group2Label" ],
     nameHeader: "Group Names",
@@ -658,9 +692,11 @@ function (App, CommonModels) {
 
     initialize: function (options) {
       handleOptions(this, options);
+      console.log("GC");
 
+      var modelOptions = _.isFunction(this.modelOptions) ? this.modelOptions() : this.modelOptions;
       // use defaults so we don't overwrite if already there
-      _.defaults(this.model.attributes, this.modelOptions);
+      _.defaults(this.model.attributes, modelOptions);
     }
   });
 
@@ -812,8 +848,9 @@ function (App, CommonModels) {
     },
 
     initialize: function () {
+      var modelOptions = _.isFunction(this.modelOptions) ? this.modelOptions() : this.modelOptions;
       // use defaults so we don't overwrite if already there
-      _.defaults(this.model.attributes, this.modelOptions);
+      _.defaults(this.model.attributes, modelOptions);
 
       this.on("update", this.onUpdate);
     }
@@ -830,7 +867,7 @@ function (App, CommonModels) {
     },
 
     initialize: function (options) {
-      this.listenTo(this.options.activeApp, "change:currentState initialize", this.render);
+      this.listenTo(this.options.activeApp, "config change:currentState initialize", this.render);
       this.model = new Backbone.Model({ "views-only": true });
     },
 
@@ -848,6 +885,33 @@ function (App, CommonModels) {
 
     prevState: function () {
       App.controller.appPrev();
+    },
+
+    beforeRender: function () {
+      // save the scroll left
+      this.$el.data("stateScroll", this.$el.find(".states").scrollLeft())
+    },
+
+    afterRender: function () {
+      App.BaseView.prototype.afterRender.apply(this, arguments);
+      var $states = this.$el.find(".states");
+      var oldScroll = this.$el.data("stateScroll");
+      if (oldScroll) {
+        $states.scrollLeft(oldScroll); // prevent flicker
+      }
+
+      // scroll to show the current state (scrolls to previous one so you can see previous state)
+      var $scrollEl = this.$el.find("li.active").prevAll("li:visible:first");
+
+      if (!$scrollEl.length) {
+        $scrollEl = this.$el.find("li.active");
+      }
+      console.log("scroll el is", $scrollEl[0]);
+      console.log(".states", this.$el.find(".states"));
+
+      if ($scrollEl.length) {
+        $states.scrollTo($scrollEl, 200);
+      }
     },
 
     toggleViewStates: function (evt) {
@@ -905,12 +969,25 @@ function (App, CommonModels) {
       }
     },
 
+    afterRender: function () {
+      App.BaseView.prototype.afterRender.apply(this, arguments);
+
+      // remember collapse state
+      this.$el.on("show.bs.collapse", _.bind(function () {
+        this.collapsed = false;
+      }, this));
+      this.$el.on("hide.bs.collapse", _.bind(function () {
+        this.collapsed = true;
+      }, this));
+    },
+
     updateMessage: function (evt) {
       this.model.set("message", $(evt.target).val());
     },
 
     serialize: function () {
       return {
+        collapsed: this.collapsed,
         model: this.model
       };
     },
@@ -922,6 +999,7 @@ function (App, CommonModels) {
 
     initialize: function () {
       this.model = new CommonModels.ConfigureModel();
+      this.collapsed = true; // start collapsed
     }
   });
 

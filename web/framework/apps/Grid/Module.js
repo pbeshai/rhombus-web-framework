@@ -33,7 +33,20 @@ function (App, Common, StateApp) {
 		}
 	});
 
+	Grid.Views.Header = App.BaseView.extend({
+		template: _.template("<h1><%= header %></h1>"),
+
+		serialize: function () {
+			return { header: "Participants " };
+		},
+
+		beforeRender: function () {
+			this.insertView("h1", new Common.Views.Count({ tagName: "span", className: "subtle", participants: this.participants }));
+		},
+	});
+
 	Grid.Views.Participants = App.registerView("grid", Common.Views.SimpleLayout.extend({
+		HeaderView: Grid.Views.Header,
 		ParticipantView: Grid.Views.Participant
 	}));
 

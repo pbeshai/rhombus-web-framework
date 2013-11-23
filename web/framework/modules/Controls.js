@@ -22,12 +22,12 @@ function (App, Common, Clicker, Apps) {
 		$button.psToggleButton({
 			clickState1: participantServer.enableChoices,
 			clickState2: participantServer.disableChoices,
-			textState1: "Enable Choices",
-			textState2: "Disable Choices",
+			textState1: "<i class='circle-status status-off'></i> Not Accepting Choices",
+			textState2: "<i class='circle-status status-on'></i> Accepting Choices",
 			state1To2Event: "enable-choices",
 			state2To1Event: "disable-choices",
-			classState1: "btn-success",
-			classState2: "btn-danger",
+			titleState1: "Click to start accepting choices",
+			titleState2: "Click to stop accepting choices",
 			participantServer: participantServer
 		});
 
@@ -67,7 +67,8 @@ function (App, Common, Clicker, Apps) {
 		template: "framework/templates/controls/viewers",
 		events: {
 			"click .reload-view" : "reloadView",
-			"click .open-new-viewer" : "newViewer",
+			"click .open-new-viewer" : "newMainViewer",
+			"click .open-new-instructions" : "newInstructionsViewer",
 		},
 
 		serialize: function () {
@@ -78,7 +79,16 @@ function (App, Common, Clicker, Apps) {
 			this.listenTo(App.controller, "change:viewers", this.render);
 		},
 
-		newViewer: function () {
+		newMainViewer: function () {
+			return this.newViewer("main");
+		},
+
+		newInstructionsViewer: function () {
+			return this.newViewer("instructions");
+		},
+
+		newViewer: function (viewerType) {
+			viewerType = viewerType || "main"; // can also be "instructions"
 			// from http://stackoverflow.com/questions/57652/how-do-i-get-javascript-to-open-a-popup-window-on-the-current-monitor
 			function popup_params(width, height) {
 				var x = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
@@ -92,7 +102,7 @@ function (App, Common, Clicker, Apps) {
 				var output = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',scrollbars=1';
 				return output;
 			}
-			var newWindow = window.open("/m1/viewer/main", "_blank", "status=0,location=0,toolbar=0," + popup_params(1024, 768));
+			var newWindow = window.open("/m1/viewer/" + viewerType, "_blank", "status=1,location=1,toolbar=0," + popup_params(1024, 768));
 		},
 
 		reloadView: function (evt) {
@@ -133,12 +143,39 @@ function (App, Common, Clicker, Apps) {
 		}
 	});
 
+	Controls.Views.Admin = App.BaseView.extend({
+		className: "controls",
+		template: "framework/templates/controls/admin",
+
+		events: {
+			"click .clear-database": "clearDatabase",
+		},
+
+		clearDatabase: function () {
+			var verify = confirm("Are you sure you want to clear the participant database?");
+
+			if (verify) {
+				console.log("clearing database");
+				App.api({
+					call: "participants",
+					type: "DELETE",
+					success: function () {
+						console.log("successful deletion of participants");
+					},
+					error: function () {
+						console.log("error deleting participants");
+					}
+				});
+			}
+		},
+
+	});
+
 	Controls.Views.Controls = App.BaseView.extend({
 		className: "controls",
 		template: "framework/templates/controls/controls",
 
 		events: {
-			"click .clear-database": "clearDatabase",
 			"click .add-countdown-button": "addCountdown",
 			"click .clear-countdown-button": "clearCountdown"
 		},
@@ -151,36 +188,6 @@ function (App, Common, Clicker, Apps) {
 			this.listenTo(this.options.participants, "add", App.controller.newParticipant);
 			// reset viewers
 			App.controller.appController.clearView();
-
-			// TODO: temporary keyboard shortcuts for faster debugging
-			var testApp = "seq-alias";
-			$(document.body).on("keypress", function (evt) {
-				if (evt.ctrlKey) {
-					switch (evt.which) {
-						case 49: // ctrl-1
-							$(".prev-state").click();
-							break;
-						case 50: // ctrl-2
-							$(".next-state").click();
-							break;
-						case 51: // ctrl-3
-							$(".random-votes").click();
-							break;
-						case 52: // ctrl-4
-							$(".random-votes-ab").click();
-							break;
-						case 53: // ctrl-5
-							$(".random-votes-cd").click();
-							break;
-						case 54: // ctrl-6
-							$(".add-clickers").click();
-							break;
-						case 48: // ctrl-0
-							$('button[data-key="' + testApp + '"]').click(); // select app
-							break;
-					}
-				}
-			});
 		},
 
 		beforeRender: function () {
@@ -191,7 +198,6 @@ function (App, Common, Clicker, Apps) {
 			// when an application has been selected
 			appSelector.on("app-selected", _.bind(this.appSelected, this));
 
-			this.setView(".clicker-panel", new Clicker.Views.Clickers({ collection: this.options.participants}));
 			this.setView(".viewers", new Controls.Views.Viewers());
 		},
 
@@ -238,36 +244,18 @@ function (App, Common, Clicker, Apps) {
 		afterRender: function () {
 			enableChoicesButton(this.$(".enable-choices-button"), App.controller.participantServer);
 			this.$(".instructor-controller").toggleButton({
-				textState1: "Disable Instructor Controller",
-				textState2: "Enable Instructor Controller",
+				textState1: "<i class='circle-status status-on'></i> Instructor Controller Enabled",
+				textState2: "<i class='circle-status status-off'></i> Instructor Controller Disabled",
 				clickState1: this.toggleInstructorControl,
 				clickState2: this.toggleInstructorControl,
-				classState1: "btn-danger",
-				classState2: "btn-success"
+				titleState1: "Click to interpret the instructor's controller as a normal participant",
+				titleState2: "Click to interpret the instructor's controller as as a controller for the system"
 			});
 		},
 
 		toggleInstructorControl: function () {
 			var instructorControl = App.controller.participantServer.get("instructorControl");
 			App.controller.participantServer.set("instructorControl", !instructorControl);
-		},
-
-		clearDatabase: function () {
-			var verify = confirm("Are you sure you want to clear the participant database?");
-
-			if (verify) {
-				console.log("clearing database");
-				App.api({
-					call: "participants",
-					type: "DELETE",
-					success: function () {
-						console.log("successful deletion of participants");
-					},
-					error: function () {
-						console.log("error deleting participants");
-					}
-				});
-			}
 		},
 
 		addCountdown: function () {
@@ -278,6 +266,49 @@ function (App, Common, Clicker, Apps) {
 			App.controller.clearCountdown();
 		}
 	});
+
+
+	Controls.Views.DebugControls = App.BaseView.extend({
+		template: "framework/templates/controls/debug_controls",
+
+		initialize: function () {
+			// keyboard shortcuts for faster debugging
+			var testApp = "npd";
+			$(document.body).on("keypress", function (evt) {
+				if (evt.ctrlKey) {
+					switch (evt.which) {
+						case 49: // ctrl-1
+							$(".prev-state").click();
+							break;
+						case 50: // ctrl-2
+							$(".next-state").click();
+							break;
+						case 51: // ctrl-3
+							$(".random-votes").click();
+							break;
+						case 52: // ctrl-4
+							$(".random-votes-ab").click();
+							break;
+						case 53: // ctrl-5
+							$(".random-votes-cd").click();
+							break;
+						case 54: // ctrl-6
+							$(".add-clickers").click();
+							break;
+						case 48: // ctrl-0
+							$('button[data-key="' + testApp + '"]').click(); // select app
+							break;
+					}
+				}
+			});
+		},
+
+		beforeRender: function () {
+			this.setView(".main-controls", new Controls.Views.Controls({ participants: this.options.participants }));
+			this.setView(".clicker-panel", new Clicker.Views.Clickers({ collection: this.options.participants }));
+		}
+	});
+
 
 	return Controls;
 });

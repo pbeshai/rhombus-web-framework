@@ -1,12 +1,12 @@
 <div class="collapsible-panel">
-	<header data-toggle="collapse" data-target="#config-body" class="collapsed collapse-toggle">
+	<header data-toggle="collapse" data-target="#config-body" class="<%= collapsed ? 'collapsed' : '' %> collapse-toggle">
 		<div class="collapse-indicator">
 			<div class="collapse-indicator-collapsed"><i class="icon-chevron-down"></i></div>
 			<div class="collapse-indicator-open"><i class="icon-chevron-up"></i></div>
 		</div>
 		<h3>Configuration</h3>
 	</header>
-	<div id="config-body" class="collapse">
+	<div id="config-body" class="collapse <%= collapsed ? '' : 'in' %> ">
 		<div class="collapse-inner">
 			<div class="form-inline control-panel-group">
 				<input placeholder="Message" type="text" value="<%= model.get('message') %>" class="config-message input-xlarge"/>
