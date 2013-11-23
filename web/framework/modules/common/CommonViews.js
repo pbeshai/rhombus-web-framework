@@ -909,7 +909,9 @@ function (App, CommonModels) {
       console.log("scroll el is", $scrollEl[0]);
       console.log(".states", this.$el.find(".states"));
 
-      $states.scrollTo($scrollEl, 200);
+      if ($scrollEl.length) {
+        $states.scrollTo($scrollEl, 200);
+      }
     },
 
     toggleViewStates: function (evt) {
