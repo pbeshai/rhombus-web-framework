@@ -131,10 +131,11 @@ function (App) {
 			this.logData = null;
 		},
 
-		writeLog: function () {
+		writeLog: function (flags) {
 			var logData = _.extend({
 				config: this.config,
 				version: this.version,
+				flags: flags
 			}, this.logData);
 
 			console.log("Logging", this.logApiCall, logData);

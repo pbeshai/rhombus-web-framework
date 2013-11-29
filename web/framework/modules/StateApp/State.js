@@ -175,9 +175,12 @@ function (App, StateMessage) {
 		},
 
 		// commonly used to log results via an API call
-		log: function (data) {
+		log: function (data, write) {
 			if (data) {
 				this.stateApp.addLogData(data);
+			}
+			if (write) { // can use the write argument as a 'flags' object
+				this.stateApp.writeLog(_.isObject(write) ? write : undefined);
 			}
 		},
 

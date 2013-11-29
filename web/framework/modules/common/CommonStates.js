@@ -640,7 +640,7 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
     setSubstateOptions: function (index, options) {
       options.round = options.parentOptions.stateIndex + 1;
       return options;
-    }
+    },
   });
 
   CommonStates.Phase = StateApp.RepeatState.extend({
@@ -699,7 +699,21 @@ function (App, Participant, CommonModels, CommonUtil, StateApp) {
         };
       }
 
+      // write a log after each round
+      this.log(this.logRound(roundOutput), { round: true });
+
       return roundOutput;
+    },
+
+    // after each round, log the current round output and the previous round outputs
+    logRound: function (roundOutput) {
+      return {
+        roundOutputs: {
+          "phase": this.name,
+          "current": roundOutput,
+          "previous": this.roundOutputs.slice()
+        }
+      };
     },
 
     stateOutput: function (output) {
