@@ -142,6 +142,9 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       console.log("[router: controller]", managerId);
       App.setTitle("Controls");
       this.selectMode({ mode: "controller", managerId: managerId });
+      window.onbeforeunload = function () {
+        return "Warning: Leaving this page will lose all application state.";
+      }
     },
 
     loadControllerView: function (view) {
@@ -173,6 +176,9 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       console.log("[router: debug controller]", managerId);
       App.setTitle("Debug Controls");
       this.selectMode({ mode: "controller", managerId: managerId, debug: true });
+      window.onbeforeunload = function () {
+        return "Warning: Leaving this page will lose all application state.";
+      }
     },
 
     loadDebugControllerView: function (view) {
