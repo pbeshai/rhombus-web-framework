@@ -225,5 +225,13 @@ function (App, Participant) {
     }
   });
 
+  // model for updating complex views
+  CommonModels.ViewModel = Backbone.Model.extend({
+    sync: function () {
+      App.controller.appController.updateView(this.attributes);
+      this.changed = {};
+    }
+  });
+
   return CommonModels;
 });
