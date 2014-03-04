@@ -176,9 +176,10 @@ function (App, ParticipantServer, AppController, ViewControls, Participant,
       console.log("[router: debug controller]", managerId);
       App.setTitle("Debug Controls");
       this.selectMode({ mode: "controller", managerId: managerId, debug: true });
-      window.onbeforeunload = function () {
-        return "Warning: Leaving this page will lose all application state.";
-      }
+      console.log("@@@@@@@@@@ DEBUG MODE NO LONGER HAS CONFIRM.");
+      // window.onbeforeunload = function () {
+      //   return "Warning: Leaving this page will lose all application state.";
+      // }
     },
 
     loadDebugControllerView: function (view) {

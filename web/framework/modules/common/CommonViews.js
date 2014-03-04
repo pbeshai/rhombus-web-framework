@@ -906,8 +906,6 @@ function (App, CommonModels) {
       if (!$scrollEl.length) {
         $scrollEl = this.$el.find("li.active");
       }
-      console.log("scroll el is", $scrollEl[0]);
-      console.log(".states", this.$el.find(".states"));
 
       if ($scrollEl.length) {
         $states.scrollTo($scrollEl, 200);
