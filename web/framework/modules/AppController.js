@@ -43,7 +43,7 @@ define([
 		},
 
 		appMessageCallback: function (data) {
-			console.log("app message received", data);
+			if (debug) { console.log("app message received", data); }
 			if (data.type) {
 				this.trigger(data.type, data.message);
 			}

@@ -168,9 +168,16 @@ bucket(rgba(58, 12, 0, 0.85), ".bucket-red")
 	transition: 1s background-color;
 }
 
+.overlay.fast-transition {
+	transition: .2s background-color;
+}
+
 .overlay.no-animate {
 	transition: none;
 }
+
+.overlay.transparent
+	background-color transparent;
 
 .overlay.choice-a, .overlay.green
 	background-color rgba(48, 241, 0, 0.5)
@@ -192,6 +199,9 @@ bucket(rgba(58, 12, 0, 0.85), ".bucket-red")
 
 .overlay.light-dim, .overlay.player.message
 	background-color: rgba(37, 16, 0, 0.4)
+
+.overlay.red
+	background-color: rgba(243, 32, 32, 0.7)
 
 .overlay.highlight
 	background-color: rgba(192, 215, 255, 0.7);
