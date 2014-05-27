@@ -8,7 +8,7 @@
 	<div class="states <% if (viewsOnly) { print("view-states-only") } %>">
 		<ul class="inline">
 		<% _.each(states, function (s) { %>
-			<li class="type-<%= s.type %> <% if (s.id === currentState.id) { %>active<% } %>"><span class="state-inner"><%= s.toHtml() %></span></li>
+			<li class="type-<%= s.type %> <% if (s.id === currentState.id) { %>active<% } %> <% if (s.states && s.states.length > 15) { print('many-states-state') }%>"><span class="state-inner"><%= s.toHtml() %></span></li>
 		<% }) %>
 		</ul>
 	</div>
