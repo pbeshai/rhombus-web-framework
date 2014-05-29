@@ -63,7 +63,7 @@ define([
 		},
 
 		clearView: function (viewer) {
-			console.log("clearing view", viewer);
+			// console.log("clearing view", viewer);
 			this.sendAppMessage("load-view", { view: null });
 		},
 
@@ -79,7 +79,7 @@ define([
 		},
 
 		updateSystem: function (data) {
-			console.log("updating system", data);
+			// console.log("updating system", data);
 			this.sendAppMessage("update-system", data);
 		},
 

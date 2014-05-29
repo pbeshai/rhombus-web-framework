@@ -258,7 +258,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 
 		// update the data used to draw the view
 		updateView: function (data) {
-			console.log("update view data", data);
+			// console.log("update view data", data);
 
 			var mainView = App.getMainView();
 
