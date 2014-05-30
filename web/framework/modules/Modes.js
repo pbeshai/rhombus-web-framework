@@ -236,7 +236,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 		},
 
 		loadView: function (data) {
-			console.log("viewer got load view", data);
+			// console.log("viewer got load view", data);
 
 			if (data.view == null) {
 				App.router.loadViewerView();
