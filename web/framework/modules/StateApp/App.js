@@ -123,6 +123,14 @@ function (App) {
 			});
 		},
 
+		update: function (data) {
+			// update function that can typically be triggered when views send information to the controller
+			var currentState = this.get("currentState");
+			if (currentState && currentState.update) {
+				currentState.update(data);
+			}
+		},
+
 		addLogData: function (data) {
 			this.logData = _.extend(this.logData || {}, data);
 		},

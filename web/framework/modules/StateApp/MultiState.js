@@ -304,6 +304,12 @@ function (App, State, ViewState) {
 					state.handleConfigure();
 				}
 			});
+		},
+
+		update: function (data) {
+			if (this.currentState && this.currentState.update) {
+				this.currentState.update(data);
+			}
 		}
 	});
 

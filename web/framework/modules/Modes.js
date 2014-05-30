@@ -89,6 +89,7 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 			this.appController = new AppController.Model({ socket: attrs.socket });
 			this.participantUpdater = new ParticipantUpdater();
 
+			this.listenTo(this.appController, "update-controller", this.updateController);
 			this.handleInstructor();
 			this.handleViewers();
 
@@ -215,6 +216,13 @@ function (App, ParticipantServer, AppController, Common, Participant) {
 
 		updateSystem: function () {
 			this.appController.updateSystem(this.get("system").attributes);
+		},
+
+		updateController: function (data) {
+			var activeApp = this.get("activeApp");
+			if (activeApp.update) {
+				activeApp.update(data);
+			}
 		},
 
 		addCountdown: function () {

@@ -184,6 +184,10 @@ function (App, StateMessage) {
 			}
 		},
 
+		// a hook for states to be updated (Typically via update-controller call in AppController)
+		// e.g. a view sends an update
+		update: function (data) {},
+
 		// can be called when a state app configures itself (perhaps a new config is set)
 		handleConfigure: function (active) {}
 	});

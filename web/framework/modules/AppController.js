@@ -78,6 +78,17 @@ define([
 			this.sendAppMessage("update-view", data); // TODO add viewer , viewer: viewer });
 		},
 
+		updateController: function (data) {
+			if (debug) { console.log("update controller", data); }
+			// make JSON friendly
+			_.each(_.keys(data), function (key) {
+				if (data[key] && data[key].toJSON) {
+					data[key] = data[key].toJSON();
+				}
+			});
+			this.sendAppMessage("update-controller", data);
+		},
+
 		updateSystem: function (data) {
 			// console.log("updating system", data);
 			this.sendAppMessage("update-system", data);
