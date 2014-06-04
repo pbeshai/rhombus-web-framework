@@ -146,8 +146,8 @@ function (App) {
 				flags: flags
 			}, this.logData);
 
-			// console.log("Logging", this.logApiCall, logData);
-			// console.log(JSON.stringify(logData)); // dump to console in case something goes wrong
+			console.log("Logging", this.logApiCall, logData);
+			console.log(JSON.stringify(logData)); // dump to console in case something goes wrong
 			App.api({ call: this.logApiCall, type: "post", data: logData });
 		},
 
