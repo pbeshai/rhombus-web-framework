@@ -11,7 +11,7 @@ define([
 	"framework/modules/Clicker",
 	"framework/modules/Apps",
 
-	"framework/util/jquery/jQuery.psToggleButton"
+	"framework/util/jquery/jquery.psToggleButton"
 ],
 
 function (App, Common, Clicker, Apps) {

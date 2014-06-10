@@ -9,7 +9,7 @@ define([
 
 	"framework/modules/Participant",
 
-	"framework/util/jquery/jQuery.toggleButton",
+	"framework/util/jquery/jquery.toggleButton",
 	"vendor/bootstrap/js/bootstrap", // for button bar radio
 ],
 
