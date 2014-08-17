@@ -155,7 +155,7 @@ define([
 		},
 
 		setTitle: function (subtitle) {
-			var title = "Rhombus Participation System";
+			var title = "Rhombus Classroom Synchronous Participation System";
 			if (!_.isEmpty(subtitle)) {
 				title = subtitle + " - " + title;
 			}
