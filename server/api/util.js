@@ -9,6 +9,10 @@ module.exports = {
 	teamPhaseMatrixResults: teamPhaseMatrixResults
 };
 
+var fs = require('fs'),
+	_ = require('lodash'),
+	logger = require("../../../log/logger");
+
 
 function z(str) { // add leading zero
 	return ("0"+str).slice(-2);
@@ -31,6 +35,9 @@ function phaseMatrixResults(req, res, appDir, appName, numPhases, choiceMap) {
 		return;
 	}
 
+	if (!fs.existsSync("log/" + appDir)) {
+		fs.mkdirSync("log/" + appDir); // ensure the directory exists
+	}
 	var stream = fs.createWriteStream("log/" +appDir + "/results." + filenameFormat(now) + ".csv");
 	stream.once('open', function(fd) {
 		function output (str) {
@@ -235,6 +242,12 @@ function roundResults(req, res, appDir, appName, choiceMap, participantDataFunc,
 	var roundsPerPhase = config.roundsPerPhase || config.numRepeats;
 	participantAttributes = participantAttributes || [ "choice", "score", "partner" ];
 
+	if (!fs.existsSync("log/" + appDir)) {
+		fs.mkdirSync("log/" + appDir); // ensure the directory exists
+	}
+	if (!fs.existsSync("log/" + appDir + "/rounds")) {
+		fs.mkdirSync("log/" + appDir + "/rounds"); // ensure the directory exists
+	}
 	var stream = fs.createWriteStream("log/" +appDir + "/rounds/round_results." + filenameFormat(now) + ".csv");
 	stream.once('open', function(fd) {
 		function output (str) {
@@ -347,7 +360,9 @@ function teamPhaseMatrixResults(req, res, appDir, appName, numPhases, choiceMap)
 		return;
 	}
 
-
+if (!fs.existsSync("log/" + appDir)) {
+		fs.mkdirSync("log/" + appDir); // ensure the directory exists
+	}
 	var stream = fs.createWriteStream("log/" +appDir + "/results." + filenameFormat(now) + ".csv");
 	stream.once('open', function(fd) {
 		function output (str) {
