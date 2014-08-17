@@ -21,13 +21,13 @@ function initialize(site, initConfig) {
 	site.get("/api/participants", listParticipants);
 	site.delete("/api/participants", deleteParticipants);
 	site.get("/api/apps", listApps);
+	site.get("/api/app_styles", appStyles);
 	site.all("/api/*", handle);
 
 	initConfig = initConfig || {};
 	_.extend(dbConfig, initConfig.database);
 
 	logger.info("api initialized, using dbConfig", { dbConfig: dbConfig });
-
 }
 
 
@@ -81,6 +81,42 @@ function listApps(req, res) {
 			'var apps = Array.prototype.slice.call(arguments, 1);' +
 			'return _.map(apps, function (app) { return app.app; });' +
 			' });');
+	});
+}
+
+// function to import all index.styl and index.css from apps/APP/style/ directories
+// should be linked as css in an index.html
+function appStyles(req, res) {
+	var baseDir = "app/web/app/";
+	var appsDir = "apps";
+	var styles = [];
+
+	fs.readdir(baseDir + appsDir, function (err, files) {
+		if (err) {
+			logger.error(err);
+			res.send(500);
+			return;
+		}
+		files.forEach(function (file) {
+			var path = baseDir + appsDir + "/" + file;
+			var stat = fs.statSync(path);
+			if (stat && stat.isDirectory()) {
+				// match either index.styl or index.css, defaulting to index.styl if both
+				if (fs.existsSync(path + "/styles/index.styl")) {
+					styles.push(appsDir + "/" + file + "/styles/index.styl");
+				} else if (fs.existsSync(path + "/styles/index.css")) {
+					styles.push(appsDir + "/" + file + "/styles/index.css");
+				}
+			}
+		});
+
+
+		var cssString = styles.map(function (style) {
+			return '@import "/app/' + style + '";';
+		}).join("\n");
+
+		res.set("Content-Type", "text/css");
+		res.send(200, cssString);
 	});
 }
 
