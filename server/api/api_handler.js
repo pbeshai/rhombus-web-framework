@@ -4,9 +4,9 @@ module.exports = {
 	initialize: initialize
 };
 
-var fs = require('fs')
-	, sqlite3 = require('sqlite3').verbose()
-	, _ = require('lodash'),
+var fs = require('fs'),
+	sqlite3 = require('sqlite3').verbose(),
+	_ = require('lodash'),
 	logger = require("../../../log/logger");
 
 var dbConfig = {
@@ -15,6 +15,8 @@ var dbConfig = {
 };
 
 function initialize(site, initConfig) {
+	initApps(site, initConfig); // initialize api for individual apps by reading server/api.js files
+
 	site.post("/api/participants", registerParticipants);
 	site.get("/api/participants", listParticipants);
 	site.delete("/api/participants", deleteParticipants);
@@ -25,6 +27,24 @@ function initialize(site, initConfig) {
 	_.extend(dbConfig, initConfig.database);
 
 	logger.info("api initialized, using dbConfig", { dbConfig: dbConfig });
+
+}
+
+
+
+// go through all the user's app directories, look for the server subfolder and run the api file in there.
+function initApps(site, initConfig) {
+	var appsDir = "app/web/app/apps";
+
+	var files = fs.readdirSync(appsDir); // must be done synchronously to prevent site.all("/api/*") taking over
+
+	files.forEach(function (file) {
+		var apijsPath = appsDir + "/" + file + "/server/api.js";
+		if (fs.existsSync(apijsPath)) { // api js exists
+			logger.info("Initializing " + file + " API from " + apijsPath + " ...");
+			require("../../../" + apijsPath).init(site, initConfig); // require needs path relative to this file
+		}
+	});
 }
 
 // generates a js file with the dependencies for all applications in app/web/app/apps and the apps provided in framework.
