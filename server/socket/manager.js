@@ -90,7 +90,8 @@ _.extend(Manager.prototype, {
 		logger.info(this.id + ": msg from " + this.controller, { msg: message });
 		var mId = this.id;
 		_.each(this.viewers, function (viewer) {
-			if (!message.viewer || viewer.id === message.viewer) {
+			// possibility that a viewer has disconnected and not yet been pruned, so ensure not null
+			if (viewer != null && (!message.viewer || viewer.id === message.viewer)) {
 				logger.info(mId + ":       to " + viewer);
 				viewer.sendAppMessage(message);
 			}
